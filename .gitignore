@@ -136,3 +136,7 @@ dmypy.json
 
 # Additional
 scripts/
+
+# Stan Compilation 
+*.hpp
+*.exe
