@@ -9,6 +9,14 @@ from cmdstanpy import (
 
 from typing import Optional, Union, List, Callable
 
+import json
+
+from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
+from sklearn.exceptions import NotFittedError
+from sklearn.utils.validation import check_X_y, check_array, check_is_fitted, check_consistent_length
+from sklearn.utils.multiclass import unique_labels
+
+
 BLR_STAN_FILE = './stanfiles/nvblinreg.stan' # basic non-vectorized linear regression
 DEFAULT_FAKE_DATA = '../data/fake_data.json' # simulated data
 
@@ -19,7 +27,7 @@ method_dict = {
 }
 
 
-class BLRsim: 
+class BLREstimator(BaseEstimator): 
     def __init__(self, 
         posterior_function:Optional[str]= "HMC-NUTS",
     ) -> None:  
@@ -43,8 +51,8 @@ class BLRsim:
         self._sigma         : Optional[float] = None
         self._sigma_samples : Optional[List]  = None
 
-        self.pfunctag       : str             = posterior_function
-        self.posterior_function  : Callable        = method_dict[self.pfunctag] 
+        self.pfunctag           : str       = posterior_function
+        self.posterior_function : Callable  = method_dict[self.pfunctag] 
 
         self.model = CmdStanModel(stan_file=BLR_STAN_FILE)
 
@@ -55,23 +63,34 @@ class BLRsim:
 
 
     # NOTE: fit parameters should be restricted to directly data dependent variables
+    # TODO: use typing.ArrayLike... some import version issue present atm 
     def fit(
-            self, 
+            self,
+            x : Optional[List] = None, 
+            y : Optional[List] = None,
             data_path:Optional[str] = DEFAULT_FAKE_DATA,
         ) -> Union[CmdStanMCMC, CmdStanVB, CmdStanMLE]: 
         """
         Fits the BLR object to given data, with the default being the fake data set from 6/6. 
 
-        :param data_file: path to data source in the form of rows containing x and y labels of simulated data 
-        :param alg: specified posterior sampling or approximating algorithm 
-        :param method: (not implemented), see comment in email 
+        :param x: 
+        :param y: 
+        :param data_file: (optional) path to data source in the form of rows containing x and y labels of simulated data 
 
         :return: an object in this construct: Union[CmdStanMCMC, CmdStanVB, CmdStanMLE]. Note that GenGQ requires an MCMC samples 
                  in order to function and is thus not provided in the fit() function; could be included as some chain from sample() -> GQ?
         """
         #NOTE: currently only for MCMC, but others can be supported with other methods by passing another method string in, like
         # in the mapping set up above 
-        vb_fit = self.posterior_function(self.model, data=data_path, show_console=True)
+        try: 
+            check_consistent_length(x, y)
+        except ValueError:
+            return
+
+        if x and y: 
+            vb_fit = self.posterior_function(self.model, data={"x":x, "y":y, "N": len(x)}, show_console=True)
+        else: 
+            vb_fit = self.posterior_function(self.model, data=data_path, show_console=True)
 
         stan_vars = vb_fit.stan_variables()
         if self.pfunctag in "HMC-NUTS": 
@@ -83,12 +102,32 @@ class BLRsim:
             self._alpha_samples = stan_vars['alpha']
             self._beta_samples  = stan_vars['beta']
             self._sigma_samples = stan_vars['sigma']
+
+            # sk-learn estimators require an is_fitted_ field post-fit()
+            self.is_fitted_ = True
         else: 
             self._alpha = stan_vars['alpha']
             self._beta  = stan_vars['beta']
             self._sigma = stan_vars['sigma']
 
-        return vb_fit
+
+        return self
+
+
+    def predict(self, X): 
+
+        try: 
+            check_is_fitted(self, 'is_fitted_')
+        except NotFittedError:
+            # TODO: can perform this by default and keep some store of data from some previous interaction  
+            print("No MCMC samples generated for this instance, execute .fit() with input data and HMC-NUTS.")
+            return
+
+            #print("No MCMC samples generated, performing the operation now.")
+            #cb_fit = self.model.sample(data=)
+        
+                
+        pass
 
 
     @property
@@ -128,17 +167,30 @@ class BLRsim:
 
 
 if __name__ == '__main__': 
-    blrsimdefault = BLRsim()
-    blrsimdefault.fit()
+    with open("../data/fake_data.json") as file: 
+        jsondat = json.load(file)
+
+    xdat = jsondat['x']
+    ydat = jsondat['y']
+
+    blrsimdefault = BLREstimator()
+    blrsimdefault.fit(x=xdat, y=ydat)
     print(blrsimdefault.__repr__())
 
-    bsimvi = BLRsim(posterior_function="Variational")
+    bsimvi = BLREstimator(posterior_function="Variational")
     bsimvi.fit()
     print(bsimvi.__repr__())
 
-    bsimmle = BLRsim(posterior_function="MLE")
-    bsimmle.fit()
+    bsimmle = BLREstimator(posterior_function="MLE")
+    bsimmle.fit(x=xdat, y=ydat)
     print(bsimmle.__repr__())
+
+    bexception = BLREstimator()
+    bexception.predict(xdat) #expected failure, might as well start writing a test suite at some point TODO
+    
+    bsimviexception = BLREstimator(posterior_function="Variational")
+    bsimviexception.fit()
+    bsimviexception.predict(xdat) # expected failure
 
     # NOTE: the data generation example is dependent on a previous MCMC object, can't be called on the raw model, encapsulate in predict() 
     #bsimgen = BLRsim(posterior_function="Gen")
