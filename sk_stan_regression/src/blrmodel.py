@@ -21,6 +21,7 @@ if __name__ == "__main__":
         "./stanfiles/nvblinreg.stan"  # basic non-vectorized linear regression
     )
     DEFAULT_FAKE_DATA = "../data/fake_data.json"  # simulated data
+    BLR_NORMAL_SAMPLE_FILE = "./stanfiles/sample_normal.stan"
 else:
     BLR_STAN_FILE = "../sk_stan_regression/src/stanfiles/nvblinreg.stan"  # basic non-vectorized linear regression
     DEFAULT_FAKE_DATA = "../data/fake_data.json"  # simulated data
@@ -53,6 +54,9 @@ class BLR_Estimator(BaseEstimator):
         self._beta_samples: Optional[List] = None
         self._sigma: Optional[float] = None
         self._sigma_samples: Optional[List] = None
+
+        self.Xtrain = None
+        self.ytrain = None
 
         self.pfunctag: str = posterior_function
         self.posterior_function: Callable = method_dict[self.pfunctag]
@@ -102,10 +106,15 @@ class BLR_Estimator(BaseEstimator):
             vb_fit = self.posterior_function(
                 self.model, data={"x": X, "y": y, "N": len(X)}, show_console=True
             )
+            self.Xtrain = X
+            self.ytrain = y
         else:
             vb_fit = self.posterior_function(
                 self.model, data=data_path, show_console=True
             )
+            self.Xtrain = json.load(data_path)["x"]
+            self.ytrain = json.load(data_path)["y"]
+
 
         stan_vars = vb_fit.stan_variables()
         if self.pfunctag in "HMC-NUTS":
@@ -127,9 +136,16 @@ class BLR_Estimator(BaseEstimator):
 
         return self
 
-    def predict(self, X: Optional[List] = None):
+    def predict(
+            self, 
+            X: Optional[List] = None,
+            num_iterations: Optional[int] = 1000,
+            num_chains: Optional[int] = 4
+        ):
         """
         Utilizes a fitted model with previous data to generate additional quantities.
+
+        :param: 
         """
         try:
             check_is_fitted(self, "is_fitted_")
@@ -139,6 +155,29 @@ class BLR_Estimator(BaseEstimator):
                 "No MCMC samples generated for this instance, execute .fit() with input data and HMC-NUTS."
             )
             return
+        
+        # can't really set the default value of X in the 
+        # argument list to self.Xtrain - recursion
+        if not X: 
+            X = self.Xtrain
+        
+        data = {
+                "N": len(X), 
+                "X": X, 
+                "alpha": self.alpha, 
+                "beta": self.beta, 
+                "sigma": self.sigma 
+                }
+
+        sm = CmdStanModel(stan_file=BLR_NORMAL_SAMPLE_FILE)
+
+        samples = sm.sample(data=data, iter_sampling=num_iterations, chains=num_chains)
+
+
+        print(samples.stan_variables())
+
+
+
 
         pass
 
@@ -180,27 +219,32 @@ if __name__ == "__main__":
     xdat = jsondat["x"]
     ydat = jsondat["y"]
 
-    blrsimdefault = BLR_Estimator()
-    blrsimdefault.fit(X=xdat, y=ydat)
-    print(blrsimdefault.__repr__())
+    blrpred = BLR_Estimator()
+    blrpred.fit(X=xdat, y=ydat)
+    blrpred.predict(X=xdat)
 
-    bsimvi = BLR_Estimator(posterior_function="Variational")
-    bsimvi.fit()
-    print(bsimvi.__repr__())
+#
+    #blrsimdefault = BLR_Estimator()
+    #blrsimdefault.fit(X=xdat, y=ydat)
+    #print(blrsimdefault.__repr__())
+#
+    #bsimvi = BLR_Estimator(posterior_function="Variational")
+    #bsimvi.fit()
+    #print(bsimvi.__repr__())
+#
+    #bsimmle = BLR_Estimator(posterior_function="MLE")
+    #bsimmle.fit(X=xdat, y=ydat)
+    #print(bsimmle.__repr__())
+#
+    #bexception = BLR_Estimator()
+    #bexception.predict(
+    #    xdat
+    #)  # expected failure, might as well start writing a test suite at some point TODO
 
-    bsimmle = BLR_Estimator(posterior_function="MLE")
-    bsimmle.fit(X=xdat, y=ydat)
-    print(bsimmle.__repr__())
-
-    bexception = BLR_Estimator()
-    bexception.predict(
-        xdat
-    )  # expected failure, might as well start writing a test suite at some point TODO
-
-    bsimviexception = BLR_Estimator(posterior_function="Variational")
-    bsimviexception.fit()
-    bsimviexception.predict(xdat)  # expected failure
-
+    #bsimviexception = BLR_Estimator(posterior_function="Variational")
+    #bsimviexception.fit()
+    #bsimviexception.predict(xdat)  # expected failure
+#
     # NOTE: the data generation example is dependent on a previous MCMC object, can't be called on the raw model, encapsulate in predict()
     # bsimgen = BLRsim(posterior_function="Gen")
     # bsimgen.fit()
