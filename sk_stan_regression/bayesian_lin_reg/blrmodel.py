@@ -2,10 +2,13 @@
 
 from cmdstanpy import CmdStanMLE, CmdStanVB, CmdStanModel, CmdStanMCMC
 
-from typing import Optional, Union, List, Callable
+from typing import Optional, Union, Callable
+
+from numpy.typing import ArrayLike
 
 import json
 
+# TODO: mover this to ./test/ 
 from sk_stan_regression.utils.validation import check_is_fitted, check_consistent_length
 
 # TODO: should create an abstract class to manage these things instead of importing from sklearn. what kinds of fucntionality should the abstract classes have?
@@ -42,38 +45,38 @@ class BLR_Estimator:
         :param sigma_samples: samples generated from the posterior for model error scale
         :param posterior_func: algorithm that performs an operation on the posterior 
         """
-        self._alpha: Optional[float] = None  # posterior mean of the slope
-        self._alpha_samples: Optional[List] = None  # slope draws
-        self._beta: Optional[float] = None
-        self._beta_samples: Optional[List] = None
-        self._sigma: Optional[float] = None
-        self._sigma_samples: Optional[List] = None
+        self.alpha_: Optional[float] = None  # posterior mean of the slope
+        self.alpha_samples_: Optional[ArrayLike] = None  # slope draws
+        self.beta_: Optional[float] = None
+        self.beta_samples_: Optional[ArrayLike] = None
+        self.sigma_: Optional[float] = None
+        self.sigma_samples_: Optional[ArrayLike] = None
 
-        self.Xtrain = None
-        self.ytrain = None
+        self.Xtrain_ = None
+        self.ytrain_ = None
 
         self.pfunctag: str = posterior_function
-        self.posterior_function: Callable = method_dict[self.pfunctag]
+        self.posterior_function_: Callable = method_dict[self.pfunctag]
 
-        self.model = CmdStanModel(stan_file=BLR_STAN_FILE)
+        self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
 
     # NOTE: not really needed since super() gives a representation method
     def __repr__(self) -> str:
         return "<BLR_Estimator: alpha={}, alpha_samples={}, beta={}, beta_samples={}, sigma={}, sigma_samples={}>".format(
-            self.alpha,
-            self.alpha_samples,
-            self.beta,
-            self.beta_samples,
-            self.sigma,
-            self.sigma_samples,
+            self.alpha_,
+            self.alpha_samples_,
+            self.beta_,
+            self.beta_samples_,
+            self.sigma_,
+            self.sigma_samples_,
         )
 
     # NOTE: fit parameters should be restricted to directly data dependent variables
-    # TODO: use typing.ArrayLike... some import version issue present atm
+    # TODO: remove json capability
     def fit(
         self,
-        X: Optional[List] = None,
-        y: Optional[List] = None,
+        X: Optional[ArrayLike] = None,
+        y: Optional[ArrayLike] = None,
         data_path: Optional[str] = DEFAULT_FAKE_DATA,
     ) -> Union[CmdStanMCMC, CmdStanVB, CmdStanMLE]:
         """
@@ -97,34 +100,34 @@ class BLR_Estimator:
         # ensure that the X and y that are passed in are the primary data fields being used
 
         if X and y:
-            vb_fit = self.posterior_function(
-                self.model, data={"x": X, "y": y, "N": len(X)}, show_console=True
+            vb_fit = self.posterior_function_(
+                self.model_, data={"x": X, "y": y, "N": len(X)}, show_console=True
             )
-            self.Xtrain = X
-            self.ytrain = y
+            self.Xtrain_ = X
+            self.ytrain_ = y
         else:
-            vb_fit = self.posterior_function(
-                self.model, data=data_path, show_console=True
+            vb_fit = self.posterior_function_(
+                self.model_, data=data_path, show_console=True
             )
-            self.Xtrain = json.load(data_path)["x"]
-            self.ytrain = json.load(data_path)["y"]
+            self.Xtrain_ = json.load(data_path)["x"]
+            self.ytrain_ = json.load(data_path)["y"]
 
         stan_vars = vb_fit.stan_variables()
         if self.pfunctag in "HMC-NUTS":
             summary_df = vb_fit.summary()
-            self._alpha = summary_df.at["alpha", "Mean"]
-            self._beta = summary_df.at["beta", "Mean"]
-            self._sigma = summary_df.at["sigma", "Mean"]
+            self.alpha_ = summary_df.at["alpha", "Mean"]
+            self.beta_= summary_df.at["beta", "Mean"]
+            self.sigma_ = summary_df.at["sigma", "Mean"]
 
-            self._alpha_samples = stan_vars["alpha"]
-            self._beta_samples = stan_vars["beta"]
-            self._sigma_samples = stan_vars["sigma"]
+            self.alpha_samples_ = stan_vars["alpha"]
+            self.beta_samples_ = stan_vars["beta"]
+            self.sigma_samples_ = stan_vars["sigma"]
 
             # estimators require an is_fitted_ field post-fit
         else:
-            self._alpha = stan_vars["alpha"]
-            self._beta = stan_vars["beta"]
-            self._sigma = stan_vars["sigma"]
+            self.alpha_ = stan_vars["alpha"]
+            self.beta_ = stan_vars["beta"]
+            self.sigma_ = stan_vars["sigma"]
 
         self.is_fitted_ = True
 
@@ -132,7 +135,7 @@ class BLR_Estimator:
 
     def predict(
         self,
-        X: Optional[List] = None,
+        X: Optional[ArrayLike] = None,
         num_iterations: Optional[int] = 1000,
         num_chains: Optional[int] = 4,
     ):
@@ -152,14 +155,14 @@ class BLR_Estimator:
             # this defines default behavior for predict();
             # if no data is passed, then just generate
             # additional data from the data used to fit
-            X = self.Xtrain
+            X = self.Xtrain_
 
         data = {
             "N": len(X),
             "X": X,
-            "alpha": self.alpha,
-            "beta": self.beta,
-            "sigma": self.sigma,
+            "alpha": self.alpha_,
+            "beta": self.beta_,
+            "sigma": self.sigma_,
         }
 
         sm = CmdStanModel(stan_file=BLR_NORMAL_SAMPLE_FILE)
@@ -171,32 +174,32 @@ class BLR_Estimator:
     @property
     def alpha(self) -> Optional[float]:
         """Posterior mean for regression intercept."""
-        return self._alpha
+        return self.alpha_
 
     @property
-    def alpha_samples(self) -> Optional[list]:
+    def alpha_samples(self) -> Optional[ArrayLike]:
         """Samples generated from posterior for regression intercept."""
-        return self._alpha_samples
+        return self.alpha_samples_
 
     @property
     def beta(self) -> Optional[float]:
         """Posterior mean for regression slope."""
-        return self._beta
+        return self.beta_
 
     @property
-    def beta_samples(self) -> Optional[list]:
+    def beta_samples(self) -> Optional[ArrayLike]:
         """Samples generated from posterior for regression slope."""
-        return self._beta_samples
+        return self.beta_samples_
 
     @property
     def sigma(self) -> Optional[float]:
         """Posterior mean for regression error scale."""
-        return self._sigma
+        return self.sigma_
 
     @property
-    def sigma_samples(self) -> Optional[list]:
+    def sigma_samples(self) -> Optional[ArrayLike]:
         """Samples generated from posterior for regression error scale."""
-        return self._sigma_samples
+        return self.sigma_samples_
 
 
 class BLR_Estimator_V:
@@ -209,11 +212,11 @@ class BLR_Estimator_V:
 
     def __init__(self, posterior_function):
         self.alpha_: Optional[float] = None  # posterior mean of the slope
-        self.alpha_samples_: Optional[List] = None  # slope draws
-        self.beta_: Optional[List] = None
-        self.beta_samples_: Optional[List] = None
+        self.alpha_samples_: Optional[ArrayLike] = None  # slope draws
+        self.beta_: Optional[ArrayLike] = None
+        self.beta_samples_: Optional[ArrayLike] = None
         self.sigma_: Optional[float] = None
-        self.sigma_samples_: Optional[List] = None
+        self.sigma_samples_: Optional[ArrayLike] = None
 
         self.Xtrain_ = None
         self.ytrain_ = None
@@ -237,17 +240,17 @@ class BLR_Estimator_V:
         return self.alpha_
 
     @property
-    def alpha_samples(self) -> Optional[list]:
+    def alpha_samples(self) -> Optional[ArrayLike]:
         """Samples generated from posterior for regression intercept."""
         return self.alpha_samples_
 
     @property
-    def beta(self) -> Optional[list]:
+    def beta(self) -> Optional[ArrayLike]:
         """Posterior mean for regression slope."""
         return self.beta_
 
     @property
-    def beta_samples(self) -> Optional[list]:
+    def beta_samples(self) -> Optional[ArrayLike]:
         """Samples generated from posterior for regression slope."""
         return self.beta_samples_
 
@@ -257,7 +260,7 @@ class BLR_Estimator_V:
         return self.sigma_
 
     @property
-    def sigma_samples(self) -> Optional[list]:
+    def sigma_samples(self) -> Optional[ArrayLike]:
         """Samples generated from posterior for regression error scale."""
         return self.sigma_samples_
 
