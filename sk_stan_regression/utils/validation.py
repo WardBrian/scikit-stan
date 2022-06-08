@@ -3,7 +3,7 @@ import numpy as np
 
 from inspect import isclass
 
-from ..exceptions import NotFittedError
+# from ..exceptions import NotFittedError
 
 
 # taken from official sklearn repo
@@ -64,8 +64,8 @@ def check_is_fitted(estimator, attributes=None, *, msg=None, all_or_any=all):
             v for v in vars(estimator) if v.endswith("_") and not v.startswith("__")
         ]
 
-    if not fitted:
-        raise NotFittedError(msg % {"name": type(estimator).__name__})
+    # if not fitted:
+    #    raise NotFittedError(msg % {"name": type(estimator).__name__})
 
 
 def check_consistent_length(*arrays):

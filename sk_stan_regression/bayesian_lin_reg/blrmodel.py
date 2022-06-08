@@ -7,14 +7,13 @@ from typing import Optional, Union, List, Callable
 import json
 
 from sk_stan_regression.utils.validation import check_is_fitted, check_consistent_length
-from sk_stan_regression.exceptions import NotFittedError
 
 # TODO: should create an abstract class to manage these things instead of importing from sklearn. what kinds of fucntionality should the abstract classes have?
-from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 
-# TODO: fix these paths 
+# TODO: fix these paths
 if __name__ == "__main__":
     BLR_STAN_FILE = "./nvblinreg.stan"  # basic non-vectorized linear regression
+    BLR_VECTORIZED_STAN_FILE = "./blinregvectorized.stan"  # vectorized linear regression that should supersede the non-vectorized version above
     DEFAULT_FAKE_DATA = "../data/fake_data.json"  # simulated data
     BLR_NORMAL_SAMPLE_FILE = "./sample_normal.stan"
 else:
@@ -28,7 +27,7 @@ method_dict = {
 }
 
 
-class BLR_Estimator(BaseEstimator):
+class BLR_Estimator:
     def __init__(self, posterior_function: Optional[str] = "HMC-NUTS",) -> None:
         """
         Initialization of non-vectorized BLR from given data and chosen posterior operation algorithm. TODO needs greater granularity  
@@ -39,7 +38,7 @@ class BLR_Estimator(BaseEstimator):
         :param alpha_samples: samples generated from the posterior for model intercept 
         :param beta: posterior mean of slope of the linear regression
         :param beta_samples: samples generated from the posterior for model slope
-        :param sigma: posterior mean of error scale of the linear regressoin 
+        :param sigma: posterior mean of error scale of the linear regression  
         :param sigma_samples: samples generated from the posterior for model error scale
         :param posterior_func: algorithm that performs an operation on the posterior 
         """
@@ -142,10 +141,12 @@ class BLR_Estimator(BaseEstimator):
 
         :param X:  
         """
-        try:
-            check_is_fitted(self, "is_fitted_")
-        except NotFittedError:
-            return
+        # TODO
+        # try:
+        #    check_is_fitted(self, "is_fitted_")
+
+        # except NotFittedError:
+        #    return
 
         if not X:
             # this defines default behavior for predict();
@@ -196,6 +197,69 @@ class BLR_Estimator(BaseEstimator):
     def sigma_samples(self) -> Optional[list]:
         """Samples generated from posterior for regression error scale."""
         return self._sigma_samples
+
+
+class BLR_Estimator_V:
+    """
+    Vectorized, multidimensional version of the BLR Estimator above. Note that the intercept alpha and error scale sigma remain as scalar values while beta becomes a vector.
+
+    This should supersede the class above (?) as it is a special case -- K = 1 in the above class. 
+
+    """
+
+    def __init__(self, posterior_function):
+        self.alpha_: Optional[float] = None  # posterior mean of the slope
+        self.alpha_samples_: Optional[List] = None  # slope draws
+        self.beta_: Optional[List] = None
+        self.beta_samples_: Optional[List] = None
+        self.sigma_: Optional[float] = None
+        self.sigma_samples_: Optional[List] = None
+
+        self.Xtrain_ = None
+        self.ytrain_ = None
+
+        self.pfunctag: str = posterior_function
+        self.posterior_function: Callable = method_dict[self.pfunctag]
+
+        self.is_fitted = None
+
+        self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
+
+    def fit():
+        pass
+
+    def predict():
+        pass
+
+    @property
+    def alpha(self) -> Optional[float]:
+        """Posterior mean for regression intercept."""
+        return self.alpha_
+
+    @property
+    def alpha_samples(self) -> Optional[list]:
+        """Samples generated from posterior for regression intercept."""
+        return self.alpha_samples_
+
+    @property
+    def beta(self) -> Optional[list]:
+        """Posterior mean for regression slope."""
+        return self.beta_
+
+    @property
+    def beta_samples(self) -> Optional[list]:
+        """Samples generated from posterior for regression slope."""
+        return self.beta_samples_
+
+    @property
+    def sigma(self) -> Optional[float]:
+        """Posterior mean for regression error scale."""
+        return self.sigma_
+
+    @property
+    def sigma_samples(self) -> Optional[list]:
+        """Samples generated from posterior for regression error scale."""
+        return self.sigma_samples_
 
 
 if __name__ == "__main__":

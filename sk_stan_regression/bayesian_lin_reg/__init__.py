@@ -2,6 +2,6 @@
 Module for Bayesian linear regression.
 """
 
-from sk_stan_regression.bayesian_lin_reg.blrmodel import BLR_Estimator
+from .blrmodel import BLR_Estimator, BLR_Estimator_V
 
-__all__ = ["BLR_Estimator"]
+__all__ = ["BLR_Estimator", "BLR_Eestimator_V"]
