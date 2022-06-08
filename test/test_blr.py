@@ -1,7 +1,7 @@
 """Tests with confirmation from sklearn for linear regression."""
 
-import sys
 import os
+import sys
 
 import sk_stan_regression
 

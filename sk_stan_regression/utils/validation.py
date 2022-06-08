@@ -1,7 +1,7 @@
 import numbers
-import numpy as np
-
 from inspect import isclass
+
+import numpy as np
 
 # from ..exceptions import NotFittedError
 
@@ -61,7 +61,9 @@ def check_is_fitted(estimator, attributes=None, *, msg=None, all_or_any=all):
         fitted = estimator.__sklearn_is_fitted__()
     else:
         fitted = [
-            v for v in vars(estimator) if v.endswith("_") and not v.startswith("__")
+            v
+            for v in vars(estimator)
+            if v.endswith("_") and not v.startswith("__")
         ]
 
     # if not fitted:
@@ -102,7 +104,8 @@ def _num_samples(x):
     if hasattr(x, "shape") and x.shape is not None:
         if len(x.shape) == 0:
             raise TypeError(
-                "Singleton array %r cannot be considered a valid collection." % x
+                "Singleton array %r cannot be considered a valid collection."
+                % x
             )
         # Check that shape is returning an integer or default to len
         # Dask dataframes may not return numeric shape[0] value

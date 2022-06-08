@@ -1,15 +1,16 @@
 """Non-vectorized BLR model with sk-learn type fit() API"""
 
-from cmdstanpy import CmdStanMLE, CmdStanVB, CmdStanModel, CmdStanMCMC
+import json
+from typing import Callable, Optional, Union
 
-from typing import Optional, Union, Callable
-
+from cmdstanpy import CmdStanMCMC, CmdStanMLE, CmdStanModel, CmdStanVB
 from numpy.typing import ArrayLike
 
-import json
-
-# TODO: mover this to ./test/ 
-from sk_stan_regression.utils.validation import check_is_fitted, check_consistent_length
+# TODO: mover this to ./test/
+from sk_stan_regression.utils.validation import (
+    check_consistent_length,
+    check_is_fitted,
+)
 
 # TODO: should create an abstract class to manage these things instead of importing from sklearn. what kinds of fucntionality should the abstract classes have?
 
@@ -31,19 +32,22 @@ method_dict = {
 
 
 class BLR_Estimator:
-    def __init__(self, posterior_function: Optional[str] = "HMC-NUTS",) -> None:
+    def __init__(
+        self,
+        posterior_function: Optional[str] = "HMC-NUTS",
+    ) -> None:
         """
-        Initialization of non-vectorized BLR from given data and chosen posterior operation algorithm. TODO needs greater granularity  
-        See https://mc-stan.org/docs/2_29/stan-users-guide/linear-regression.html. 
+        Initialization of non-vectorized BLR from given data and chosen posterior operation algorithm. TODO needs greater granularity
+        See https://mc-stan.org/docs/2_29/stan-users-guide/linear-regression.html.
         The model is defined as yn = alpha + beta*xn + sigman, where each variable is defined below.
 
         :param alpha: posterior mean of intercept of the linear regression
-        :param alpha_samples: samples generated from the posterior for model intercept 
+        :param alpha_samples: samples generated from the posterior for model intercept
         :param beta: posterior mean of slope of the linear regression
         :param beta_samples: samples generated from the posterior for model slope
-        :param sigma: posterior mean of error scale of the linear regression  
+        :param sigma: posterior mean of error scale of the linear regression
         :param sigma_samples: samples generated from the posterior for model error scale
-        :param posterior_func: algorithm that performs an operation on the posterior 
+        :param posterior_func: algorithm that performs an operation on the posterior
         """
         self.alpha_: Optional[float] = None  # posterior mean of the slope
         self.alpha_samples_: Optional[ArrayLike] = None  # slope draws
@@ -80,13 +84,13 @@ class BLR_Estimator:
         data_path: Optional[str] = DEFAULT_FAKE_DATA,
     ) -> Union[CmdStanMCMC, CmdStanVB, CmdStanMLE]:
         """
-        Fits the BLR object to given data, with the default being the fake data set from 6/6. This model is considered fit once its alpha, beta, and sigma parameters are determined via a regression on some data. 
+        Fits the BLR object to given data, with the default being the fake data set from 6/6. This model is considered fit once its alpha, beta, and sigma parameters are determined via a regression on some data.
 
-        :param X: 
-        :param y: 
-        :param data_file: (optional) path to data source in the form of rows containing x and y labels of simulated data 
+        :param X:
+        :param y:
+        :param data_file: (optional) path to data source in the form of rows containing x and y labels of simulated data
 
-        :return: an object in this construct: Union[CmdStanMCMC, CmdStanVB, CmdStanMLE]. Note that GenGQ requires an MCMC samples 
+        :return: an object in this construct: Union[CmdStanMCMC, CmdStanVB, CmdStanMLE]. Note that GenGQ requires an MCMC samples
                  in order to function and is thus not provided in the fit() function; could be included as some chain from sample() -> GQ?
         """
         # NOTE: currently only for MCMC, but others can be supported with other methods by passing another method string in, like
@@ -101,7 +105,9 @@ class BLR_Estimator:
 
         if X and y:
             vb_fit = self.posterior_function_(
-                self.model_, data={"x": X, "y": y, "N": len(X)}, show_console=True
+                self.model_,
+                data={"x": X, "y": y, "N": len(X)},
+                show_console=True,
             )
             self.Xtrain_ = X
             self.ytrain_ = y
@@ -116,7 +122,7 @@ class BLR_Estimator:
         if self.pfunctag in "HMC-NUTS":
             summary_df = vb_fit.summary()
             self.alpha_ = summary_df.at["alpha", "Mean"]
-            self.beta_= summary_df.at["beta", "Mean"]
+            self.beta_ = summary_df.at["beta", "Mean"]
             self.sigma_ = summary_df.at["sigma", "Mean"]
 
             self.alpha_samples_ = stan_vars["alpha"]
@@ -142,7 +148,7 @@ class BLR_Estimator:
         """
         Utilizes a fitted model with previous data to generate additional quantities. The default behavior is to use the data that was previously used to train the model.
 
-        :param X:  
+        :param X:
         """
         # TODO
         # try:
@@ -167,7 +173,9 @@ class BLR_Estimator:
 
         sm = CmdStanModel(stan_file=BLR_NORMAL_SAMPLE_FILE)
 
-        samples = sm.sample(data=data, iter_sampling=num_iterations, chains=num_chains)
+        samples = sm.sample(
+            data=data, iter_sampling=num_iterations, chains=num_chains
+        )
 
         return samples.stan_variables()
 
@@ -206,7 +214,7 @@ class BLR_Estimator_V:
     """
     Vectorized, multidimensional version of the BLR Estimator above. Note that the intercept alpha and error scale sigma remain as scalar values while beta becomes a vector.
 
-    This should supersede the class above (?) as it is a special case -- K = 1 in the above class. 
+    This should supersede the class above (?) as it is a special case -- K = 1 in the above class.
 
     """
 

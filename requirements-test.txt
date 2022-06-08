@@ -4,3 +4,4 @@ pytest
 pytest-cov
 pytest-order
 mypy
+black==22.3.0
