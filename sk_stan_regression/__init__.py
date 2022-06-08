@@ -1,2 +1,1 @@
-
-__all__ = ["bayesian_lin_reg"]
+__all__ = ["bayesian_lin_reg", "exceptions"]

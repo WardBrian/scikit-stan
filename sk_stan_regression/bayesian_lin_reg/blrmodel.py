@@ -6,20 +6,15 @@ from typing import Optional, Union, List, Callable
 
 import json
 
-from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
-from sklearn.exceptions import NotFittedError
-from sklearn.utils.validation import (
-    check_X_y,
-    check_array,
-    check_is_fitted,
-    check_consistent_length,
-)
-from sklearn.utils.multiclass import unique_labels
+from sk_stan_regression.utils.validation import check_is_fitted, check_consistent_length
+from sk_stan_regression.exceptions import NotFittedError
 
+# TODO: should create an abstract class to manage these things instead of importing from sklearn. what kinds of fucntionality should the abstract classes have?
+from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
+
+# TODO: fix these paths 
 if __name__ == "__main__":
-    BLR_STAN_FILE = (
-        "./nvblinreg.stan"  # basic non-vectorized linear regression
-    )
+    BLR_STAN_FILE = "./nvblinreg.stan"  # basic non-vectorized linear regression
     DEFAULT_FAKE_DATA = "../data/fake_data.json"  # simulated data
     BLR_NORMAL_SAMPLE_FILE = "./sample_normal.stan"
 else:
@@ -115,7 +110,6 @@ class BLR_Estimator(BaseEstimator):
             self.Xtrain = json.load(data_path)["x"]
             self.ytrain = json.load(data_path)["y"]
 
-
         stan_vars = vb_fit.stan_variables()
         if self.pfunctag in "HMC-NUTS":
             summary_df = vb_fit.summary()
@@ -127,41 +121,45 @@ class BLR_Estimator(BaseEstimator):
             self._beta_samples = stan_vars["beta"]
             self._sigma_samples = stan_vars["sigma"]
 
-            # sk-learn estimators require an is_fitted_ field post-fit
+            # estimators require an is_fitted_ field post-fit
         else:
             self._alpha = stan_vars["alpha"]
             self._beta = stan_vars["beta"]
             self._sigma = stan_vars["sigma"]
 
         self.is_fitted_ = True
+
         return self
 
     def predict(
-            self, 
-            X: Optional[List] = None,
-            num_iterations: Optional[int] = 1000,
-            num_chains: Optional[int] = 4
-        ):
+        self,
+        X: Optional[List] = None,
+        num_iterations: Optional[int] = 1000,
+        num_chains: Optional[int] = 4,
+    ):
         """
-        Utilizes a fitted model with previous data to generate additional quantities.
+        Utilizes a fitted model with previous data to generate additional quantities. The default behavior is to use the data that was previously used to train the model.
 
-        :param: 
+        :param X:  
         """
         try:
             check_is_fitted(self, "is_fitted_")
         except NotFittedError:
             return
-        
-        if not X: 
+
+        if not X:
+            # this defines default behavior for predict();
+            # if no data is passed, then just generate
+            # additional data from the data used to fit
             X = self.Xtrain
-        
+
         data = {
-                "N": len(X), 
-                "X": X, 
-                "alpha": self.alpha, 
-                "beta": self.beta, 
-                "sigma": self.sigma 
-                }
+            "N": len(X),
+            "X": X,
+            "alpha": self.alpha,
+            "beta": self.beta,
+            "sigma": self.sigma,
+        }
 
         sm = CmdStanModel(stan_file=BLR_NORMAL_SAMPLE_FILE)
 
@@ -212,28 +210,23 @@ if __name__ == "__main__":
     blrpred.predict(X=xdat)
 
 #
-    #blrsimdefault = BLR_Estimator()
-    #blrsimdefault.fit(X=xdat, y=ydat)
-    #print(blrsimdefault.__repr__())
+# blrsimdefault = BLR_Estimator()
+# blrsimdefault.fit(X=xdat, y=ydat)
+# print(blrsimdefault.__repr__())
 #
-    #bsimvi = BLR_Estimator(posterior_function="Variational")
-    #bsimvi.fit()
-    #print(bsimvi.__repr__())
+# bsimvi = BLR_Estimator(posterior_function="Variational")
+# bsimvi.fit()
+# print(bsimvi.__repr__())
 #
-    #bsimmle = BLR_Estimator(posterior_function="MLE")
-    #bsimmle.fit(X=xdat, y=ydat)
-    #print(bsimmle.__repr__())
+# bsimmle = BLR_Estimator(posterior_function="MLE")
+# bsimmle.fit(X=xdat, y=ydat)
+# print(bsimmle.__repr__())
 #
-    #bexception = BLR_Estimator()
-    #bexception.predict(
-    #    xdat
-    #)  # expected failure, might as well start writing a test suite at some point TODO
+# bexception = BLR_Estimator()
+# bexception.predict(
+#    xdat
+# )  # expected failure, might as well start writing a test suite at some point TODO
 
-    #bsimviexception = BLR_Estimator(posterior_function="Variational")
-    #bsimviexception.fit()
-    #bsimviexception.predict(xdat)  # expected failure
-#
-    # NOTE: the data generation example is dependent on a previous MCMC object, can't be called on the raw model, encapsulate in predict()
-    # bsimgen = BLRsim(posterior_function="Gen")
-    # bsimgen.fit()
-    # print(bsimgen.__repr__())
+# bsimviexception = BLR_Estimator(posterior_function="Variational")
+# bsimviexception.fit()
+# bsimviexception.predict(xdat)  # expected failure

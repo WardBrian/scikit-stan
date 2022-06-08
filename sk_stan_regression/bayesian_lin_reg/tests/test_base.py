@@ -1,12 +1,8 @@
-import sys 
+import sys
 
-from sklearn.utils.estimator_checks import parametrize_with_checks
-
-sys.path.append("../")
-
+from sk_stan_regression.utils.validation import check_is_fitted
 from sk_stan_regression.bayesian_lin_reg import BLR_Estimator
 
 # TODO!
-@parametrize_with_checks([BLR_Estimator()])
-def test_sklearn_compatible_estimator(estimator, check): 
+def test_compatible_estimator(estimator, check):
     check(estimator)
