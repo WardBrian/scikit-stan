@@ -12,6 +12,22 @@ from sk_stan_regression.utils.validation import (
     check_is_fitted,
 )
 
+BLR_CODE_NV = """
+data {
+  int<lower=0> N;
+  vector[N] x;
+  vector[N] y;
+}
+parameters {
+  real alpha;
+  real beta;
+  real<lower=0> sigma;
+}
+model {
+  y ~ normal(alpha + beta * x, sigma);
+}
+"""
+
 # TODO: should create an abstract class to manage these things instead of importing from sklearn. what kinds of fucntionality should the abstract classes have?
 
 # TODO: fix these paths
