@@ -6,11 +6,6 @@ data {
   real sigma; 
 }
 
-
-//parameters {
-//  real y[N]; 
-//}
-
 //normal_rng(beta + alpha * x_new, sigma)
 generated quantities {
   real y[N];

@@ -18,10 +18,10 @@ from sklearn.utils.multiclass import unique_labels
 
 if __name__ == "__main__":
     BLR_STAN_FILE = (
-        "./stanfiles/nvblinreg.stan"  # basic non-vectorized linear regression
+        "./nvblinreg.stan"  # basic non-vectorized linear regression
     )
     DEFAULT_FAKE_DATA = "../data/fake_data.json"  # simulated data
-    BLR_NORMAL_SAMPLE_FILE = "./stanfiles/sample_normal.stan"
+    BLR_NORMAL_SAMPLE_FILE = "./sample_normal.stan"
 else:
     BLR_STAN_FILE = "../sk_stan_regression/src/stanfiles/nvblinreg.stan"  # basic non-vectorized linear regression
     DEFAULT_FAKE_DATA = "../data/fake_data.json"  # simulated data
@@ -83,7 +83,7 @@ class BLR_Estimator(BaseEstimator):
         data_path: Optional[str] = DEFAULT_FAKE_DATA,
     ) -> Union[CmdStanMCMC, CmdStanVB, CmdStanMLE]:
         """
-        Fits the BLR object to given data, with the default being the fake data set from 6/6. 
+        Fits the BLR object to given data, with the default being the fake data set from 6/6. This model is considered fit once its alpha, beta, and sigma parameters are determined via a regression on some data. 
 
         :param X: 
         :param y: 
@@ -127,13 +127,13 @@ class BLR_Estimator(BaseEstimator):
             self._beta_samples = stan_vars["beta"]
             self._sigma_samples = stan_vars["sigma"]
 
-            # sk-learn estimators require an is_fitted_ field post-fit()
-            self.is_fitted_ = True
+            # sk-learn estimators require an is_fitted_ field post-fit
         else:
             self._alpha = stan_vars["alpha"]
             self._beta = stan_vars["beta"]
             self._sigma = stan_vars["sigma"]
 
+        self.is_fitted_ = True
         return self
 
     def predict(
@@ -150,14 +150,8 @@ class BLR_Estimator(BaseEstimator):
         try:
             check_is_fitted(self, "is_fitted_")
         except NotFittedError:
-            # TODO: can perform this by default and keep some store of data from some previous interaction
-            print(
-                "No MCMC samples generated for this instance, execute .fit() with input data and HMC-NUTS."
-            )
             return
         
-        # can't really set the default value of X in the 
-        # argument list to self.Xtrain - recursion
         if not X: 
             X = self.Xtrain
         
@@ -173,13 +167,7 @@ class BLR_Estimator(BaseEstimator):
 
         samples = sm.sample(data=data, iter_sampling=num_iterations, chains=num_chains)
 
-
-        print(samples.stan_variables())
-
-
-
-
-        pass
+        return samples.stan_variables()
 
     @property
     def alpha(self) -> Optional[float]:
