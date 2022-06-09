@@ -1,23 +1,20 @@
-"""Tests with confirmation from sklearn for linear regression."""
+"""Tests with confirmation from sklearn for estimators."""
 
-import os
 import sys
-
-from pathlib import Path 
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import unittest
+import pytest 
 
 from sklearn.utils.estimator_checks import check_estimator
 
 from sk_stan_regression.bayesian_lin_reg import BLR_Estimator
 
 
-class TestBLREstimator(unittest.TestCase):
-    def test_compatible_estimator(self):
-        check_estimator(BLR_Estimator())
-
-
-if __name__ == "__main__":
-    unittest.main()
+@pytest.mark.parametrize(
+    "estimator", 
+    [BLR_Estimator()]
+)
+def test_compatible_estimator(estimator):
+        check_estimator(estimator)

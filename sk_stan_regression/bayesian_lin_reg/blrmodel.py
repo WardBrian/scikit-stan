@@ -1,13 +1,14 @@
 """Non-vectorized BLR model with sk-learn type fit() API"""
 
-import sys
 import json
-from typing import Callable, Optional, Union
+import sys
+from pathlib import Path
+from typing import Optional, Union
 
 from cmdstanpy import CmdStanMCMC, CmdStanMLE, CmdStanModel, CmdStanVB
 from numpy.typing import ArrayLike
 
-from pathlib import Path
+from sk_stan_regression.modelcore import CoreEstimator
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -34,7 +35,7 @@ method_dict = {
 }
 
 
-class BLR_Estimator:
+class BLR_Estimator(CoreEstimator):
     def __init__(
         self,
         posterior_function: Optional[str] = "HMC-NUTS",
@@ -52,20 +53,21 @@ class BLR_Estimator:
         :param sigma_samples: samples generated from the posterior for model error scale
         :param posterior_func: algorithm that performs an operation on the posterior
         """
-        self.alpha_: Optional[float] = None  # posterior mean of the slope
-        self.alpha_samples_: Optional[ArrayLike] = None  # slope draws
-        self.beta_: Optional[float] = None
-        self.beta_samples_: Optional[ArrayLike] = None
-        self.sigma_: Optional[float] = None
-        self.sigma_samples_: Optional[ArrayLike] = None
+        # NOTE: in accordance with sk-learn rules, an Estimator subclass should not set any attribute aside from parameters in the constructor. 
+        #self.alpha_: Optional[float] = None  # posterior mean of the slope
+        #self.alpha_samples_: Optional[ArrayLike] = None  # slope draws
+        #self.beta_: Optional[float] = None
+        #self.beta_samples_: Optional[ArrayLike] = None
+        #self.sigma_: Optional[float] = None
+        #self.sigma_samples_: Optional[ArrayLike] = None
+#
+        #self.Xtrain_ = None
+        #self.ytrain_ = None
 
-        self.Xtrain_ = None
-        self.ytrain_ = None
+        self.posterior_function = posterior_function
+        #self.pfunctag: str = posterior_function
+        #self.posterior_function_callable_ : Callable = method_dict[self.posterior_function]
 
-        self.pfunctag: str = posterior_function
-        self.posterior_function_: Callable = method_dict[self.pfunctag]
-
-        self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
 
     # NOTE: not really needed since super() gives a representation method
     def __repr__(self) -> str:
@@ -79,23 +81,21 @@ class BLR_Estimator:
         )
 
     # NOTE: fit parameters should be restricted to directly data dependent variables
-    # TODO: remove json capability
     def fit(
         self,
         X: Optional[ArrayLike] = None,
         y: Optional[ArrayLike] = None,
-        data_path: Optional[str] = DEFAULT_FAKE_DATA,
     ) -> Union[CmdStanMCMC, CmdStanVB, CmdStanMLE]:
         """
         Fits the BLR object to given data, with the default being the fake data set from 6/6. This model is considered fit once its alpha, beta, and sigma parameters are determined via a regression on some data.
 
         :param X:
         :param y:
-        :param data_file: (optional) path to data source in the form of rows containing x and y labels of simulated data
 
         :return: an object in this construct: Union[CmdStanMCMC, CmdStanVB, CmdStanMLE]. Note that GenGQ requires an MCMC samples
                  in order to function and is thus not provided in the fit() function; could be included as some chain from sample() -> GQ?
         """
+        self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
         # NOTE: currently only for MCMC, but others can be supported with other methods by passing another method string in, like
         # in the mapping set up above
         #try:
@@ -103,26 +103,20 @@ class BLR_Estimator:
         #except ValueError:
         #    return
 
-        # TODO: give possibility to just pass in a json?
         # ensure that the X and y that are passed in are the primary data fields being used
 
-        if X and y:
-            vb_fit = self.posterior_function_(
+        # TODO: this should be a check
+        if len(X) and len(y):
+            vb_fit = method_dict[self.posterior_function](
                 self.model_,
-                data={"x": X, "y": y, "N": len(X)},
-                show_console=True,
+                data={"x": X, "y": y, "N": len(X)}, 
             )
+
             self.Xtrain_ = X
             self.ytrain_ = y
-        else:
-            vb_fit = self.posterior_function_(
-                self.model_, data=data_path, show_console=True
-            )
-            self.Xtrain_ = json.load(data_path)["x"]
-            self.ytrain_ = json.load(data_path)["y"]
 
         stan_vars = vb_fit.stan_variables()
-        if self.pfunctag in "HMC-NUTS":
+        if self.posterior_function in "HMC-NUTS":
             summary_df = vb_fit.summary()
             self.alpha_ = summary_df.at["alpha", "Mean"]
             self.beta_ = summary_df.at["beta", "Mean"]
@@ -132,11 +126,11 @@ class BLR_Estimator:
             self.beta_samples_ = stan_vars["beta"]
             self.sigma_samples_ = stan_vars["sigma"]
 
-            # estimators require an is_fitted_ field post-fit
         else:
             self.alpha_ = stan_vars["alpha"]
             self.beta_ = stan_vars["beta"]
             self.sigma_ = stan_vars["sigma"]
+            # estimators require an is_fitted_ field post-fit
 
         self.is_fitted_ = True
 
@@ -160,7 +154,7 @@ class BLR_Estimator:
         # except NotFittedError:
         #    return
 
-        if not X:
+        if not len(X):
             # this defines default behavior for predict();
             # if no data is passed, then just generate
             # additional data from the data used to fit

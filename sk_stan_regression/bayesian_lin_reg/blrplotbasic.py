@@ -1,12 +1,11 @@
-from cmdstanpy import CmdStanModel
-import numpy as np 
-import arviz as az 
-import json 
-import matplotlib.pyplot as plt 
-from scipy import stats 
+import json
 
+import arviz as az
+import matplotlib.pyplot as plt
+import numpy as np
 from blrmodel import BLR_Estimator
-
+from cmdstanpy import CmdStanModel
+from scipy import stats
 
 #cmdstanpy_data = az.from_cmdstanpy(
 #    posterior=stan_fit,
