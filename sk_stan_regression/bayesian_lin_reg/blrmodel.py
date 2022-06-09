@@ -3,10 +3,11 @@
 import json
 import sys
 from pathlib import Path
+
 from typing import Optional, Union
+from numpy.typing import ArrayLike
 
 from cmdstanpy import CmdStanMCMC, CmdStanMLE, CmdStanModel, CmdStanVB
-from numpy.typing import ArrayLike
 
 from sk_stan_regression.modelcore import CoreEstimator
 
@@ -24,7 +25,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 BLR_FOLDER = Path(__file__).parent
 BLR_STAN_FILE = BLR_FOLDER / "nvblinreg.stan"
 BLR_VECTORIZED_STAN_FILE = BLR_FOLDER / "blinregvectorized.stan"
-BLR_NORMAL_SAMPLE_FILE = BLR_FOLDER / "sample_normal.stan"
+BLR_NORMAL_NV_SAMPLE_STAN_FILE = BLR_FOLDER / "sample_normal_nv.stan"
+BLR_NORMAL_V_SAMPLE_STAN_FILE = BLR_FOLDER / "sample_normal_v.stan"
 DEFAULT_FAKE_DATA = BLR_FOLDER.parent / "data" / "fake_data.json"
 
 
@@ -168,7 +170,7 @@ class BLR_Estimator(CoreEstimator):
             "sigma": self.sigma_,
         }
 
-        sm = CmdStanModel(stan_file=BLR_NORMAL_SAMPLE_FILE)
+        sm = CmdStanModel(stan_file=BLR_NORMAL_NV_SAMPLE_STAN_FILE)
 
         samples = sm.sample(
             data=data, iter_sampling=num_iterations, chains=num_chains
@@ -217,48 +219,95 @@ class BLR_Estimator_V:
     """
 
     def __init__(self, posterior_function):
-        self.alpha_: Optional[float] = None  # posterior mean of the slope
-        self.alpha_samples_: Optional[ArrayLike] = None  # slope draws
-        self.beta_: Optional[ArrayLike] = None
-        self.beta_samples_: Optional[ArrayLike] = None
-        self.sigma_: Optional[float] = None
-        self.sigma_samples_: Optional[ArrayLike] = None
+        #self.alpha_: Optional[float] = None  # posterior mean of the slope
+        #self.alpha_samples_: Optional[ArrayLike] = None  # slope draws
+        #self.beta_: Optional[ArrayLike] = None
+        #self.beta_samples_: Optional[ArrayLike] = None
+        #self.sigma_: Optional[float] = None
+        #self.sigma_samples_: Optional[ArrayLike] = None
+#
+        #self.Xtrain_ = None
+        #self.ytrain_ = None
 
-        self.Xtrain_ = None
-        self.ytrain_ = None
-
-        self.posterior_function_ = posterior_function
+        self.posterior_function = posterior_function
         #self.pfunctag: str = posterior_function
         #self.posterior_function: Callable = method_dict[self.pfunctag]
 
-        self.is_fitted_ = None
-
-        self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
+        #self.is_fitted_ = None
+#
+        #self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
 
     def fit(
         self, 
-        X: Optional[ArrayLike] = None, 
-        y: Optional[ArrayLike] = None,
+        X: ArrayLike, 
+        y: ArrayLike,
     ):
         """
-        Fits current vectorized BLR object to the given data, with a default set of data. This model is considered fit once its alpha, beta, and isgma parameters are determined via a regression. 
+        Fits current vectorized BLR object to the given data, with a default set of data. This model is considered fit once its alpha, beta, and sigma parameters are determined via a regression. 
 
         Where N is the number of data items (rows) and K is the number of predictors (columns) in x: 
         :param X: NxK predictor matrix
         :param y: Nx1 outcome vector
 
-        :return: an object that is one of the types in this construct: Union[CmdStanMCMC, CmdStanVB, CmdStanMLE] with regressed values set for alpha, beta, and sigma. 
+        :return: self, an object
         """
-        # TODO: ensure that data is reshaped appropriately
+        self.model_ = CmdStanModel(stan_file=BLR_VECTORIZED_STAN_FILE)
+
+        # TODO: validate inputs... 
+
+        # TODO: ensure that data is reshaped appropriately; as long as dimensions are the same, it seems that stan does this automatically? 
         
         self.Xtrain_ = X 
         self.yTrain_ = y 
         
-        vb_fit  = self.model_.method_dict[self.posterior_function_](data={"x": X, "y": y, "N": len(y), "K": X.shape[1]}, show_console=True)
-        pass
+        vb_fit  = method_dict[self.posterior_function](data={"x": X, "y": y, "N": X.shape[0], "K": X.shape[1]}, show_console=True)
 
-    def predict():
-        pass
+        stan_vars = vb_fit.stan_variables() 
+        if self.posterior_function == "HMC-NUTS":  
+            summary_df = vb_fit.summary() 
+            self.alpha_ = summary_df.at["alpha", "Mean"]
+            self.beta_ = summary_df.at["beta", "Mean"]
+            self.sigma_ = summary_df.at["sigma", "Mean"]
+
+            self.alpha_samples_ = stan_vars["alpha"]
+            self.beta_samples_ = stan_vars["beta"]
+            self.sigma_samples_ = stan_vars["sigma"]
+        else:
+            self.alpha_ = stan_vars["alpha"]
+            self.beta_ = stan_vars["beta"]
+            self.sigma_ = stan_vars["sigma"]
+            # estimators require an is_fitted_ field post-fit
+
+        self.is_fitted_ = True
+
+        return self
+
+    def predict(self, X):
+        """
+        Predict using a fitted model.
+
+
+        """
+
+        # TODO: better validation on input dimensions 
+        if not len(X): 
+            X = self.Xtrain_ 
+
+        data = { 
+            "N": X.shape[0], 
+            "K": X.shape[1],
+            "x": X, 
+            "alpha": self.alpha, 
+            "beta": self.beta, 
+            "sigma": self.sigma
+        }
+
+        sm = CmdStanModel(stan_file=BLR_NORMAL_V_SAMPLE_STAN_FILE)
+        samples = sm.sample(
+            data=data,
+        )
+
+        return samples.stan_variables()
 
     @property
     def alpha(self) -> Optional[float]:

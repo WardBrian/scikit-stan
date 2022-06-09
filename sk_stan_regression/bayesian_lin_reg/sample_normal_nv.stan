@@ -6,11 +6,11 @@ data {
   real sigma; 
 }
 
-//normal_rng(beta + alpha * x_new, sigma)
+//normal_rng(alpha + beta * x_new, sigma)
 generated quantities {
   real y[N];
 
   for (i in 1:N) {
-    y[i] = normal_rng(beta + alpha * X[i], sigma);
+    y[i] = normal_rng(alpha + beta * X[i], sigma);
   }
 }
