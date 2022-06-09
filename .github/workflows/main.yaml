@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: [3.7, 3.8, 3.9, "3.10"]
+        python-version: 3.7
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -55,14 +55,14 @@ jobs:
         run: |
           install_cmdstan -h
           install_cxx_toolchain -h
-          python -m cmdstanpy.install_cmdstan --version ${{ needs.get-cmdstan-version.outputs.version }}
+          python -m cmdstanpy.install_cmdstan --version 
 
       - name: Install CmdStan (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           install_cmdstan -h
           install_cxx_toolchain -h
-          python -m cmdstanpy.install_cmdstan --compiler --version ${{ needs.get-cmdstan-version.outputs.version }}
+          python -m cmdstanpy.install_cmdstan --compiler --version 
 
       - name: Run tests
         run: |

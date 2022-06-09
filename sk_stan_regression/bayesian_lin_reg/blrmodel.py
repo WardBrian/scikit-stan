@@ -1,44 +1,31 @@
 """Non-vectorized BLR model with sk-learn type fit() API"""
 
+import sys
 import json
 from typing import Callable, Optional, Union
 
 from cmdstanpy import CmdStanMCMC, CmdStanMLE, CmdStanModel, CmdStanVB
 from numpy.typing import ArrayLike
 
-# TODO: mover this to ./test/
-from sk_stan_regression.utils.validation import (
-    check_consistent_length,
-    check_is_fitted,
-)
+from pathlib import Path
 
-BLR_CODE_NV = """
-data {
-  int<lower=0> N;
-  vector[N] x;
-  vector[N] y;
-}
-parameters {
-  real alpha;
-  real beta;
-  real<lower=0> sigma;
-}
-model {
-  y ~ normal(alpha + beta * x, sigma);
-}
-"""
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# TODO: mover this to ./test/
+#from sk_stan_regression.utils.validation import (
+#    check_consistent_length,
+#    check_is_fitted,
+#)
+
 
 # TODO: should create an abstract class to manage these things instead of importing from sklearn. what kinds of fucntionality should the abstract classes have?
 
-# TODO: fix these paths
-if __name__ == "__main__":
-    BLR_STAN_FILE = "./nvblinreg.stan"  # basic non-vectorized linear regression
-    BLR_VECTORIZED_STAN_FILE = "./blinregvectorized.stan"  # vectorized linear regression that should supersede the non-vectorized version above
-    DEFAULT_FAKE_DATA = "../data/fake_data.json"  # simulated data
-    BLR_NORMAL_SAMPLE_FILE = "./sample_normal.stan"
-else:
-    BLR_STAN_FILE = "../sk_stan_regression/src/stanfiles/nvblinreg.stan"  # basic non-vectorized linear regression
-    DEFAULT_FAKE_DATA = "../data/fake_data.json"  # simulated data
+BLR_FOLDER = Path(__file__).parent
+BLR_STAN_FILE = BLR_FOLDER / "nvblinreg.stan"
+BLR_VECTORIZED_STAN_FILE = BLR_FOLDER / "blinregvectorized.stan"
+BLR_NORMAL_SAMPLE_FILE = BLR_FOLDER / "sample_normal.stan"
+DEFAULT_FAKE_DATA = BLR_FOLDER.parent / "data" / "fake_data.json"
+
 
 method_dict = {
     "HMC-NUTS": CmdStanModel.sample,
@@ -111,10 +98,10 @@ class BLR_Estimator:
         """
         # NOTE: currently only for MCMC, but others can be supported with other methods by passing another method string in, like
         # in the mapping set up above
-        try:
-            check_consistent_length(X, y)
-        except ValueError:
-            return
+        #try:
+        #    check_consistent_length(X, y)
+        #except ValueError:
+        #    return
 
         # TODO: give possibility to just pass in a json?
         # ensure that the X and y that are passed in are the primary data fields being used
@@ -232,6 +219,7 @@ class BLR_Estimator_V:
 
     This should supersede the class above (?) as it is a special case -- K = 1 in the above class.
 
+
     """
 
     def __init__(self, posterior_function):
@@ -245,14 +233,34 @@ class BLR_Estimator_V:
         self.Xtrain_ = None
         self.ytrain_ = None
 
-        self.pfunctag: str = posterior_function
-        self.posterior_function: Callable = method_dict[self.pfunctag]
+        self.posterior_function_ = posterior_function
+        #self.pfunctag: str = posterior_function
+        #self.posterior_function: Callable = method_dict[self.pfunctag]
 
-        self.is_fitted = None
+        self.is_fitted_ = None
 
         self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
 
-    def fit():
+    def fit(
+        self, 
+        X: Optional[ArrayLike] = None, 
+        y: Optional[ArrayLike] = None,
+    ):
+        """
+        Fits current vectorized BLR object to the given data, with a default set of data. This model is considered fit once its alpha, beta, and isgma parameters are determined via a regression. 
+
+        Where N is the number of data items (rows) and K is the number of predictors (columns) in x: 
+        :param X: NxK predictor matrix
+        :param y: Nx1 outcome vector
+
+        :return: an object that is one of the types in this construct: Union[CmdStanMCMC, CmdStanVB, CmdStanMLE] with regressed values set for alpha, beta, and sigma. 
+        """
+        # TODO: ensure that data is reshaped appropriately
+        
+        self.Xtrain_ = X 
+        self.yTrain_ = y 
+        
+        vb_fit  = self.model_.method_dict[self.posterior_function_](data={"x": X, "y": y, "N": len(y), "K": X.shape[1]}, show_console=True)
         pass
 
     def predict():
@@ -290,7 +298,8 @@ class BLR_Estimator_V:
 
 
 if __name__ == "__main__":
-    with open("../data/fake_data.json") as file:
+    print(DEFAULT_FAKE_DATA)
+    with open(DEFAULT_FAKE_DATA) as file:
         jsondat = json.load(file)
 
     xdat = jsondat["x"]
@@ -298,7 +307,8 @@ if __name__ == "__main__":
 
     blrpred = BLR_Estimator()
     blrpred.fit(X=xdat, y=ydat)
-    blrpred.predict(X=xdat)
+    ysim = blrpred.predict(X=xdat)
+
 
 #
 # blrsimdefault = BLR_Estimator()
