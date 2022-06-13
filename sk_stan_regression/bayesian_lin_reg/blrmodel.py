@@ -54,7 +54,7 @@ class BLR_Estimator(CoreEstimator):
     :param algorithm: algorithm that performs an operation on the posterior
     """
 
-    def __init__(self, algorithm: Optional[str] = "HMC-NUTS"):
+    def __init__(self, algorithm: Optional[str] = "HMC-NUTS", ):
         # self.alpha_: Optional[float] = None  # posterior mean of the slope
         # self.alpha_samples_: Optional[ArrayLike] = None  # slope draws
         # self.beta_: Optional[ArrayLike] = None
@@ -100,12 +100,16 @@ class BLR_Estimator(CoreEstimator):
         """
         # dynamically choose whether to perform a vectorized or non-vectorized computation based on passed data
         try:
-            dat = {"x": X, "y": y, "N": X.shape[0], "K": X.shape[1]}
+            datakval = X.shape[1]
+            dat = {"x": X, "y": y, "N": X.shape[0], "K": datakval}
+
             self.model_ = CmdStanModel(stan_file=BLR_VECTORIZED_STAN_FILE)
         except IndexError:
+            datakval = 1
             dat = {"x": X, "y": y, "N": X.shape[0]}
-            self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
 
+            self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
+        
         vb_fit = method_dict[self.algorithm](
             self.model_, data=dat, show_console=True
         )
@@ -122,7 +126,17 @@ class BLR_Estimator(CoreEstimator):
         if self.algorithm == "HMC-NUTS":
             summary_df = vb_fit.summary()
             self.alpha_ = summary_df.at["alpha", "Mean"]
-            self.beta_ = summary_df.at["beta", "Mean"]
+            
+            if datakval == 1: 
+                self.beta_ = summary_df.at["beta", "Mean"]
+            else: 
+                self.beta_ = np.array([])
+                
+                for idx in range(datakval):
+                    self.beta_ = np.append(self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]])
+
+            self.beta_ = self.beta_[..., None]
+            print(self.beta_)
             self.sigma_ = summary_df.at["sigma", "Mean"]
 
             self.alpha_samples_ = stan_vars["alpha"]
@@ -151,7 +165,7 @@ class BLR_Estimator(CoreEstimator):
             dat = {
                 "N": X.shape[0],
                 "K": X.shape[1],
-                "x": X,
+                "X": X,
                 "alpha": self.alpha,
                 "beta": self.beta,
                 "sigma": self.sigma,
@@ -162,9 +176,9 @@ class BLR_Estimator(CoreEstimator):
             dat = {
                 "N": len(X),
                 "X": X,
-                "alpha": self.alpha_,
-                "beta": self.beta_,
-                "sigma": self.sigma_,
+                "alpha": self.alpha,
+                "beta": self.beta,
+                "sigma": self.sigma,
             }
 
             sm = CmdStanModel(stan_file=BLR_NORMAL_NV_SAMPLE_STAN_FILE)
@@ -220,14 +234,21 @@ if __name__ == "__main__":
     #ysim = blrvec.predict(X=xdat)
     #print(ysim)
 
-    blr2 = BLR_Estimator(algorithm="MLE")
-    blr2.fit(X=xdat, y=ydat)
-    ysim2 = blr2.predict(X=xdat)
+    #blr2 = BLR_Estimator(algorithm="MLE")
+    #blr2.fit(X=xdat, y=ydat)
+    #ysim2 = blr2.predict(X=xdat)
     #print(ysim2)
+    
+    kby2 = np.column_stack((xdat, xdat))
 
-    import matplotlib.pyplot as plt 
-    plt.scatter(xdat, ysim2)
-    plt.show()
+    blrvec = BLR_Estimator()
+    blrvec.fit(kby2, ydat)
+    ysim2 = blrvec.predict(X=kby2)
+    print(ysim2)
+
+    #import matplotlib.pyplot as plt 
+    #plt.scatter(xdat, ysim2)
+    #plt.show()
 
     # blrpred = BLR_Estimator()
     # blrpred.fit(X=xdat, y=ydat)
