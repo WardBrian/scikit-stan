@@ -5,8 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import pytest 
-
+import pytest
 from sklearn.utils.estimator_checks import check_estimator
 
 from sk_stan_regression.bayesian_lin_reg import BLR_Estimator

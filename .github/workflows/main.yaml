@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: 3.7
+        python-version: [3.7]
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -38,7 +38,6 @@ jobs:
           pip install .[test]
 
       - name: Run flake8, pylint, mypy
-        if: matrix.python-version == '3.10'
         run: |
           flake8 sk_stan_regression test
           pylint -v sk_stan_regression test
@@ -55,14 +54,14 @@ jobs:
         run: |
           install_cmdstan -h
           install_cxx_toolchain -h
-          python -m cmdstanpy.install_cmdstan --version 
+          python -m cmdstanpy.install_cmdstan --version 2.29
 
       - name: Install CmdStan (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           install_cmdstan -h
           install_cxx_toolchain -h
-          python -m cmdstanpy.install_cmdstan --compiler --version 
+          python -m cmdstanpy.install_cmdstan --compiler --version 2.29
 
       - name: Run tests
         run: |

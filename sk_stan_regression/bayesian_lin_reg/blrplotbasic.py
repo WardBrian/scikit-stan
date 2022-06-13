@@ -7,7 +7,7 @@ from blrmodel import BLR_Estimator
 from cmdstanpy import CmdStanModel
 from scipy import stats
 
-#cmdstanpy_data = az.from_cmdstanpy(
+# cmdstanpy_data = az.from_cmdstanpy(
 #    posterior=stan_fit,
 #    posterior_predictive="y_hat",
 #    observed_data={"y": eight_school_data["y"]},
@@ -20,11 +20,11 @@ from scipy import stats
 #        "y_hat": ["school"],
 #        "theta_tilde": ["school"],
 #    },
-#)
-#print(cmdstanpy_data)
+# )
+# print(cmdstanpy_data)
 
 
-#def posterior(Phi, t, alpha, beta, return_inverse=False):
+# def posterior(Phi, t, alpha, beta, return_inverse=False):
 #    """Computes mean and covariance matrix of the posterior distribution."""
 #    S_N_inv = alpha * np.eye(Phi.shape[1]) + beta * Phi.T.dot(Phi)
 #    S_N = np.linalg.inv(S_N_inv)
@@ -35,7 +35,7 @@ from scipy import stats
 #    else:
 #        return m_N, S_N
 #
-#def plot_posterior(mean, cov, w0, w1):
+# def plot_posterior(mean, cov, w0, w1):
 #    resolution = 100
 #
 #    grid_x = grid_y = np.linspace(-1, 1, resolution)
@@ -48,11 +48,11 @@ from scipy import stats
 #    plt.xlabel('w0')
 #    plt.ylabel('w1')
 #
-#def identity_basis_function(x): 
+# def identity_basis_function(x):
 #    return x
 
 
-#def expand(x, bf, bf_args=None):
+# def expand(x, bf, bf_args=None):
 #    print(x)
 #    if bf_args is None:
 #        return np.concatenate([np.ones(x.shape), bf(x)], axis=1)
@@ -65,7 +65,7 @@ betatrue = 0.2
 
 stan_file = "./nvblinplot.stan"
 stan_model = CmdStanModel(stan_file=stan_file)
-stan_model.compile() 
+stan_model.compile()
 
 eight_school_data = {
     "J": 8,
@@ -92,20 +92,19 @@ cmdstanpy_data = az.from_cmdstanpy(
 
 print(cmdstanpy_data)
 
-#with open("../data/fake_data.json") as file:
+# with open("../data/fake_data.json") as file:
 #    jsondat = json.load(file)
 #
-#xdat_test = jsondat["x"]
-#ydat_test = jsondat["y"]
+# xdat_test = jsondat["x"]
+# ydat_test = jsondat["y"]
 #
-#blr = BLR_Estimator()
+# blr = BLR_Estimator()
 #
-#blr.fit(X=xdat_test, y=ydat_test)
+# blr.fit(X=xdat_test, y=ydat_test)
 #
-#ysim = blr.predict(X=xdat_test)
+# ysim = blr.predict(X=xdat_test)
 
 
+# phi_test = expand(np.array(xdat_test), identity_basis_function)
 
-#phi_test = expand(np.array(xdat_test), identity_basis_function)
-
-#m, s = posterior(phi_test, ydat_test, blr.alpha, blr.beta)
+# m, s = posterior(phi_test, ydat_test, blr.alpha, blr.beta)

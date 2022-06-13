@@ -1,12 +1,13 @@
 """Abstract classes for different model types, conforming to sk-learn style."""
 
-from inspect import signature 
 from collections import defaultdict
+from inspect import signature
 
-# NOTE: these are the same as sk-learn's three methods 
-class CoreEstimator: 
+
+# NOTE: these are the same as sk-learn's three methods
+class CoreEstimator:
     """
-    Abstract class for all estimator-type models in this package. 
+    Abstract class for all estimator-type models in this package.
     """
 
     @classmethod
@@ -101,4 +102,4 @@ class CoreEstimator:
         for key, sub_params in nested_params.items():
             valid_params[key].set_params(**sub_params)
 
-        return 
+        return
