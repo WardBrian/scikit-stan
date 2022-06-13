@@ -3,6 +3,9 @@
 from collections import defaultdict
 from inspect import signature
 
+from typing import Dict
+from typing_extensions import Self
+
 
 # NOTE: these are the same as sk-learn's three methods
 class CoreEstimator:
@@ -11,7 +14,7 @@ class CoreEstimator:
     """
 
     @classmethod
-    def _get_param_names(cls):
+    def _get_param_names(cls) -> list:
         """Get parameter names for the estimator"""
         # fetch the constructor or the original constructor before
         # deprecation wrapping if any
@@ -41,7 +44,7 @@ class CoreEstimator:
         # Extract and sort argument names excluding 'self'
         return sorted([p.name for p in parameters])
 
-    def get_params(self, deep=True):
+    def get_params(self, deep=True) -> dict:
         """
         Get parameters for this estimator.
         Parameters
@@ -63,7 +66,7 @@ class CoreEstimator:
             out[key] = value
         return out
 
-    def set_params(self, **params):
+    def set_params(self, **params) -> Self:
         """Set the parameters of this estimator.
         The method works on simple estimators as well as on nested objects
         (such as :class:`~sklearn.pipeline.Pipeline`). The latter have

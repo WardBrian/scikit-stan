@@ -13,8 +13,8 @@ def check_is_fitted(estimator, attributes=None, *, msg=None, all_or_any=all):
     fitted attributes (ending with a trailing underscore) and otherwise
     raises a NotFittedError with the given message.
     If an estimator does not set any attributes with a trailing underscore, it
-    can define a ``__sklearn_is_fitted__`` method returning a boolean to specify if the
-    estimator is fitted or not.
+    can define a ``__sklearn_is_fitted__`` method returning a boolean to specify
+    if the estimator is fitted or not.
     Parameters
     ----------
     estimator : estimator instance
@@ -82,7 +82,7 @@ def check_consistent_length(*arrays):
     if len(uniques) > 1:
         raise ValueError(
             "Found input variables with inconsistent numbers of samples: %r"
-            % [int(l) for l in lengths]
+            % [int(lgth) for lgth in lengths]
         )
 
 
