@@ -8,7 +8,6 @@ from scipy import stats
 
 from cmdstanpy import CmdStanMCMC, CmdStanMLE, CmdStanModel, CmdStanVB
 from numpy.typing import ArrayLike
-from pandas import Index
 
 from sk_stan_regression.modelcore import CoreEstimator
 
@@ -135,8 +134,6 @@ class BLR_Estimator(CoreEstimator):
                 for idx in range(datakval):
                     self.beta_ = np.append(self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]])
 
-            self.beta_ = self.beta_[..., None]
-            print(self.beta_)
             self.sigma_ = summary_df.at["sigma", "Mean"]
 
             self.alpha_samples_ = stan_vars["alpha"]
@@ -146,7 +143,6 @@ class BLR_Estimator(CoreEstimator):
             self.alpha_ = stan_vars["alpha"]
             self.beta_ = stan_vars["beta"]
             self.sigma_ = stan_vars["sigma"]
-            # estimators require an is_fitted_ field post-fit
 
         self.is_fitted_ = True
 
@@ -253,26 +249,3 @@ if __name__ == "__main__":
     # blrpred = BLR_Estimator()
     # blrpred.fit(X=xdat, y=ydat)
     # ysim = blrpred.predict(X=xdat)
-
-
-#
-# blrsimdefault = BLR_Estimator()
-# blrsimdefault.fit(X=xdat, y=ydat)
-# print(blrsimdefault.__repr__())
-#
-# bsimvi = BLR_Estimator(posterior_function="Variational")
-# bsimvi.fit()
-# print(bsimvi.__repr__())
-#
-# bsimmle = BLR_Estimator(posterior_function="MLE")
-# bsimmle.fit(X=xdat, y=ydat)
-# print(bsimmle.__repr__())
-#
-# bexception = BLR_Estimator()
-# bexception.predict(
-#    xdat
-# )  # expected failure, might as well start writing a test suite at some point TODO
-
-# bsimviexception = BLR_Estimator(posterior_function="Variational")
-# bsimviexception.fit()
-# bsimviexception.predict(xdat)  # expected failure

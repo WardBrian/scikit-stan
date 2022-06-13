@@ -7,13 +7,8 @@ data {
     real<lower=0> sigma; 
 }
 
-//normal_rng(alpha + beta * x_new, sigma)
-//the vectorized problem is faster in Stan than 
-//if K = 1
 generated quantities {
     real y[N]; 
 
-    for (i in 1:N) { 
-        y[i] = normal_rng(alpha + beta * X[i], sigma); 
-    }
+    y = normal_rng(alpha + X*beta, sigma); 
 }
