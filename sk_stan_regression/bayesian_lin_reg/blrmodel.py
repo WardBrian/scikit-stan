@@ -106,7 +106,7 @@ class BLR_Estimator(CoreEstimator):
             dat = {"x": X, "y": y, "N": X.shape[0]}
             self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
 
-        vb_fit = method_dict[self.posterior_function](
+        vb_fit = method_dict[self.algorithm](
             self.model_, data=dat, show_console=True
         )
 
@@ -145,7 +145,7 @@ class BLR_Estimator(CoreEstimator):
 
         """
         if self.algorithm != "HMC-NUTS": 
-            stats.normal(self.alpha_ + )
+            return stats.norm.rvs(self.alpha + np.dot(self.beta, np.array(X)), self.sigma)
 
         try:
             dat = {
@@ -214,10 +214,20 @@ if __name__ == "__main__":
     xdat = np.array(jsondat["x"])
     ydat = np.array(jsondat["y"])
 
-    blrvec = BLR_Estimator()
-    blrvec.fit(X=xdat, y=ydat)
-    print(blrvec.__repr__())
-    ysim = blrvec.predict(X=xdat)
+    #blrvec = BLR_Estimator()
+    #blrvec.fit(X=xdat, y=ydat)
+    #print(blrvec.__repr__())
+    #ysim = blrvec.predict(X=xdat)
+    #print(ysim)
+
+    blr2 = BLR_Estimator(algorithm="MLE")
+    blr2.fit(X=xdat, y=ydat)
+    ysim2 = blr2.predict(X=xdat)
+    #print(ysim2)
+
+    import matplotlib.pyplot as plt 
+    plt.scatter(xdat, ysim2)
+    plt.show()
 
     # blrpred = BLR_Estimator()
     # blrpred.fit(X=xdat, y=ydat)
