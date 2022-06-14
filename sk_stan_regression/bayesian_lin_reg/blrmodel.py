@@ -3,15 +3,18 @@
 import json
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional, Union
 
-from cmdstanpy import CmdStanModel
-from numpy.typing import ArrayLike
+import numpy as np
 import scipy.stats as stats
+from cmdstanpy import CmdStanModel
+from numpy import ndarray
+from numpy.typing import ArrayLike
 
 from sk_stan_regression.modelcore import CoreEstimator
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+from sk_stan_regression.utils.validation import check_is_fitted
 
 # TODO: mover this to ./test/
 # from sk_stan_regression.utils.validation import (
@@ -19,16 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 #    check_is_fitted,
 # )
 
-
-# TODO: should create an abstract class to manage these things
-# instead of importing from sklearn.
-# what kinds of fucntionality should the abstract classes have?
-
 BLR_FOLDER = Path(__file__).parent
-BLR_STAN_FILE = BLR_FOLDER / "nvblinreg.stan"
-BLR_VECTORIZED_STAN_FILE = BLR_FOLDER / "blinregvectorized.stan"
-BLR_NORMAL_NV_SAMPLE_STAN_FILE = BLR_FOLDER / "sample_normal_nv.stan"
-BLR_NORMAL_V_SAMPLE_STAN_FILE = BLR_FOLDER / "sample_normal_v.stan"
 DEFAULT_FAKE_DATA = BLR_FOLDER.parent / "data" / "fake_data.json"
 
 
@@ -114,12 +108,12 @@ class BLR_Estimator(CoreEstimator):
             datakval = X.shape[1]
             dat = {"x": X, "y": y, "N": X.shape[0], "K": datakval}
 
-            self.model_ = CmdStanModel(stan_file=BLR_VECTORIZED_STAN_FILE)
+            self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinregvectorized.stan")
         except IndexError:
             datakval = 1
             dat = {"x": X, "y": y, "N": X.shape[0]}
 
-            self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
+            self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "nvblinreg.stan")
 
         vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=True)
 
@@ -157,12 +151,21 @@ class BLR_Estimator(CoreEstimator):
 
         return self
 
-    def predict(self, X: ArrayLike, num_iterations: int = 1000, num_chains: int = 4):
+    def predict(
+        self, X: ArrayLike, num_iterations: int = 1000, num_chains: int = 4
+    ) -> Union[Any, Dict[str, ndarray]]:
         """
-        Predict using a fitted model.
+        Predict using a fitted model after fit() has been applied.
 
+        :param num_iterations: int
+        :param num_chains: int number of
 
+        :return: Return a dictionary mapping Stan program variables
+                names to the corresponding numpy.ndarray containing
+                the inferred values.
         """
+        check_is_fitted(self)
+
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(
                 self.alpha + np.dot(self.beta, np.array(X)), self.sigma
@@ -178,7 +181,7 @@ class BLR_Estimator(CoreEstimator):
                 "sigma": self.sigma,
             }
 
-            sm = CmdStanModel(stan_file=BLR_NORMAL_V_SAMPLE_STAN_FILE)
+            sm = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan")
         except IndexError:
             dat = {
                 "N": len(X),
@@ -188,7 +191,7 @@ class BLR_Estimator(CoreEstimator):
                 "sigma": self.sigma,
             }
 
-            sm = CmdStanModel(stan_file=BLR_NORMAL_NV_SAMPLE_STAN_FILE)
+            sm = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_nv.stan")
 
         samples = sm.sample(data=dat, iter_sampling=num_iterations, chains=num_chains)
 
@@ -226,14 +229,16 @@ class BLR_Estimator(CoreEstimator):
 
 
 if __name__ == "__main__":
-    print(DEFAULT_FAKE_DATA)
     with open(DEFAULT_FAKE_DATA) as file:
         jsondat = json.load(file)
 
-    import numpy as np
-
     xdat = np.array(jsondat["x"])
     ydat = np.array(jsondat["y"])
+
+    # check exceptions
+
+    blr = BLR_Estimator()
+    blr.predict(X=xdat)
 
     # blrvec = BLR_Estimator()
     # blrvec.fit(X=xdat, y=ydat)
@@ -246,17 +251,9 @@ if __name__ == "__main__":
     # ysim2 = blr2.predict(X=xdat)
     # print(ysim2)
 
-    kby2 = np.column_stack((xdat, xdat))
+    # kby2 = np.column_stack((xdat, xdat))
 
-    blrvec = BLR_Estimator()
-    blrvec.fit(kby2, ydat)
-    ysim2 = blrvec.predict(X=kby2)
-    print(ysim2)
-
-    # import matplotlib.pyplot as plt
-    # plt.scatter(xdat, ysim2)
-    # plt.show()
-
-    # blrpred = BLR_Estimator()
-    # blrpred.fit(X=xdat, y=ydat)
-    # ysim = blrpred.predict(X=xdat)
+    # blrvec = BLR_Estimator()
+    # blrvec.fit(kby2, ydat)
+    # ysim2 = blrvec.predict(X=kby2)
+    # print(ysim2)

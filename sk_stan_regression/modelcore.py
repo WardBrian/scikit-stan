@@ -3,7 +3,6 @@
 from collections import defaultdict
 from inspect import signature
 
-from typing import Dict
 from typing_extensions import Self
 
 
