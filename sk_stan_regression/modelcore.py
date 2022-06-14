@@ -2,8 +2,12 @@
 
 from collections import defaultdict
 from inspect import signature
+from typing import TypeVar
 
-from typing_extensions import Self
+# TODO: why does this exist and why doesn't mypy like it?
+# from typing_extensions import Self
+# TODO: how to properly type annotate methods that return self?
+CE = TypeVar("CE", bound="CoreEstimator")
 
 
 # NOTE: these are the same as sk-learn's three methods
@@ -65,7 +69,7 @@ class CoreEstimator:
             out[key] = value
         return out
 
-    def set_params(self, **params) -> Self:
+    def set_params(self, **params) -> CE:
         """Set the parameters of this estimator.
         The method works on simple estimators as well as on nested objects
         (such as :class:`~sklearn.pipeline.Pipeline`). The latter have

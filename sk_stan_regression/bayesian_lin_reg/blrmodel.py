@@ -3,11 +3,11 @@
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, TypeVar, Union
 
 import numpy as np
-import scipy.stats as stats
-from cmdstanpy import CmdStanModel
+import scipy.stats as stats  # type: ignore
+from cmdstanpy import CmdStanModel  # type: ignore
 from numpy import ndarray
 from numpy.typing import ArrayLike
 
@@ -32,7 +32,10 @@ method_dict = {
     "Variational": CmdStanModel.variational,
 }
 
+BLRE = TypeVar("BLRE", bound="BLR_Estimator")
 
+
+# TODO: add validation system as in sklearn for fit() and predict()
 class BLR_Estimator(CoreEstimator):
     """
     Vectorized, multidimensional version of the BLR Estimator above.
@@ -80,16 +83,16 @@ class BLR_Estimator(CoreEstimator):
 
     def __repr__(self) -> str:
         return f"""<BLR_Estimator:
-                        alpha={self.alpha}, alpha_samples={self.alpha_samples}, 
-                        beta={self.beta}>, beta_samples={self.beta_samples}, 
-                        sigma={self.sigma}, sigma_samples={self.sigma_samples}>
+                        alpha={self.alpha!r}, alpha_samples={self.alpha_samples!r}, 
+                        beta={self.beta!r}>, beta_samples={self.beta_samples!r}, 
+                        sigma={self.sigma!r}, sigma_samples={self.sigma_samples!r}>
                 """
 
     def fit(
         self,
         X: ArrayLike,
         y: ArrayLike,
-    ):
+    ) -> BLRE:
         """
         Fits current vectorized BLR object to the given data,
         with a default set of data.
