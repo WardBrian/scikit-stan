@@ -25,7 +25,6 @@ def check_array(
     # TODO PANDAS -> np support? 
 
     array_res = X
-    print(array_res.ndim)
 
     if ensure_2d: 
         # input cannot be scalar
@@ -40,7 +39,6 @@ def check_array(
             warnings.warn("""Passed data is one-dimensional, while estimator expects it to be at at least two-dimensional.""")
             array_res = np.array(X)[:, None]
 
-
     if not allow_nd and X.ndim > 2: 
         raise ValueError(
             f"""
@@ -52,9 +50,21 @@ def check_array(
     # TODO: enforce that all values are finite 
 
     # TODO: enforce number of features & samples
-    print(array_res.ndim)
 
     return array_res 
+
+# TODO: add additional arguments 
+def _check_y(y, multi_output=False): 
+    y = check_array(y, ensure_2d=False)
+    print(y.ndim)
+    return y 
+
+# adapted from sklearn's check_X_y validation 
+def check_X_y(X, y):
+    X = check_array(X)
+    y = _check_y(y)
+
+    return X, y
 
 # taken from official sklearn repo; 
 # TODO: simplify

@@ -95,7 +95,8 @@ class BLR_Estimator(CoreEstimator):
         Where N is the number of data items (rows) and
         K is the number of predictors (columns) in x:
 
-        :param X: NxK predictor matrix
+        :param X: NxK predictor matrix, where K >= 0; if K = 1, 
+            then X is automatically reshaped to being 2D 
         :param y: Nx1 outcome vector
 
         :return: self, an object
@@ -104,22 +105,16 @@ class BLR_Estimator(CoreEstimator):
             raise ValueError(f"""This {self.__class__.__name__!r}
              estimator requires y to be passed, but it is None""")
 
-        X_clean, y_clean = self._validate_data(X=X, y="no_validation", ensure_X_2d=True)
+        if X is None: 
+            raise ValueError(f"""This {self.__class__.__name__!r}
+             estimator requires X to be passed, but it is None""")
+
+        X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True)
         print(X_clean.shape)
-        #print(X_clean)
-        #print(self._validate_data(X=X))
-
-
-        #try:
-        #    datakval = X.shape[1]
-        #except IndexError:
-        #    datakval = 1
-        #    # transform passed (N,) into (N, 1)
-        #    X = X[:, None]
 
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
-        dat = {"x": X_clean, "y": y, "N": X_clean.shape[0], "K": X_clean.shape[1]}
+        dat = {"x": X_clean, "y": y_clean, "N": X_clean.shape[0], "K": X_clean.shape[1]}
 
         vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=False)
 

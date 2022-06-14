@@ -1,13 +1,11 @@
 """Abstract classes for different model types, conforming to sk-learn style."""
 
-import numpy as np 
-import warnings 
 from collections import defaultdict
 from inspect import signature
 from typing import TypeVar, Optional
 from numpy.typing import ArrayLike
 
-from .utils import check_array
+from .utils import check_array, check_X_y
 
 
 # TODO: why does this exist and why doesn't mypy like it?
@@ -138,13 +136,11 @@ class CoreEstimator:
         no_val_y = y is None or isinstance(y, str) and y == "no_validation"
 
         res_X = X 
-        res_Y = y
-        print(res_X.ndim)
+        res_y = y
 
         if no_val_X and no_val_y: 
             raise ValueError("""Validation should be done on X,y or both.""")
         elif not no_val_X and no_val_y:
-            print("want to be here")
             res_X = check_array(
                 X,
                 ensure_2d=ensure_X_2d,
@@ -154,6 +150,8 @@ class CoreEstimator:
         elif no_val_X and not no_val_y:
             pass
         else: 
-            pass
+            # TODO: add separate validation of X and y?
+            res_X, res_y = check_X_y(X, y)
 
-        return res_X, res_Y 
+
+        return res_X, res_y
