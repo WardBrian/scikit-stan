@@ -42,10 +42,6 @@ class BLR_Estimator(CoreEstimator):
     Note that the intercept alpha and error scale sigma remain as scalar values
     while beta becomes a vector.
 
-    This should supersede the class above (?) as it is a special case
-        -- K = 1 in the above class.
-
-
     :param alpha: posterior mean of intercept of the linear regression
     :param alpha_samples: samples generated from the posterior
                             for model intercept
@@ -114,10 +110,10 @@ class BLR_Estimator(CoreEstimator):
             # transform passed (N,) into (N, 1)
             X = X[:, None]
 
-        self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinregvectorized.stan")
+        self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
         dat = {"x": X, "y": y, "N": X.shape[0], "K": datakval}
-        
+
         vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=True)
 
         # TODO: validate inputs...
@@ -128,7 +124,7 @@ class BLR_Estimator(CoreEstimator):
             self.alpha_ = summary_df.at["alpha", "Mean"]
 
             self.beta_ = np.array([])
-            
+
             for idx in range(datakval):
                 self.beta_ = np.append(
                     self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]]
@@ -149,7 +145,10 @@ class BLR_Estimator(CoreEstimator):
         return self
 
     def predict(
-        self, X: ArrayLike, num_iterations: Optional[int] = 1000, num_chains: Optional[int] = 4
+        self,
+        X: ArrayLike,
+        num_iterations: Optional[int] = 1000,
+        num_chains: Optional[int] = 4,
     ) -> Union[Any, Dict[str, ndarray]]:
         """
         Predict using a fitted model after fit() has been applied.
@@ -171,22 +170,23 @@ class BLR_Estimator(CoreEstimator):
         try:
             datakval = X.shape[1]
         except IndexError:
-            datakval =  1
+            datakval = 1
             # transform passed (N,) into (N, 1)
             X = X[:, None]
-        
+
         predictions = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan")
 
-        dat = { 
+        dat = {
             "N": X.shape[0],
-            "K": datakval, 
-            "X": X, 
+            "K": datakval,
+            "X": X,
             "alpha": self.alpha,
-            "beta": self.beta, 
-            "sigma": self.sigma
-        }   
-        print(dat)
-        samples = predictions.sample(data=dat, iter_sampling=num_iterations, chains=num_chains)
+            "beta": self.beta,
+            "sigma": self.sigma,
+        }
+        samples = predictions.sample(
+            data=dat, iter_sampling=num_iterations, chains=num_chains
+        )
 
         return samples.stan_variables()
 
@@ -230,18 +230,18 @@ if __name__ == "__main__":
 
     kby2 = np.column_stack((xdat, xdat))
 
-    #blr = BLR_Estimator() 
-    #blr.fit(xdat, ydat)
-    #blr.predict(xdat)
+    # blr = BLR_Estimator()
+    # blr.fit(xdat, ydat)
+    # blr.predict(xdat)
 
-    blr2 = BLR_Estimator() 
+    blr2 = BLR_Estimator()
     blr2.fit(kby2, ydat)
     blr2.predict(kby2)
 
     # check exceptions
 
-    #blr = BLR_Estimator()
-    #blr.predict(X=xdat)
+    # blr = BLR_Estimator()
+    # blr.predict(X=xdat)
 
     # blrvec = BLR_Estimator()
     # blrvec.fit(X=xdat, y=ydat)
