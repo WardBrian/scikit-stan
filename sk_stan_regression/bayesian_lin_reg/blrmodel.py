@@ -122,8 +122,6 @@ class BLR_Estimator(CoreEstimator):
 
         # TODO: validate inputs...
 
-        # TODO: ensure that data is reshaped appropriately;
-
         stan_vars = vb_fit.stan_variables()
         if self.algorithm == "HMC-NUTS":
             summary_df = vb_fit.summary()
@@ -151,7 +149,7 @@ class BLR_Estimator(CoreEstimator):
         return self
 
     def predict(
-        self, X: ArrayLike, num_iterations: int = 1000, num_chains: int = 4
+        self, X: ArrayLike, num_iterations: Optional[int] = 1000, num_chains: Optional[int] = 4
     ) -> Union[Any, Dict[str, ndarray]]:
         """
         Predict using a fitted model after fit() has been applied.
@@ -171,28 +169,24 @@ class BLR_Estimator(CoreEstimator):
             )
 
         try:
-            dat = {
-                "N": X.shape[0],
-                "K": X.shape[1],
-                "X": X,
-                "alpha": self.alpha,
-                "beta": self.beta,
-                "sigma": self.sigma,
-            }
-
-            sm = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan")
+            datakval = X.shape[1]
         except IndexError:
-            dat = {
-                "N": len(X),
-                "X": X,
-                "alpha": self.alpha,
-                "beta": self.beta,
-                "sigma": self.sigma,
-            }
+            datakval =  1
+            # transform passed (N,) into (N, 1)
+            X = X[:, None]
+        
+        predictions = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan")
 
-            sm = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_nv.stan")
-
-        samples = sm.sample(data=dat, iter_sampling=num_iterations, chains=num_chains)
+        dat = { 
+            "N": X.shape[0],
+            "K": datakval, 
+            "X": X, 
+            "alpha": self.alpha,
+            "beta": self.beta, 
+            "sigma": self.sigma
+        }   
+        print(dat)
+        samples = predictions.sample(data=dat, iter_sampling=num_iterations, chains=num_chains)
 
         return samples.stan_variables()
 
@@ -234,8 +228,15 @@ if __name__ == "__main__":
     xdat = np.array(jsondat["x"])
     ydat = np.array(jsondat["y"])
 
-    blr = BLR_Estimator() 
-    blr.fit(xdat, ydat)
+    kby2 = np.column_stack((xdat, xdat))
+
+    #blr = BLR_Estimator() 
+    #blr.fit(xdat, ydat)
+    #blr.predict(xdat)
+
+    blr2 = BLR_Estimator() 
+    blr2.fit(kby2, ydat)
+    blr2.predict(kby2)
 
     # check exceptions
 
