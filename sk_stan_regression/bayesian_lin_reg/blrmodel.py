@@ -10,6 +10,7 @@ import scipy.stats as stats  # type: ignore
 from cmdstanpy import CmdStanModel  # type: ignore
 from numpy import ndarray
 from numpy.typing import ArrayLike
+from sklearn.utils import check_X_y
 
 from sk_stan_regression.modelcore import CoreEstimator
 
@@ -102,6 +103,11 @@ class BLR_Estimator(CoreEstimator):
         if y is None: 
             raise ValueError(f"""This {self.__class__.__name__!r}
              estimator requires y to be passed, but it is None""")
+
+        X_clean, y_clean = self._validate_data(X=X)
+        print(X_clean)
+        #print(self._validate_data(X=X))
+
 
         try:
             datakval = X.shape[1]
@@ -236,7 +242,7 @@ if __name__ == "__main__":
 
     blr2 = BLR_Estimator()
     blr2.fit(kby2, ydat)
-    blr2.predict(kby2)
+    #blr2.predict(kby2)
 
     # check exceptions
 
