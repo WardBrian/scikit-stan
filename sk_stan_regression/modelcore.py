@@ -139,6 +139,7 @@ class CoreEstimator:
 
         res_X = X 
         res_Y = y
+        print(res_X.ndim)
 
         if no_val_X and no_val_y: 
             raise ValueError("""Validation should be done on X,y or both.""")
