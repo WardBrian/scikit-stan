@@ -109,36 +109,32 @@ class BLR_Estimator(CoreEstimator):
         """
         try:
             datakval = X.shape[1]
-            dat = {"x": X, "y": y, "N": X.shape[0], "K": datakval}
-
-            self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinregvectorized.stan")
         except IndexError:
             datakval = 1
-            dat = {"x": X, "y": y, "N": X.shape[0]}
+            # transform passed (N,) into (N, 1)
+            X = X[:, None]
 
-            self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "nvblinreg.stan")
+        self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinregvectorized.stan")
 
+        dat = {"x": X, "y": y, "N": X.shape[0], "K": datakval}
+        
         vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=True)
 
         # TODO: validate inputs...
 
         # TODO: ensure that data is reshaped appropriately;
-        # as long as dimensions are the same, it seems that stan does this automatically?
 
         stan_vars = vb_fit.stan_variables()
         if self.algorithm == "HMC-NUTS":
             summary_df = vb_fit.summary()
             self.alpha_ = summary_df.at["alpha", "Mean"]
 
-            if datakval == 1:
-                self.beta_ = summary_df.at["beta", "Mean"]
-            else:
-                self.beta_ = np.array([])
-
-                for idx in range(datakval):
-                    self.beta_ = np.append(
-                        self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]]
-                    )
+            self.beta_ = np.array([])
+            
+            for idx in range(datakval):
+                self.beta_ = np.append(
+                    self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]]
+                )
 
             self.sigma_ = summary_df.at["sigma", "Mean"]
 
@@ -238,10 +234,13 @@ if __name__ == "__main__":
     xdat = np.array(jsondat["x"])
     ydat = np.array(jsondat["y"])
 
+    blr = BLR_Estimator() 
+    blr.fit(xdat, ydat)
+
     # check exceptions
 
-    blr = BLR_Estimator()
-    blr.predict(X=xdat)
+    #blr = BLR_Estimator()
+    #blr.predict(X=xdat)
 
     # blrvec = BLR_Estimator()
     # blrvec.fit(X=xdat, y=ydat)
