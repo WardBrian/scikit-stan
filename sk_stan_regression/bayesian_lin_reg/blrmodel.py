@@ -1,4 +1,4 @@
-"""Non-vectorized BLR model with sk-learn type fit() API"""
+"""Vectorized BLR model with sk-learn type API"""
 
 import json
 import sys
@@ -16,11 +16,6 @@ from sk_stan_regression.modelcore import CoreEstimator
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from sk_stan_regression.utils.validation import check_is_fitted
 
-# TODO: mover this to ./test/
-# from sk_stan_regression.utils.validation import (
-#    check_consistent_length,
-#    check_is_fitted,
-# )
 
 BLR_FOLDER = Path(__file__).parent
 DEFAULT_FAKE_DATA = BLR_FOLDER.parent / "data" / "fake_data.json"
@@ -32,6 +27,7 @@ method_dict = {
     "Variational": CmdStanModel.variational,
 }
 
+# TODO: type checking is broken 
 BLRE = TypeVar("BLRE", bound="BLR_Estimator")
 
 
@@ -103,6 +99,10 @@ class BLR_Estimator(CoreEstimator):
 
         :return: self, an object
         """
+        if y is None: 
+            raise ValueError(f"""This {self.__class__.__name__!r}
+             estimator requires y to be passed, but it is None""")
+
         try:
             datakval = X.shape[1]
         except IndexError:

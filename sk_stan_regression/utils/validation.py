@@ -3,10 +3,87 @@ from inspect import isclass
 
 import numpy as np
 
+from typing import Optional
+from numpy.typing import ArrayLike
+
 from ..exceptions import NotFittedError
 
 
-# taken from official sklearn repo
+# TODO: write docstrings for everything 
+def check_array(
+    X: ArrayLike, 
+    ensure_2d: Optional[bool] = True, 
+    allow_nd: Optional[bool] = False, 
+    ensure_min_features: Optional[int] = 1,
+):
+    """
+    Input validation on an array, list, sparse matrix or similar.
+    By default, the input is checked to be a non-empty 2D array containing
+    only finite values. 
+    """
+    # TODO PANDAS -> np support? 
+
+    if ensure_2d: 
+        # input cannot be scalar
+        if X.ndim == 0: 
+            raise ValueError(
+                    f"""Expected 2D array, got scalar array instead:\narray={X!r}.\n
+                    Reshape your data either using array.reshape(-1, 1) if 
+                    your data has a single feature or array.reshape(1, -1) 
+                    if it contains a single sample."""
+            )
+
+    if not allow_nd and X.ndim > 2: 
+        raise ValueError(
+            f"""
+            Passed array with {X.ndim!r} dimensions. Estimator expected <= 2. 
+            """
+        )
+
+    
+    # TODO: enforce that all values are finite 
+
+    # TODO: enforce number of features & samples
+    pass 
+
+# custom function adapted from sklearn's validations
+def _validate_data(
+    X="no-validation", 
+    y="no-validation", 
+    ensure_X_2d: Optional[bool] = True, 
+    allow_X_nd: Optional[bool] = False, 
+    allow_y_multi_output: Optional[bool] = False, 
+    ensure_min_features: Optional[int] = 1
+):
+    """
+        Input validation for standard estimators.
+        Checks X and y for consistent length, enforces X to be 2D and y 1D. By
+        default, X is checked to be non-empty and containing only finite values.
+        Standard input checks are also applied to y, such as checking that y
+        does not have np.nan or np.inf targets. For multi-label y, set
+        multi_output=True to allow 2D 
+    """
+    no_val_X = isinstance(X, str) and X == "no_validation"
+    no_val_y = y is None or isinstance(y, str) and y == "no_validation"
+
+    if no_val_X and no_val_y: 
+        raise ValueError("""Validation should be done on X,y or both.""")
+    elif not no_val_X and no_val_y:
+        res = check_array(
+            X,
+            ensure_2d=ensure_X_2d,
+            allow_nd=allow_X_nd, 
+            ensure_min_features=ensure_min_features
+        )
+    elif no_val_X and not no_val_y:
+        pass
+    else: 
+        pass
+
+    return res 
+
+# taken from official sklearn repo; 
+# TODO: simplify
 def check_is_fitted(estimator, attributes=None, *, msg=None, all_or_any=all):
     """Perform is_fitted validation for estimator.
     Checks if the estimator is fitted by verifying the presence of
