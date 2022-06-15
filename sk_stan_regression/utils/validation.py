@@ -10,63 +10,90 @@ import warnings
 from ..exceptions import NotFittedError
 
 
-# TODO: write docstrings for everything 
+def _ensure_no_complex_data(array):
+    if (
+        hasattr(array, "dtype")
+        and array.dtype is not None
+        and hasattr(array.dtype, "kind")
+        and array.dtype.kind == "c"
+    ):
+        raise ValueError(f"Complex data not supported\n{array!r}\n")
+
+
+# TODO: write docstrings for everything
 def check_array(
-    X: ArrayLike, 
-    ensure_2d: Optional[bool] = True, 
-    allow_nd: Optional[bool] = False, 
+    X: ArrayLike,
+    ensure_2d: Optional[bool] = True,
+    allow_nd: Optional[bool] = False,
     ensure_min_features: Optional[int] = 1,
+    dtype="numeric",
 ):
     """
     Input validation on an array, list, sparse matrix or similar.
     By default, the input is checked to be a non-empty 2D array containing
-    only finite values. 
+    only finite values.
     """
-    # TODO PANDAS -> np support? 
+    # TODO PANDAS -> np support?
 
     array_res = X
 
-    if ensure_2d: 
+    if ensure_2d:
         # input cannot be scalar
-        if X.ndim == 0: 
+        if X.ndim == 0:
             raise ValueError(
-                    f"""Expected 2D array, got scalar array instead:\narray={X!r}.\n
+                f"""Expected 2D array, got scalar array instead:\narray={X!r}.\n
                     Reshape your data either using array.reshape(-1, 1) if 
                     your data has a single feature or array.reshape(1, -1) 
                     if it contains a single sample."""
             )
-        if X.ndim == 1: 
-            warnings.warn("""Passed data is one-dimensional, while estimator expects it to be at at least two-dimensional.""")
+        if X.ndim == 1:
+            warnings.warn(
+                """Passed data is one-dimensional, while estimator expects
+                it to be at at least two-dimensional."""
+            )
             array_res = np.array(X)[:, None]
 
-    if not allow_nd and X.ndim > 2: 
+    if not allow_nd and X.ndim > 2:
         raise ValueError(
             f"""
             Passed array with {X.ndim!r} dimensions. Estimator expected <= 2. 
             """
         )
 
-    
-    # TODO: enforce that all values are finite 
+    # TODO: enforce that all values are finite & real
+    _ensure_no_complex_data(array_res)
 
     # TODO: enforce number of features & samples
 
-    return array_res 
+    return array_res
 
-# TODO: add additional arguments 
-def _check_y(y, multi_output=False): 
+
+# TODO: add additional arguments
+def _check_y(y, multi_output=False, y_numeric=True):
     y = check_array(y, ensure_2d=False)
-    print(y.ndim)
-    return y 
 
-# adapted from sklearn's check_X_y validation 
-def check_X_y(X, y):
-    X = check_array(X)
-    y = _check_y(y)
+    if y_numeric:
+        y = y.astype(np.float64)
+
+    return y
+
+
+# adapted from sklearn's check_X_y validation
+def check_X_y(
+    X,
+    y,
+    ensure_X_2d: Optional[bool] = True,
+    allow_nd: Optional[bool] = False,
+    ensure_min_features: Optional[int] = 1,
+    y_numeric=True,
+):
+    X = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd)
+    y = _check_y(y, y_numeric=y_numeric)
 
     return X, y
 
-# taken from official sklearn repo; 
+
+# taken from official sklearn repo;
 # TODO: simplify
 def check_is_fitted(estimator, attributes=None, *, msg=None, all_or_any=all):
     """Perform is_fitted validation for estimator.

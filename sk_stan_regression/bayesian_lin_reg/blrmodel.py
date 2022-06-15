@@ -15,7 +15,7 @@ from sklearn.utils import check_X_y
 from sk_stan_regression.modelcore import CoreEstimator
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from sk_stan_regression.utils.validation import check_is_fitted
+from sk_stan_regression.utils.validation import check_is_fitted, check_array
 
 
 BLR_FOLDER = Path(__file__).parent
@@ -28,7 +28,7 @@ method_dict = {
     "Variational": CmdStanModel.variational,
 }
 
-# TODO: type checking is broken 
+# TODO: type checking is broken
 BLRE = TypeVar("BLRE", bound="BLR_Estimator")
 
 
@@ -95,22 +95,25 @@ class BLR_Estimator(CoreEstimator):
         Where N is the number of data items (rows) and
         K is the number of predictors (columns) in x:
 
-        :param X: NxK predictor matrix, where K >= 0; if K = 1, 
-            then X is automatically reshaped to being 2D 
+        :param X: NxK predictor matrix, where K >= 0; if K = 1,
+            then X is automatically reshaped to being 2D
         :param y: Nx1 outcome vector
 
         :return: self, an object
         """
-        if y is None: 
-            raise ValueError(f"""This {self.__class__.__name__!r}
-             estimator requires y to be passed, but it is None""")
+        if y is None:
+            raise ValueError(
+                f"""This {self.__class__.__name__!r}
+             estimator requires y to be passed, but it is None"""
+            )
 
-        if X is None: 
-            raise ValueError(f"""This {self.__class__.__name__!r}
-             estimator requires X to be passed, but it is None""")
+        if X is None:
+            raise ValueError(
+                f"""This {self.__class__.__name__!r}
+             estimator requires X to be passed, but it is None"""
+            )
 
         X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True)
-        print(X_clean.shape)
 
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
@@ -169,19 +172,21 @@ class BLR_Estimator(CoreEstimator):
                 self.alpha + np.dot(self.beta, np.array(X)), self.sigma
             )
 
-        try:
-            datakval = X.shape[1]
-        except IndexError:
-            datakval = 1
-            # transform passed (N,) into (N, 1)
-            X = X[:, None]
+        if X is None:
+            raise ValueError(
+                f"""This {self.__class__.__name__!r}
+             estimator requires X to be passed, but it is None"""
+            )
+
+        # TODO: should be a call to self._validate_data
+        X_clean = check_array(X=X, ensure_2d=True)
 
         predictions = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan")
 
         dat = {
-            "N": X.shape[0],
-            "K": datakval,
-            "X": X,
+            "N": X_clean.shape[0],
+            "K": X_clean.shape[1],
+            "X": X_clean,
             "alpha": self.alpha,
             "beta": self.beta,
             "sigma": self.sigma,
@@ -234,11 +239,11 @@ if __name__ == "__main__":
 
     blr = BLR_Estimator()
     blr.fit(xdat, ydat)
-    # blr.predict(xdat)
+    blr.predict(xdat)
 
-    #blr2 = BLR_Estimator()
-    #blr2.fit(kby2, ydat)
-    #blr2.predict(kby2)
+    # blr2 = BLR_Estimator()
+    # blr2.fit(kby2, ydat)
+    # blr2.predict(kby2)
 
     # check exceptions
 

@@ -116,42 +116,41 @@ class CoreEstimator:
 
     # custom function adapted from sklearn's validations
     def _validate_data(
-        self, 
-        X="no-validation", 
-        y="no-validation", 
-        ensure_X_2d: Optional[bool] = True, 
-        allow_X_nd: Optional[bool] = False, 
-        allow_y_multi_output: Optional[bool] = False, 
-        ensure_min_features: Optional[int] = 1
+        self,
+        X="no-validation",
+        y="no-validation",
+        ensure_X_2d: Optional[bool] = True,
+        allow_X_nd: Optional[bool] = False,
+        allow_y_multi_output: Optional[bool] = False,
+        ensure_min_features: Optional[int] = 1,
     ):
         """
-            Input validation for standard estimators.
-            Checks X and y for consistent length, enforces X to be 2D and y 1D. By
-            default, X is checked to be non-empty and containing only finite values.
-            Standard input checks are also applied to y, such as checking that y
-            does not have np.nan or np.inf targets. For multi-label y, set
-            multi_output=True to allow 2D 
+        Input validation for standard estimators.
+        Checks X and y for consistent length, enforces X to be 2D and y 1D. By
+        default, X is checked to be non-empty and containing only finite values.
+        Standard input checks are also applied to y, such as checking that y
+        does not have np.nan or np.inf targets. For multi-label y, set
+        multi_output=True to allow 2D
         """
         no_val_X = isinstance(X, str) and X == "no_validation"
         no_val_y = y is None or isinstance(y, str) and y == "no_validation"
-
-        res_X = X 
+        print(no_val_X, no_val_y)
+        res_X = X
         res_y = y
 
-        if no_val_X and no_val_y: 
+        if no_val_X and no_val_y:
             raise ValueError("""Validation should be done on X,y or both.""")
         elif not no_val_X and no_val_y:
             res_X = check_array(
                 X,
                 ensure_2d=ensure_X_2d,
-                allow_nd=allow_X_nd, 
-                ensure_min_features=ensure_min_features
+                allow_nd=allow_X_nd,
+                ensure_min_features=ensure_min_features,
             )
         elif no_val_X and not no_val_y:
             pass
-        else: 
-            # TODO: add separate validation of X and y?
+        else:
+            # TODO: add separate validation of X and y? !!!!!
             res_X, res_y = check_X_y(X, y)
-
 
         return res_X, res_y
