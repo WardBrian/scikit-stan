@@ -1,13 +1,11 @@
 import numbers
+import warnings
 from inspect import isclass
+from typing import Any, Callable, Iterable, List, Optional, Union
 
 import numpy as np
-
-from typing import Any, Callable, Iterable, List, Optional, Union
-from numpy.typing import NDArray
 from numpy import float64
-
-import warnings
+from numpy.typing import NDArray
 
 from ..exceptions import NotFittedError
 

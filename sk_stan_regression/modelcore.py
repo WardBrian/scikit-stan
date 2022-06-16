@@ -2,19 +2,19 @@
 
 from collections import defaultdict
 from inspect import signature
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
-from numpy.typing import NDArray
 from numpy import float64
+from numpy.typing import NDArray
 
 from sk_stan_regression.utils.validation import _check_y
 
 from .utils import check_array, check_X_y
 
-
 # TODO: why does this exist and why doesn't mypy like it?
 # from typing_extensions import Self
 # TODO: how to properly type annotate methods that return self?
+
 
 # NOTE: these are the same as sk-learn's three methods
 class CoreEstimator:

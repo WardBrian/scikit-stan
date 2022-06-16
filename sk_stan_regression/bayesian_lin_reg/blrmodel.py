@@ -12,8 +12,7 @@ from numpy.typing import NDArray
 from sk_stan_regression.modelcore import CoreEstimator
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from sk_stan_regression.utils.validation import check_is_fitted, check_array
-
+from sk_stan_regression.utils.validation import check_array, check_is_fitted
 
 BLR_FOLDER = Path(__file__).parent
 DEFAULT_FAKE_DATA = BLR_FOLDER.parent / "data" / "fake_data.json"

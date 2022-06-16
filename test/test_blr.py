@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+
 import numpy as np
 
 from sk_stan_regression.modelcore import CoreEstimator
