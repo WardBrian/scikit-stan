@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 from inspect import signature
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from numpy import float64
 from numpy.typing import NDArray
@@ -120,7 +120,7 @@ class CoreEstimator:
         y: Optional[NDArray[float64]] = None,
         ensure_X_2d: bool = True,
         allow_X_nd: bool = False,
-    ) -> tuple[Optional[NDArray[float64]], Optional[NDArray[float64]]]:
+    ) -> Tuple[Optional[NDArray[float64]], Optional[NDArray[float64]]]:
         """
         Input validation for standard estimators.
         Checks X and y for consistent length, enforces X to be 2D and y 1D. By

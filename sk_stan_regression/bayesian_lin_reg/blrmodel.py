@@ -164,8 +164,8 @@ class BLR_Estimator(CoreEstimator):
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, np.array(X)), 
-                self.sigma_  # type: ignore
+                self.alpha_ + np.dot(self.beta_, np.array(X)),  # type: ignore 
+                self.sigma_ 
             )
 
         if X is None:
