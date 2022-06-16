@@ -3,7 +3,7 @@ from inspect import isclass
 
 import numpy as np
 
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Iterable, List, Optional, Union
 from numpy.typing import NDArray
 from numpy import float64
 
@@ -96,7 +96,7 @@ def check_X_y(
 
 # taken from official sklearn repo;
 # TODO: simplify
-def check_is_fitted(estimator:CoreEstimator, attributes:Optional[List[str]]=None, *, msg:Optional[str]=None, all_or_any:Callable=all) -> None:
+def check_is_fitted(estimator:CoreEstimator, attributes:Optional[List[str]]=None, *, msg:Optional[str]=None, all_or_any:Callable[[Iterable[object]], bool]=all) -> None:
     """Perform is_fitted validation for estimator.
     Checks if the estimator is fitted by verifying the presence of
     fitted attributes (ending with a trailing underscore) and otherwise
@@ -146,10 +146,6 @@ def check_is_fitted(estimator:CoreEstimator, attributes:Optional[List[str]]=None
         if not isinstance(attributes, (list, tuple)):
             attributes = [attributes]
         fitted = all_or_any([hasattr(estimator, attr) for attr in attributes])
-    else:
-        fitted = [
-            v for v in vars(estimator) if v.endswith("_") and not v.startswith("__")
-        ]
 
     if not fitted:
         raise NotFittedError(msg % {"name": type(estimator).__name__})
@@ -165,7 +161,7 @@ def check_consistent_length(*arrays: List[Any]) -> None:
     """
 
     lengths = [_num_samples(X) for X in arrays if X is not None]
-    uniques = np.unique(lengths)
+    uniques:NDArray[np.int_] = np.unique(lengths) # type: ignore
     if len(uniques) > 1:
         raise ValueError(
             "Found input variables with inconsistent numbers of samples: %r"
@@ -173,7 +169,7 @@ def check_consistent_length(*arrays: List[Any]) -> None:
         )
 
 
-def _num_samples(x) -> int:
+def _num_samples(x:Any) -> Union[int, numbers.Integral]:
     """Return number of samples in array-like x."""
     message = "Expected sequence or array-like, got %s" % type(x)
     if hasattr(x, "fit") and callable(x.fit):
