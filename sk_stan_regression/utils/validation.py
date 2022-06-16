@@ -3,15 +3,17 @@ from inspect import isclass
 
 import numpy as np
 
-from typing import Optional
+from typing import Any, Callable, List, Optional
 from numpy.typing import NDArray
 from numpy import float64
 
 import warnings
+
+from sk_stan_regression.modelcore import CoreEstimator
 from ..exceptions import NotFittedError
 
 # probably unnecessary... do the cast somewhere else?
-#def _ensure_no_complex_data(array):
+# def _ensure_no_complex_data(array):
 #    if (
 #        hasattr(array, "dtype")
 #        and array.dtype is not None
@@ -26,8 +28,8 @@ def check_array(
     X: NDArray[float64],
     ensure_2d: bool = True,
     allow_nd: bool = False,
-    dtype="numeric",
-):
+    dtype: str = "numeric",
+) -> NDArray[float64]:
     """
     Input validation on an array, list, sparse matrix or similar.
     By default, the input is checked to be a non-empty 2D array containing
@@ -61,7 +63,7 @@ def check_array(
         )
 
     # TODO: enforce that all values are finite & real
-    #_ensure_no_complex_data(array_res)
+    # _ensure_no_complex_data(array_res)
 
     # TODO: enforce number of features & samples
 
@@ -69,7 +71,7 @@ def check_array(
 
 
 # TODO: add additional arguments
-def _check_y(y, y_numeric=True):
+def _check_y(y:NDArray[Any], y_numeric:bool=True)->NDArray[float64]:
     y = check_array(y, ensure_2d=False)
 
     if y_numeric:
@@ -80,21 +82,21 @@ def _check_y(y, y_numeric=True):
 
 # adapted from sklearn's check_X_y validation
 def check_X_y(
-    X,
-    y,
+    X:NDArray[float64],
+    y:NDArray[float64],
     ensure_X_2d: bool = True,
     allow_nd: bool = False,
-    y_numeric=True,
-):
-    X = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd)
-    y = _check_y(y, y_numeric=y_numeric)
+    y_numeric: bool =True,
+) -> tuple[NDArray[float64], NDArray[float64]]:
+    X_checked = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd)
+    y_checked = _check_y(y, y_numeric=y_numeric)
 
-    return X, y
+    return X_checked, y_checked
 
 
 # taken from official sklearn repo;
 # TODO: simplify
-def check_is_fitted(estimator, attributes=None, *, msg=None, all_or_any=all) -> None:
+def check_is_fitted(estimator:CoreEstimator, attributes:Optional[List[str]]=None, *, msg:Optional[str]=None, all_or_any:Callable=all) -> None:
     """Perform is_fitted validation for estimator.
     Checks if the estimator is fitted by verifying the presence of
     fitted attributes (ending with a trailing underscore) and otherwise
@@ -144,8 +146,6 @@ def check_is_fitted(estimator, attributes=None, *, msg=None, all_or_any=all) -> 
         if not isinstance(attributes, (list, tuple)):
             attributes = [attributes]
         fitted = all_or_any([hasattr(estimator, attr) for attr in attributes])
-    elif hasattr(estimator, "__sklearn_is_fitted__"):
-        fitted = estimator.__sklearn_is_fitted__()
     else:
         fitted = [
             v for v in vars(estimator) if v.endswith("_") and not v.startswith("__")
@@ -155,7 +155,7 @@ def check_is_fitted(estimator, attributes=None, *, msg=None, all_or_any=all) -> 
         raise NotFittedError(msg % {"name": type(estimator).__name__})
 
 
-def check_consistent_length(*arrays):
+def check_consistent_length(*arrays: List[Any]) -> None:
     """Check that all arrays have consistent first dimensions.
     Checks whether all objects in arrays have the same shape or length.
     Parameters
@@ -173,7 +173,7 @@ def check_consistent_length(*arrays):
         )
 
 
-def _num_samples(x):
+def _num_samples(x) -> int:
     """Return number of samples in array-like x."""
     message = "Expected sequence or array-like, got %s" % type(x)
     if hasattr(x, "fit") and callable(x.fit):

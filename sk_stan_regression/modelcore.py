@@ -2,10 +2,12 @@
 
 from collections import defaultdict
 from inspect import signature
-from typing import Any, Dict, Optional, List
-from numpy import ndarray 
+from typing import Any, Callable, DefaultDict, Dict, Optional, List
+from numpy import ndarray
 from numpy.typing import NDArray
 from numpy import float64
+
+from sk_stan_regression.utils.validation import _check_y
 
 from .utils import check_array, check_X_y
 
@@ -47,7 +49,7 @@ class CoreEstimator:
 
         return sorted([p.name for p in parameters])
 
-    def get_params(self, deep:bool=True) -> Dict[str, Any]:
+    def get_params(self, deep: bool = True) -> Dict[str, Any]:
         """
         Get parameters for this estimator.
         Parameters
@@ -69,7 +71,7 @@ class CoreEstimator:
             out[key] = value
         return out
 
-    def set_params(self, **params : Dict[str, Dict[str, Any]]) -> "CoreEstimator":
+    def set_params(self, **params: Dict[str, Dict[str, Any]]) -> "CoreEstimator":
         """Set the parameters of this estimator.
         The method works on simple estimators as well as on nested objects
         (such as :class:`~sklearn.pipeline.Pipeline`). The latter have
@@ -88,7 +90,7 @@ class CoreEstimator:
             return self
         valid_params = self.get_params(deep=True)
 
-        nested_params = defaultdict(dict)  # grouped by prefix
+        nested_params = defaultdict(dict)  # type: ignore
         for key, value in params.items():
             key, delim, sub_key = key.partition("__")
             if key not in valid_params:
@@ -107,41 +109,36 @@ class CoreEstimator:
         for key, sub_params in nested_params.items():
             valid_params[key].set_params(**sub_params)
 
-        return self 
+        return self
 
     # custom function adapted from sklearn's validations
     def _validate_data(
-        self, 
-        X:Optional[NDArray[float64]]=None,
-        y:Optional[NDArray[float64]]=None,
+        self,
+        X: Optional[NDArray[float64]] = None,
+        y: Optional[NDArray[float64]] = None,
         ensure_X_2d: bool = True,
         allow_X_nd: bool = False,
-    ):
+    ) -> tuple[Optional[NDArray[float64]], Optional[NDArray[float64]]]:
         """
         Input validation for standard estimators.
         Checks X and y for consistent length, enforces X to be 2D and y 1D. By
         default, X is checked to be non-empty and containing only finite values.
         Standard input checks are also applied to y, such as checking that y
-        does not have np.nan or np.inf targets. For multi-label y, set
-        multi_output=True to allow 2D
+        does not have np.nan or np.inf targets. !!!
         """
+        # shorthanding like this leads to mypy issues... 
         no_X, no_y = X is None, y is None
-
-        res_X = X
-        res_y = y
+        res_X, res_y = X, y
 
         if no_X and no_y:
             raise ValueError("""Validation should be done on X,y or both.""")
         elif not no_X and no_y:
             res_X = check_array(
-                X,
-                ensure_2d=ensure_X_2d,
-                allow_nd=allow_X_nd,
-            )
+                    X, ensure_2d=ensure_X_2d,allow_nd=allow_X_nd,) # type:ignore
         elif no_X and not no_y:
-            return
+            res_y = _check_y(y) # type:ignore
         else:
             # TODO: add separate validation of X and y? !!!!!
-            res_X, res_y = check_X_y(X, y)
+            res_X, res_y = check_X_y(X, y) # type:ignore
 
         return res_X, res_y

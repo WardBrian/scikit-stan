@@ -25,6 +25,7 @@ method_dict = {
     "Variational": CmdStanModel.variational,
 }
 
+
 class BLR_Estimator(CoreEstimator):
     """
     Vectorized, multidimensional version of the BLR Estimator above.
@@ -40,13 +41,14 @@ class BLR_Estimator(CoreEstimator):
 
     :param algorithm: algorithm that performs an operation on the posterior
     """
-    #alpha_: float = None  
-    #alpha_samples_: ArrayLike = None  
-    #beta_: Optional[ArrayLike] = None
-    #beta_samples_: Optional[ArrayLike] = None
-    #sigma_: Optional[float] = None
-    #sigma_samples_: Optional[ArrayLike] = None
-    #is_fitted_: Optional[float] = None
+
+    # alpha_: float = None
+    # alpha_samples_: ArrayLike = None
+    # beta_: Optional[ArrayLike] = None
+    # beta_samples_: Optional[ArrayLike] = None
+    # sigma_: Optional[float] = None
+    # sigma_samples_: Optional[ArrayLike] = None
+    # is_fitted_: Optional[float] = None
 
     def __init__(
         self,
@@ -60,7 +62,7 @@ class BLR_Estimator(CoreEstimator):
                         alpha={self.alpha_!r}, alpha_samples={self.alpha_samples_!r}, 
                         beta={self.beta_!r}, beta_samples={self.beta_samples_!r}, 
                         sigma={self.sigma_!r}, sigma_samples={self.sigma_samples_!r}>
-                """ 
+                """
 
     def fit(
         self,
@@ -93,20 +95,18 @@ class BLR_Estimator(CoreEstimator):
                 """This Bayesian Linear Regression
              estimator requires X to be passed, but it is None"""
             )
-        
-        # TODO: test this functionality 
-        if not self.algorithm in method_dict.keys(): 
-            raise ValueError(f"""Current Linear Regression created with algorithm {self.algorithm!r}, which is not one of the supported methods. Try with one of the following: (HMC-NUTS, MLE, Variational).""")
+
+        # TODO: test this functionality
+        if not self.algorithm in method_dict.keys():
+            raise ValueError(
+                f"""Current Linear Regression created with algorithm {self.algorithm!r}, which is not one of the supported methods. Try with one of the following: (HMC-NUTS, MLE, Variational)."""
+            )
 
         X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True)
 
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
-        dat = {
-            "x": X_clean,
-            "y": y_clean, 
-            "N": X_clean.shape[0], 
-            "K": X_clean.shape[1]}
+        dat = {"x": X_clean, "y": y_clean, "N": X_clean.shape[0], "K": X_clean.shape[1]}
 
         vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=False)
 
@@ -184,7 +184,7 @@ class BLR_Estimator(CoreEstimator):
             data=dat, iter_sampling=num_iterations, chains=num_chains
         )
 
-        return samples.stan_variable('y_sim')
+        return samples.stan_variable("y_sim")
 
 
 if __name__ == "__main__":
