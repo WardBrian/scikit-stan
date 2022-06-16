@@ -37,10 +37,20 @@ jobs:
           python -m pip install --upgrade pip wheel
           pip install .[test]
 
-      - name: Run flake8, pylint, mypy
+      - name: Run flake8
         run: |
           flake8 sk_stan_regression test
+        with: 
+          ignore: "E127,E201,E202,E203,E231,E252,E266,E402,E999,F841,W503,W605, W291"
+          exclude: ".git"
+          max-line-length: 100
+          
+      - name: Run pylint
+        run: | 
           pylint -v sk_stan_regression test
+
+      - name: Run mypy
+        run: | 
           mypy sk_stan_regression
 
       - name: CmdStan installation cacheing
