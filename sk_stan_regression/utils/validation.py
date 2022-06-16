@@ -1,7 +1,7 @@
 import numbers
 import warnings
 from inspect import isclass
-from typing import Any, Callable, Iterable, List, Optional, Union
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 from numpy import float64
@@ -85,7 +85,7 @@ def check_X_y(
     ensure_X_2d: bool = True,
     allow_nd: bool = False,
     y_numeric: bool = True,
-) -> tuple[NDArray[float64], NDArray[float64]]:
+) -> Tuple[NDArray[float64], NDArray[float64]]:
     X_checked = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd)
     y_checked = _check_y(y, y_numeric=y_numeric)
 

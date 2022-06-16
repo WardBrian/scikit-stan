@@ -110,9 +110,9 @@ class BLR_Estimator(CoreEstimator):
         dat = {
             "x": X_clean,
             "y": y_clean,
-            "N": X_clean.shape[0],
-            "K": X_clean.shape[1],
-        }  # type: ignore
+            "N": X_clean.shape[0],  # type: ignore
+            "K": X_clean.shape[1],  # type: ignore
+        } 
 
         vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=False)
 
@@ -126,7 +126,7 @@ class BLR_Estimator(CoreEstimator):
             self.beta_: NDArray[np.float64] = np.array([])
 
             for idx in range(X_clean.shape[1]):  # type: ignore
-                self.beta_ = np.append(
+                self.beta_ = np.append(  # type: ignore
                     self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]]
                 )
 
@@ -164,7 +164,8 @@ class BLR_Estimator(CoreEstimator):
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, np.array(X)), self.sigma_
+                self.alpha_ + np.dot(self.beta_, np.array(X)), 
+                self.sigma_  # type: ignore
             )
 
         if X is None:
@@ -200,7 +201,7 @@ if __name__ == "__main__":
     xdat = np.array(jsondat["x"])
     ydat = np.array(jsondat["y"])
 
-    kby2 = np.column_stack((xdat, xdat))
+    kby2 = np.column_stack((xdat, xdat))  # type: ignore
 
     blr = BLR_Estimator()
     blr.fit(xdat, ydat)

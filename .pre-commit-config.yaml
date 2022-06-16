@@ -28,8 +28,5 @@ repos:
   # local uses the user-installed pylint, this allows dependency checking
   - repo: local
     hooks:
-    -   id: pylint
-        name: pylint
-        entry: pylint
         language: system
         types: [python]
