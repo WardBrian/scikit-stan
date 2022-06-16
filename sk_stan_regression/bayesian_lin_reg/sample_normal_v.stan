@@ -8,7 +8,7 @@ data {
 }
 
 generated quantities {
-    real y[N]; 
+    real y_sim[N]; 
 
-    y = normal_rng(alpha + X*beta, sigma); 
+    y_sim = normal_rng(alpha + X*beta, sigma); 
 }

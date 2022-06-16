@@ -3,14 +3,12 @@
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional, TypeVar, Union
+from typing import Any, Dict, Optional, Union
 
 import numpy as np
 import scipy.stats as stats  # type: ignore
 from cmdstanpy import CmdStanModel  # type: ignore
-from numpy import ndarray
-from numpy.typing import ArrayLike
-from sklearn.utils import check_X_y
+from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
 
@@ -21,71 +19,54 @@ from sk_stan_regression.utils.validation import check_is_fitted, check_array
 BLR_FOLDER = Path(__file__).parent
 DEFAULT_FAKE_DATA = BLR_FOLDER.parent / "data" / "fake_data.json"
 
-
 method_dict = {
     "HMC-NUTS": CmdStanModel.sample,
     "MLE": CmdStanModel.optimize,
     "Variational": CmdStanModel.variational,
 }
 
-# TODO: type checking is broken
-BLRE = TypeVar("BLRE", bound="BLR_Estimator")
-
-
-# TODO: add validation system as in sklearn for fit() and predict()
 class BLR_Estimator(CoreEstimator):
     """
     Vectorized, multidimensional version of the BLR Estimator above.
     Note that the intercept alpha and error scale sigma remain as scalar values
     while beta becomes a vector.
 
-    :param alpha: posterior mean of intercept of the linear regression
-    :param alpha_samples: samples generated from the posterior
-                            for model intercept
-    :param beta: posterior mean of slope of the linear regression
-    :param beta_samples: samples generated from the posterior
-                            for model slope
-    :param sigma: posterior mean of error scale of the linear regression
-    :param sigma_samples: samples generated from the posterior
-                            for model error scale
+    :param alpha_: posterior mean of intercept of the linear regression
+    :param alpha_samples_: samples generated from the posterior for model intercept
+    :param beta_: posterior mean of slope of the linear regression
+    :param beta_samples_: samples generated from the posterior for model slope
+    :param sigma_: posterior mean of error scale of the linear regression
+    :param sigma_samples_: samples generated from the posterior for model error scale
+
     :param algorithm: algorithm that performs an operation on the posterior
     """
+    #alpha_: float = None  
+    #alpha_samples_: ArrayLike = None  
+    #beta_: Optional[ArrayLike] = None
+    #beta_samples_: Optional[ArrayLike] = None
+    #sigma_: Optional[float] = None
+    #sigma_samples_: Optional[ArrayLike] = None
+    #is_fitted_: Optional[float] = None
 
     def __init__(
         self,
-        algorithm: Optional[str] = "HMC-NUTS",
+        algorithm: str = "HMC-NUTS",
     ):
-        # self.alpha_: Optional[float] = None  # posterior mean of the slope
-        # self.alpha_samples_: Optional[ArrayLike] = None  # slope draws
-        # self.beta_: Optional[ArrayLike] = None
-        # self.beta_samples_: Optional[ArrayLike] = None
-        # self.sigma_: Optional[float] = None
-        # self.sigma_samples_: Optional[ArrayLike] = None
-        #
-        # self.Xtrain_ = None
-        # self.ytrain_ = None
 
         self.algorithm = algorithm
-        # self.pfunctag: str = posterior_function
-        # self.posterior_function: Callable = method_dict[self.pfunctag]
-
-        # self.is_fitted_ = None
-
-    #
-    # self.model_ = CmdStanModel(stan_file=BLR_STAN_FILE)
 
     def __repr__(self) -> str:
         return f"""<BLR_Estimator:
-                        alpha={self.alpha!r}, alpha_samples={self.alpha_samples!r}, 
-                        beta={self.beta!r}>, beta_samples={self.beta_samples!r}, 
-                        sigma={self.sigma!r}, sigma_samples={self.sigma_samples!r}>
-                """
+                        alpha={self.alpha_!r}, alpha_samples={self.alpha_samples_!r}, 
+                        beta={self.beta_!r}, beta_samples={self.beta_samples_!r}, 
+                        sigma={self.sigma_!r}, sigma_samples={self.sigma_samples_!r}>
+                """ 
 
     def fit(
         self,
         X: ArrayLike,
         y: ArrayLike,
-    ) -> BLRE:
+    ) -> "CoreEstimator":
         """
         Fits current vectorized BLR object to the given data,
         with a default set of data.
@@ -103,21 +84,29 @@ class BLR_Estimator(CoreEstimator):
         """
         if y is None:
             raise ValueError(
-                f"""This {self.__class__.__name__!r}
+                """This Bayesian Linear Regression
              estimator requires y to be passed, but it is None"""
             )
 
         if X is None:
             raise ValueError(
-                f"""This {self.__class__.__name__!r}
+                """This Bayesian Linear Regression
              estimator requires X to be passed, but it is None"""
             )
+        
+        # TODO: test this functionality 
+        if not self.algorithm in method_dict.keys(): 
+            raise ValueError(f"""Current Linear Regression created with algorithm {self.algorithm!r}, which is not one of the supported methods. Try with one of the following: (HMC-NUTS, MLE, Variational).""")
 
         X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True)
 
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
-        dat = {"x": X_clean, "y": y_clean, "N": X_clean.shape[0], "K": X_clean.shape[1]}
+        dat = {
+            "x": X_clean,
+            "y": y_clean, 
+            "N": X_clean.shape[0], 
+            "K": X_clean.shape[1]}
 
         vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=False)
 
@@ -152,9 +141,9 @@ class BLR_Estimator(CoreEstimator):
     def predict(
         self,
         X: ArrayLike,
-        num_iterations: Optional[int] = 1000,
-        num_chains: Optional[int] = 4,
-    ) -> Union[Any, Dict[str, ndarray]]:
+        num_iterations: int = 1000,
+        num_chains: int = 4,
+    ) -> NDArray[np.float64]:
         """
         Predict using a fitted model after fit() has been applied.
 
@@ -169,7 +158,7 @@ class BLR_Estimator(CoreEstimator):
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(
-                self.alpha + np.dot(self.beta, np.array(X)), self.sigma
+                self.alpha_ + np.dot(self.beta_, np.array(X)), self.sigma_
             )
 
         if X is None:
@@ -187,45 +176,15 @@ class BLR_Estimator(CoreEstimator):
             "N": X_clean.shape[0],
             "K": X_clean.shape[1],
             "X": X_clean,
-            "alpha": self.alpha,
-            "beta": self.beta,
-            "sigma": self.sigma,
+            "alpha": self.alpha_,
+            "beta": self.beta_,
+            "sigma": self.sigma_,
         }
         samples = predictions.sample(
             data=dat, iter_sampling=num_iterations, chains=num_chains
         )
 
-        return samples.stan_variables()
-
-    @property
-    def alpha(self) -> Optional[float]:
-        """Posterior mean for regression intercept."""
-        return self.alpha_
-
-    @property
-    def alpha_samples(self) -> Optional[ArrayLike]:
-        """Samples generated from posterior for regression intercept."""
-        return self.alpha_samples_
-
-    @property
-    def beta(self) -> Optional[ArrayLike]:
-        """Posterior mean for regression slope."""
-        return self.beta_
-
-    @property
-    def beta_samples(self) -> Optional[ArrayLike]:
-        """Samples generated from posterior for regression slope."""
-        return self.beta_samples_
-
-    @property
-    def sigma(self) -> Optional[float]:
-        """Posterior mean for regression error scale."""
-        return self.sigma_
-
-    @property
-    def sigma_samples(self) -> Optional[ArrayLike]:
-        """Samples generated from posterior for regression error scale."""
-        return self.sigma_samples_
+        return samples.stan_variable('y_sim')
 
 
 if __name__ == "__main__":
@@ -239,7 +198,7 @@ if __name__ == "__main__":
 
     blr = BLR_Estimator()
     blr.fit(xdat, ydat)
-    blr.predict(xdat)
+    print(blr.predict(xdat))
 
     # blr2 = BLR_Estimator()
     # blr2.fit(kby2, ydat)

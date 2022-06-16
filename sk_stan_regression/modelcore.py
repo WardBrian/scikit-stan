@@ -2,8 +2,10 @@
 
 from collections import defaultdict
 from inspect import signature
-from typing import TypeVar, Optional
-from numpy.typing import ArrayLike
+from typing import Any, Dict, Optional, List
+from numpy import ndarray 
+from numpy.typing import NDArray
+from numpy import float64
 
 from .utils import check_array, check_X_y
 
@@ -11,8 +13,6 @@ from .utils import check_array, check_X_y
 # TODO: why does this exist and why doesn't mypy like it?
 # from typing_extensions import Self
 # TODO: how to properly type annotate methods that return self?
-CE = TypeVar("CE", bound="CoreEstimator")
-
 
 # NOTE: these are the same as sk-learn's three methods
 class CoreEstimator:
@@ -21,24 +21,20 @@ class CoreEstimator:
     """
 
     @classmethod
-    def _get_param_names(cls) -> list:
+    def _get_param_names(cls) -> List[str]:
         """Get parameter names for the estimator"""
-        # fetch the constructor or the original constructor before
-        # deprecation wrapping if any
         init = getattr(cls.__init__, "deprecated_original", cls.__init__)
         if init is object.__init__:
-            # No explicit constructor to introspect
             return []
 
-        # introspect the constructor arguments to find the model parameters
-        # to represent
         init_signature = signature(init)
-        # Consider the constructor parameters excluding 'self'
+
         parameters = [
             p
             for p in init_signature.parameters.values()
             if p.name != "self" and p.kind != p.VAR_KEYWORD
         ]
+
         for p in parameters:
             if p.kind == p.VAR_POSITIONAL:
                 raise RuntimeError(
@@ -48,10 +44,10 @@ class CoreEstimator:
                     " %s with constructor %s doesn't "
                     " follow this convention." % (cls, init_signature)
                 )
-        # Extract and sort argument names excluding 'self'
+
         return sorted([p.name for p in parameters])
 
-    def get_params(self, deep=True) -> dict:
+    def get_params(self, deep:bool=True) -> Dict[str, Any]:
         """
         Get parameters for this estimator.
         Parameters
@@ -64,7 +60,7 @@ class CoreEstimator:
         params : dict
             Parameter names mapped to their values.
         """
-        out = dict()
+        out: Dict[str, Any] = dict()
         for key in self._get_param_names():
             value = getattr(self, key)
             if deep and hasattr(value, "get_params"):
@@ -73,7 +69,7 @@ class CoreEstimator:
             out[key] = value
         return out
 
-    def set_params(self, **params) -> CE:
+    def set_params(self, **params : Dict[str, Dict[str, Any]]) -> "CoreEstimator":
         """Set the parameters of this estimator.
         The method works on simple estimators as well as on nested objects
         (such as :class:`~sklearn.pipeline.Pipeline`). The latter have
@@ -89,7 +85,6 @@ class CoreEstimator:
             Estimator instance.
         """
         if not params:
-            # Simple optimization to gain speed (inspect is slow)
             return self
         valid_params = self.get_params(deep=True)
 
@@ -112,17 +107,15 @@ class CoreEstimator:
         for key, sub_params in nested_params.items():
             valid_params[key].set_params(**sub_params)
 
-        return
+        return self 
 
     # custom function adapted from sklearn's validations
     def _validate_data(
-        self,
-        X="no-validation",
-        y="no-validation",
-        ensure_X_2d: Optional[bool] = True,
-        allow_X_nd: Optional[bool] = False,
-        allow_y_multi_output: Optional[bool] = False,
-        ensure_min_features: Optional[int] = 1,
+        self, 
+        X:Optional[NDArray[float64]]=None,
+        y:Optional[NDArray[float64]]=None,
+        ensure_X_2d: bool = True,
+        allow_X_nd: bool = False,
     ):
         """
         Input validation for standard estimators.
@@ -132,23 +125,21 @@ class CoreEstimator:
         does not have np.nan or np.inf targets. For multi-label y, set
         multi_output=True to allow 2D
         """
-        no_val_X = isinstance(X, str) and X == "no_validation"
-        no_val_y = y is None or isinstance(y, str) and y == "no_validation"
-        print(no_val_X, no_val_y)
+        no_X, no_y = X is None, y is None
+
         res_X = X
         res_y = y
 
-        if no_val_X and no_val_y:
+        if no_X and no_y:
             raise ValueError("""Validation should be done on X,y or both.""")
-        elif not no_val_X and no_val_y:
+        elif not no_X and no_y:
             res_X = check_array(
                 X,
                 ensure_2d=ensure_X_2d,
                 allow_nd=allow_X_nd,
-                ensure_min_features=ensure_min_features,
             )
-        elif no_val_X and not no_val_y:
-            pass
+        elif no_X and not no_y:
+            return
         else:
             # TODO: add separate validation of X and y? !!!!!
             res_X, res_y = check_X_y(X, y)

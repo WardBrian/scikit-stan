@@ -4,28 +4,28 @@ from inspect import isclass
 import numpy as np
 
 from typing import Optional
-from numpy.typing import ArrayLike
+from numpy.typing import NDArray
+from numpy import float64
 
 import warnings
 from ..exceptions import NotFittedError
 
-
-def _ensure_no_complex_data(array):
-    if (
-        hasattr(array, "dtype")
-        and array.dtype is not None
-        and hasattr(array.dtype, "kind")
-        and array.dtype.kind == "c"
-    ):
-        raise ValueError(f"Complex data not supported\n{array!r}\n")
-
+# probably unnecessary... do the cast somewhere else?
+#def _ensure_no_complex_data(array):
+#    if (
+#        hasattr(array, "dtype")
+#        and array.dtype is not None
+#        and hasattr(array.dtype, "kind")
+#        and array.dtype.kind == "c"
+#    ):
+#        raise ValueError(f"Complex data not supported\n{array!r}\n")
+#
 
 # TODO: write docstrings for everything
 def check_array(
-    X: ArrayLike,
-    ensure_2d: Optional[bool] = True,
-    allow_nd: Optional[bool] = False,
-    ensure_min_features: Optional[int] = 1,
+    X: NDArray[float64],
+    ensure_2d: bool = True,
+    allow_nd: bool = False,
     dtype="numeric",
 ):
     """
@@ -35,7 +35,7 @@ def check_array(
     """
     # TODO PANDAS -> np support?
 
-    array_res = X
+    array_res = np.asanyarray(X)
 
     if ensure_2d:
         # input cannot be scalar
@@ -51,7 +51,7 @@ def check_array(
                 """Passed data is one-dimensional, while estimator expects
                 it to be at at least two-dimensional."""
             )
-            array_res = np.array(X)[:, None]
+            array_res = np.asanyarray(X)[:, None]
 
     if not allow_nd and X.ndim > 2:
         raise ValueError(
@@ -61,7 +61,7 @@ def check_array(
         )
 
     # TODO: enforce that all values are finite & real
-    _ensure_no_complex_data(array_res)
+    #_ensure_no_complex_data(array_res)
 
     # TODO: enforce number of features & samples
 
@@ -69,22 +69,21 @@ def check_array(
 
 
 # TODO: add additional arguments
-def _check_y(y, multi_output=False, y_numeric=True):
+def _check_y(y, y_numeric=True):
     y = check_array(y, ensure_2d=False)
 
     if y_numeric:
         y = y.astype(np.float64)
 
-    return y
+    return np.asanyarray(y)
 
 
 # adapted from sklearn's check_X_y validation
 def check_X_y(
     X,
     y,
-    ensure_X_2d: Optional[bool] = True,
-    allow_nd: Optional[bool] = False,
-    ensure_min_features: Optional[int] = 1,
+    ensure_X_2d: bool = True,
+    allow_nd: bool = False,
     y_numeric=True,
 ):
     X = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd)
@@ -95,7 +94,7 @@ def check_X_y(
 
 # taken from official sklearn repo;
 # TODO: simplify
-def check_is_fitted(estimator, attributes=None, *, msg=None, all_or_any=all):
+def check_is_fitted(estimator, attributes=None, *, msg=None, all_or_any=all) -> None:
     """Perform is_fitted validation for estimator.
     Checks if the estimator is fitted by verifying the presence of
     fitted attributes (ending with a trailing underscore) and otherwise
