@@ -9,7 +9,6 @@ from numpy import float64
 
 import warnings
 
-from sk_stan_regression.modelcore import CoreEstimator
 from ..exceptions import NotFittedError
 
 # probably unnecessary... do the cast somewhere else?
@@ -96,7 +95,7 @@ def check_X_y(
 
 # taken from official sklearn repo;
 # TODO: simplify
-def check_is_fitted(estimator:CoreEstimator, attributes:Optional[List[str]]=None, *, msg:Optional[str]=None, all_or_any:Callable[[Iterable[object]], bool]=all) -> None:
+def check_is_fitted(estimator: Any, attributes:Optional[List[str]]=None, *, msg:Optional[str]=None, all_or_any:Callable[[Iterable[object]], bool]=all) -> None:
     """Perform is_fitted validation for estimator.
     Checks if the estimator is fitted by verifying the presence of
     fitted attributes (ending with a trailing underscore) and otherwise
@@ -146,6 +145,12 @@ def check_is_fitted(estimator:CoreEstimator, attributes:Optional[List[str]]=None
         if not isinstance(attributes, (list, tuple)):
             attributes = [attributes]
         fitted = all_or_any([hasattr(estimator, attr) for attr in attributes])
+    else: 
+        if hasattr(estimator, "is_fitted_"):
+            fitted = estimator.is_fitted_
+        else: 
+            raise TypeError("{} has no field is_fitted_, does not conform to required API".format(estimator))
+
 
     if not fitted:
         raise NotFittedError(msg % {"name": type(estimator).__name__})

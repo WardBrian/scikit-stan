@@ -112,6 +112,8 @@ class CoreEstimator:
         return self
 
     # custom function adapted from sklearn's validations
+    # TODO: add check that X and y have the same relevant
+    # dimensions...? should be a separate validation...
     def _validate_data(
         self,
         X: Optional[NDArray[float64]] = None,

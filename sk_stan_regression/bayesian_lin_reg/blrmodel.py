@@ -66,8 +66,8 @@ class BLR_Estimator(CoreEstimator):
 
     def fit(
         self,
-        X: ArrayLike,
-        y: ArrayLike,
+        X: NDArray[np.float64],
+        y: NDArray[np.float64],
     ) -> "CoreEstimator":
         """
         Fits current vectorized BLR object to the given data,
@@ -106,7 +106,7 @@ class BLR_Estimator(CoreEstimator):
 
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
-        dat = {"x": X_clean, "y": y_clean, "N": X_clean.shape[0], "K": X_clean.shape[1]}
+        dat = {"x": X_clean, "y": y_clean, "N": X_clean.shape[0], "K": X_clean.shape[1]} # type: ignore
 
         vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=False)
 
@@ -117,9 +117,9 @@ class BLR_Estimator(CoreEstimator):
             summary_df = vb_fit.summary()
             self.alpha_ = summary_df.at["alpha", "Mean"]
 
-            self.beta_ = np.array([])
+            self.beta_ : NDArray[np.float64]= np.array([])
 
-            for idx in range(X_clean.shape[1]):
+            for idx in range(X_clean.shape[1]): # type: ignore
                 self.beta_ = np.append(
                     self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]]
                 )
@@ -140,7 +140,7 @@ class BLR_Estimator(CoreEstimator):
 
     def predict(
         self,
-        X: ArrayLike,
+        X: NDArray[np.float64],
         num_iterations: int = 1000,
         num_chains: int = 4,
     ) -> NDArray[np.float64]:
@@ -157,9 +157,7 @@ class BLR_Estimator(CoreEstimator):
         check_is_fitted(self)
 
         if self.algorithm != "HMC-NUTS":
-            return stats.norm.rvs(
-                self.alpha_ + np.dot(self.beta_, np.array(X)), self.sigma_
-            )
+            return stats.norm.rvs( self.alpha_ + np.dot(self.beta_, np.array(X)), self.sigma_ ) # type: ignore
 
         if X is None:
             raise ValueError(
@@ -184,7 +182,7 @@ class BLR_Estimator(CoreEstimator):
             data=dat, iter_sampling=num_iterations, chains=num_chains
         )
 
-        return samples.stan_variable("y_sim")
+        return samples.stan_variable("y_sim") # type: ignore
 
 
 if __name__ == "__main__":
