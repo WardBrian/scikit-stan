@@ -2,8 +2,8 @@
 
 from collections import defaultdict
 from inspect import signature
-from typing import Any, Callable, DefaultDict, Dict, Optional, List
-from numpy import ndarray
+from typing import Any, Dict, Optional, List
+
 from numpy.typing import NDArray
 from numpy import float64
 
@@ -128,7 +128,7 @@ class CoreEstimator:
         Standard input checks are also applied to y, such as checking that y
         does not have np.nan or np.inf targets. !!!
         """
-        # shorthanding like this leads to mypy issues... 
+        # shorthanding like this leads to mypy issues...
         no_X, no_y = X is None, y is None
         res_X, res_y = X, y
 
@@ -136,11 +136,14 @@ class CoreEstimator:
             raise ValueError("""Validation should be done on X,y or both.""")
         elif not no_X and no_y:
             res_X = check_array(
-                    X, ensure_2d=ensure_X_2d,allow_nd=allow_X_nd,) # type:ignore
+                X,  # type: ignore
+                ensure_2d=ensure_X_2d,
+                allow_nd=allow_X_nd,
+            )
         elif no_X and not no_y:
-            res_y = _check_y(y) # type:ignore
+            res_y = _check_y(y)  # type:ignore
         else:
             # TODO: add separate validation of X and y? !!!!!
-            res_X, res_y = check_X_y(X, y) # type:ignore
+            res_X, res_y = check_X_y(X, y)  # type:ignore
 
         return res_X, res_y

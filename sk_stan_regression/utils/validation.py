@@ -22,6 +22,7 @@ from ..exceptions import NotFittedError
 #        raise ValueError(f"Complex data not supported\n{array!r}\n")
 #
 
+
 # TODO: write docstrings for everything
 def check_array(
     X: NDArray[float64],
@@ -70,7 +71,7 @@ def check_array(
 
 
 # TODO: add additional arguments
-def _check_y(y:NDArray[Any], y_numeric:bool=True)->NDArray[float64]:
+def _check_y(y: NDArray[Any], y_numeric: bool = True) -> NDArray[float64]:
     y = check_array(y, ensure_2d=False)
 
     if y_numeric:
@@ -81,11 +82,11 @@ def _check_y(y:NDArray[Any], y_numeric:bool=True)->NDArray[float64]:
 
 # adapted from sklearn's check_X_y validation
 def check_X_y(
-    X:NDArray[float64],
-    y:NDArray[float64],
+    X: NDArray[float64],
+    y: NDArray[float64],
     ensure_X_2d: bool = True,
     allow_nd: bool = False,
-    y_numeric: bool =True,
+    y_numeric: bool = True,
 ) -> tuple[NDArray[float64], NDArray[float64]]:
     X_checked = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd)
     y_checked = _check_y(y, y_numeric=y_numeric)
@@ -95,7 +96,13 @@ def check_X_y(
 
 # taken from official sklearn repo;
 # TODO: simplify
-def check_is_fitted(estimator: Any, attributes:Optional[List[str]]=None, *, msg:Optional[str]=None, all_or_any:Callable[[Iterable[object]], bool]=all) -> None:
+def check_is_fitted(
+    estimator: Any,
+    attributes: Optional[List[str]] = None,
+    *,
+    msg: Optional[str] = None,
+    all_or_any: Callable[[Iterable[object]], bool] = all,
+) -> None:
     """Perform is_fitted validation for estimator.
     Checks if the estimator is fitted by verifying the presence of
     fitted attributes (ending with a trailing underscore) and otherwise
@@ -145,12 +152,15 @@ def check_is_fitted(estimator: Any, attributes:Optional[List[str]]=None, *, msg:
         if not isinstance(attributes, (list, tuple)):
             attributes = [attributes]
         fitted = all_or_any([hasattr(estimator, attr) for attr in attributes])
-    else: 
+    else:
         if hasattr(estimator, "is_fitted_"):
             fitted = estimator.is_fitted_
-        else: 
-            raise TypeError("{} has no field is_fitted_, does not conform to required API".format(estimator))
-
+        else:
+            raise TypeError(
+                "{} has no field is_fitted_, does not conform to required API".format(
+                    estimator
+                )
+            )
 
     if not fitted:
         raise NotFittedError(msg % {"name": type(estimator).__name__})
@@ -166,7 +176,7 @@ def check_consistent_length(*arrays: List[Any]) -> None:
     """
 
     lengths = [_num_samples(X) for X in arrays if X is not None]
-    uniques:NDArray[np.int_] = np.unique(lengths) # type: ignore
+    uniques: NDArray[np.int_] = np.unique(lengths)  # type: ignore
     if len(uniques) > 1:
         raise ValueError(
             "Found input variables with inconsistent numbers of samples: %r"
@@ -174,7 +184,7 @@ def check_consistent_length(*arrays: List[Any]) -> None:
         )
 
 
-def _num_samples(x:Any) -> Union[int, numbers.Integral]:
+def _num_samples(x: Any) -> Union[int, numbers.Integral]:
     """Return number of samples in array-like x."""
     message = "Expected sequence or array-like, got %s" % type(x)
     if hasattr(x, "fit") and callable(x.fit):

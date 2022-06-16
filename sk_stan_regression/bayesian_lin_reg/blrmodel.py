@@ -3,12 +3,11 @@
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
 
 import numpy as np
 import scipy.stats as stats  # type: ignore
 from cmdstanpy import CmdStanModel  # type: ignore
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
 
@@ -97,16 +96,24 @@ class BLR_Estimator(CoreEstimator):
             )
 
         # TODO: test this functionality
-        if not self.algorithm in method_dict.keys():
+        if self.algorithm not in method_dict.keys():
             raise ValueError(
-                f"""Current Linear Regression created with algorithm {self.algorithm!r}, which is not one of the supported methods. Try with one of the following: (HMC-NUTS, MLE, Variational)."""
+                f"""Current Linear Regression created with algorithm 
+                {self.algorithm!r}, which is not one of the supported 
+                methods. Try with one of the following: (HMC-NUTS, MLE, 
+                Variational)."""
             )
 
         X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True)
 
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
-        dat = {"x": X_clean, "y": y_clean, "N": X_clean.shape[0], "K": X_clean.shape[1]} # type: ignore
+        dat = {
+            "x": X_clean,
+            "y": y_clean,
+            "N": X_clean.shape[0],
+            "K": X_clean.shape[1],
+        }  # type: ignore
 
         vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=False)
 
@@ -117,9 +124,9 @@ class BLR_Estimator(CoreEstimator):
             summary_df = vb_fit.summary()
             self.alpha_ = summary_df.at["alpha", "Mean"]
 
-            self.beta_ : NDArray[np.float64]= np.array([])
+            self.beta_: NDArray[np.float64] = np.array([])
 
-            for idx in range(X_clean.shape[1]): # type: ignore
+            for idx in range(X_clean.shape[1]):  # type: ignore
                 self.beta_ = np.append(
                     self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]]
                 )
@@ -157,7 +164,9 @@ class BLR_Estimator(CoreEstimator):
         check_is_fitted(self)
 
         if self.algorithm != "HMC-NUTS":
-            return stats.norm.rvs( self.alpha_ + np.dot(self.beta_, np.array(X)), self.sigma_ ) # type: ignore
+            return stats.norm.rvs(  # type: ignore
+                self.alpha_ + np.dot(self.beta_, np.array(X)), self.sigma_
+            )
 
         if X is None:
             raise ValueError(
@@ -182,7 +191,7 @@ class BLR_Estimator(CoreEstimator):
             data=dat, iter_sampling=num_iterations, chains=num_chains
         )
 
-        return samples.stan_variable("y_sim") # type: ignore
+        return samples.stan_variable("y_sim")  # type: ignore
 
 
 if __name__ == "__main__":
