@@ -25,8 +25,3 @@ repos:
         # Copied from setup.cfg
         exclude: ^test/
         additional_dependencies: [ numpy >= 1.21 ]
-  # local uses the user-installed pylint, this allows dependency checking
-  - repo: local
-    hooks:
-        language: system
-        types: [python]

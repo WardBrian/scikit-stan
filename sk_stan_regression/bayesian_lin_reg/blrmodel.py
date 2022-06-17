@@ -1,7 +1,6 @@
 """Vectorized BLR model with sk-learn type API"""
 
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -10,8 +9,6 @@ from cmdstanpy import CmdStanModel  # type: ignore
 from numpy.typing import NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
 from sk_stan_regression.utils.validation import check_array, check_is_fitted
 
 BLR_FOLDER = Path(__file__).parent
@@ -112,7 +109,7 @@ class BLR_Estimator(CoreEstimator):
             "y": y_clean,
             "N": X_clean.shape[0],  # type: ignore
             "K": X_clean.shape[1],  # type: ignore
-        } 
+        }
 
         vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=False)
 
@@ -164,8 +161,8 @@ class BLR_Estimator(CoreEstimator):
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, np.array(X)),  # type: ignore 
-                self.sigma_ 
+                self.alpha_ + np.dot(self.beta_, np.array(X)),  # type: ignore
+                self.sigma_,
             )
 
         if X is None:

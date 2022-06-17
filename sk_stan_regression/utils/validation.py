@@ -48,8 +48,8 @@ def check_array(
             )
         if X.ndim == 1:
             warnings.warn(
-                """Passed data is one-dimensional, while estimator expects
-                it to be at at least two-dimensional."""
+                """Passed data is one-dimensional, while estimator expects"""
+                + """ it to be at at least two-dimensional."""
             )
             array_res = np.asanyarray(X)[:, None]
 
