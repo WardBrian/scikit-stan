@@ -4,7 +4,7 @@ from inspect import isclass
 from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
-import scipy.sparse as sp # type: ignore
+import scipy.sparse as sp  # type: ignore
 from numpy import float64
 from numpy.typing import NDArray
 
@@ -12,6 +12,7 @@ from ..exceptions import NotFittedError
 
 
 # TODO: write docstrings for everything
+# adapted from sklearn's data validation scheme
 def check_array(
     X: NDArray[float64],
     ensure_2d: bool = True,
@@ -77,12 +78,6 @@ def check_array(
             Passed array with {X.ndim!r} dimensions. Estimator expected <= 2. 
             """
         )
-
-    print(array_res.shape)
-    # TODO: enforce that all values are finite & real
-    # _ensure_no_complex_data(array_res)
-
-    # TODO: enforce number of features & samples
 
     return array_res
 

@@ -128,7 +128,7 @@ class BLR_Estimator(CoreEstimator):
             self.beta_: NDArray[np.float64] = np.array([])
 
             for idx in range(X_clean.shape[1]):  # type: ignore
-                self.beta_ = np.append(  
+                self.beta_ = np.append(
                     self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]]
                 )
 
@@ -146,7 +146,7 @@ class BLR_Estimator(CoreEstimator):
 
         return self
 
-    def predict(
+    def _predict_distribution(
         self,
         X: NDArray[np.float64],
         num_iterations: int = 1000,
@@ -156,17 +156,16 @@ class BLR_Estimator(CoreEstimator):
         Predict using a fitted model after fit() has been applied.
 
         :param num_iterations: int
-        :param num_chains: int number of
+        :param num_chains: int number of chains for MCMC sampling
 
-        :return: Return a dictionary mapping Stan program variables
-                names to the corresponding numpy.ndarray containing
-                the inferred values.
+        :return: Return a dictionary mapping Stan program variable names
+        to the corresponding numpy.ndarray containing the inferred values.
         """
         check_is_fitted(self)
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, np.array(X)),  
+                self.alpha_ + np.dot(self.beta_, np.array(X)),
                 self.sigma_,
             )
 
@@ -196,6 +195,26 @@ class BLR_Estimator(CoreEstimator):
 
         return samples.stan_variable("y_sim")  # type: ignore
 
+    def predict(
+        self,
+        X: NDArray[np.float64],
+        num_iterations: int = 1000,
+        num_chains: int = 4,
+    ) -> np.float64:
+        """
+        Predict using a fitted model after fit() has been applied.
+
+        :param num_iterations: int
+        :param num_chains: int number of
+
+        :return: Return a dictionary mapping Stan program variables
+                names to the corresponding numpy.ndarray containing
+                the inferred values.
+        """
+        return self._predict_distribution(X, num_iterations, num_chains).mean(
+            axis=0, dtype=np.float64
+        )  # type: ignore
+
 
 if __name__ == "__main__":
     with open(DEFAULT_FAKE_DATA) as file:
@@ -204,16 +223,16 @@ if __name__ == "__main__":
     xdat = np.array(jsondat["x"])
     ydat = np.array(jsondat["y"])
 
-    kby2 = np.column_stack((xdat, xdat))  
+    # kby2 = np.column_stack((xdat, xdat))
 
-    # blr = BLR_Estimator()
-    # blr.fit(xdat, ydat)
-    # print(blr.predict(xdat))
+    blr = BLR_Estimator()
+    blr.fit(xdat, ydat)
+    print(blr.predict(xdat))
+    print(blr._predict_distribution(xdat))
 
-    blr2 = BLR_Estimator()
-    blr2.fit(kby2, ydat)
-    res = blr2.predict(kby2)
-    print(res)
+    # blr2 = BLR_Estimator()
+    # blr2.fit(kby2, ydat)
+    # res = blr2.predict(kby2)
 
     # check exceptions
 
