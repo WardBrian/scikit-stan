@@ -53,11 +53,15 @@ class BLR_Estimator(CoreEstimator):
         self.algorithm = algorithm
 
     def __repr__(self) -> str:
-        return f"""<BLR_Estimator:
+        return (
+            f"""<BLR_Estimator:
                         alpha={self.alpha_!r}, alpha_samples={self.alpha_samples_!r}, 
                         beta={self.beta_!r}, beta_samples={self.beta_samples_!r}, 
                         sigma={self.sigma_!r}, sigma_samples={self.sigma_samples_!r}>
                 """
+            if hasattr(self, "is_fitted_")
+            else """<BLR_Estimator: unfitted>"""
+        )
 
     def fit(
         self,
@@ -105,25 +109,26 @@ class BLR_Estimator(CoreEstimator):
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
         dat = {
-            "x": X_clean,
+            "X": X_clean,
             "y": y_clean,
             "N": X_clean.shape[0],  # type: ignore
             "K": X_clean.shape[1],  # type: ignore
         }
 
-        vb_fit = method_dict[self.algorithm](self.model_, data=dat, show_console=False)
+        self.fitted_samples = method_dict[self.algorithm](
+            self.model_, data=dat, show_console=False
+        )
 
-        # TODO: validate inputs...
-
-        stan_vars = vb_fit.stan_variables()
+        stan_vars = self.fitted_samples.stan_variables()
         if self.algorithm == "HMC-NUTS":
-            summary_df = vb_fit.summary()
+            # TODO: .summary() saves file, bypass
+            summary_df = self.fitted_samples.summary()
             self.alpha_ = summary_df.at["alpha", "Mean"]
 
             self.beta_: NDArray[np.float64] = np.array([])
 
             for idx in range(X_clean.shape[1]):  # type: ignore
-                self.beta_ = np.append(  # type: ignore
+                self.beta_ = np.append(  
                     self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]]
                 )
 
@@ -161,7 +166,7 @@ class BLR_Estimator(CoreEstimator):
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, np.array(X)),  # type: ignore
+                self.alpha_ + np.dot(self.beta_, np.array(X)),  
                 self.sigma_,
             )
 
@@ -184,6 +189,7 @@ class BLR_Estimator(CoreEstimator):
             "beta": self.beta_,
             "sigma": self.sigma_,
         }
+
         samples = predictions.sample(
             data=dat, iter_sampling=num_iterations, chains=num_chains
         )
@@ -198,15 +204,16 @@ if __name__ == "__main__":
     xdat = np.array(jsondat["x"])
     ydat = np.array(jsondat["y"])
 
-    kby2 = np.column_stack((xdat, xdat))  # type: ignore
+    kby2 = np.column_stack((xdat, xdat))  
 
-    blr = BLR_Estimator()
-    blr.fit(xdat, ydat)
-    print(blr.predict(xdat))
+    # blr = BLR_Estimator()
+    # blr.fit(xdat, ydat)
+    # print(blr.predict(xdat))
 
-    # blr2 = BLR_Estimator()
-    # blr2.fit(kby2, ydat)
-    # blr2.predict(kby2)
+    blr2 = BLR_Estimator()
+    blr2.fit(kby2, ydat)
+    res = blr2.predict(kby2)
+    print(res)
 
     # check exceptions
 

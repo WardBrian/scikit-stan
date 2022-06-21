@@ -4,21 +4,11 @@ from inspect import isclass
 from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
+import scipy.sparse as sp # type: ignore
 from numpy import float64
 from numpy.typing import NDArray
 
 from ..exceptions import NotFittedError
-
-# probably unnecessary... do the cast somewhere else?
-# def _ensure_no_complex_data(array):
-#    if (
-#        hasattr(array, "dtype")
-#        and array.dtype is not None
-#        and hasattr(array.dtype, "kind")
-#        and array.dtype.kind == "c"
-#    ):
-#        raise ValueError(f"Complex data not supported\n{array!r}\n")
-#
 
 
 # TODO: write docstrings for everything
@@ -34,11 +24,39 @@ def check_array(
     only finite values.
     """
     # TODO PANDAS -> np support?
+    if sp.issparse(X):
+        raise ValueError(
+            """Estimator does not currently support sparse data
+             entry; consider extracting with .data."""
+        )
 
-    array_res = np.asanyarray(X)
+    if np.any(np.iscomplex(X)):
+        raise ValueError("""Complex data not supported.""")
+
+    array_res = np.asanyarray(X, dtype=np.float64)
+
+    if np.isnan(array_res).any():
+        raise ValueError("Input contains NaN.")
+
+    if not np.isfinite(array_res).all():
+        raise ValueError(
+            "Input contains infinity or a value too large for this estimator."
+        )
 
     if ensure_2d:
         # input cannot be scalar
+        shape = array_res.shape
+        if shape is None or len(shape) == 0 or shape[0] == 0:
+            raise ValueError(
+                "Singleton array or empty array cannot be considered a valid collection."
+            )
+
+        if array_res.size == 0:
+            raise ValueError(
+                f"0 feature(s) (shape=({shape[0]}, 0)) while a minimum of 1 "
+                "is required."
+            )
+
         if X.ndim == 0:
             raise ValueError(
                 f"""Expected 2D array, got scalar array instead:\narray={X!r}.\n
@@ -60,6 +78,7 @@ def check_array(
             """
         )
 
+    print(array_res.shape)
     # TODO: enforce that all values are finite & real
     # _ensure_no_complex_data(array_res)
 
