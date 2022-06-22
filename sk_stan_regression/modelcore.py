@@ -5,7 +5,7 @@ from inspect import signature
 from typing import Any, Dict, List, Optional, Tuple
 
 from numpy import float64
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.utils.validation import _check_y
 
@@ -116,8 +116,8 @@ class CoreEstimator:
     # dimensions...? should be a separate validation...
     def _validate_data(
         self,
-        X: Optional[NDArray[float64]] = None,
-        y: Optional[NDArray[float64]] = None,
+        X: Optional[ArrayLike] = None,
+        y: Optional[ArrayLike] = None,
         ensure_X_2d: bool = True,
         allow_X_nd: bool = False,
     ) -> Tuple[Optional[NDArray[float64]], Optional[NDArray[float64]]]:
@@ -128,9 +128,7 @@ class CoreEstimator:
         Standard input checks are also applied to y, such as checking that y
         does not have np.nan or np.inf targets. !!!
         """
-        # shorthanding like this leads to mypy issues...
         no_X, no_y = X is None, y is None
-        res_X, res_y = X, y
 
         if no_X and no_y:
             raise ValueError("""Validation should be done on X,y or both.""")

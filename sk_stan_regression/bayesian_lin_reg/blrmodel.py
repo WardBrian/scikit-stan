@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import scipy.stats as stats  # type: ignore
 from cmdstanpy import CmdStanModel  # type: ignore
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
 from sk_stan_regression.utils.validation import check_array, check_is_fitted
@@ -65,8 +65,8 @@ class BLR_Estimator(CoreEstimator):
 
     def fit(
         self,
-        X: NDArray[np.float64],
-        y: NDArray[np.float64],
+        X: ArrayLike,
+        y: ArrayLike,
     ) -> "CoreEstimator":
         """
         Fits current vectorized BLR object to the given data,
@@ -197,7 +197,7 @@ class BLR_Estimator(CoreEstimator):
 
     def predict(
         self,
-        X: NDArray[np.float64],
+        X: ArrayLike,
         num_iterations: int = 1000,
         num_chains: int = 4,
     ) -> np.float64:
@@ -207,13 +207,16 @@ class BLR_Estimator(CoreEstimator):
         :param num_iterations: int
         :param num_chains: int number of
 
-        :return: Return a dictionary mapping Stan program variables
+        :return: Return a dictionary mapping Stan program variable
                 names to the corresponding numpy.ndarray containing
                 the inferred values.
         """
-        return self._predict_distribution(X, num_iterations, num_chains).mean(
-            axis=0, dtype=np.float64
-        )  # type: ignore
+        X_clean = self._validate_data(X=X, ensure_X_2d=True)
+        # note the above errors out if X is None
+
+        return self._predict_distribution(  # type: ignore
+            X_clean, num_iterations, num_chains  # type: ignore
+        ).mean(axis=0, dtype=np.float64)
 
 
 if __name__ == "__main__":
@@ -227,8 +230,9 @@ if __name__ == "__main__":
 
     blr = BLR_Estimator()
     blr.fit(xdat, ydat)
-    print(blr.predict(xdat))
-    print(blr._predict_distribution(xdat))
+
+    # print(blr.predict(xdat))
+    # print(blr._predict_distribution(xdat))
 
     # blr2 = BLR_Estimator()
     # blr2.fit(kby2, ydat)

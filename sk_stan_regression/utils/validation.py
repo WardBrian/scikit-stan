@@ -6,7 +6,7 @@ from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 import numpy as np
 import scipy.sparse as sp  # type: ignore
 from numpy import float64
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
 
@@ -14,7 +14,7 @@ from ..exceptions import NotFittedError
 # TODO: write docstrings for everything
 # adapted from sklearn's data validation scheme
 def check_array(
-    X: NDArray[float64],
+    X: ArrayLike,
     ensure_2d: bool = True,
     allow_nd: bool = False,
     dtype: str = "numeric",
@@ -34,7 +34,7 @@ def check_array(
     if np.any(np.iscomplex(X)):
         raise ValueError("""Complex data not supported.""")
 
-    array_res = np.asanyarray(X, dtype=np.float64)
+    array_res: NDArray[np.float64] = np.asanyarray(X, dtype=np.float64)
 
     if np.isnan(array_res).any():
         raise ValueError("Input contains NaN.")
@@ -58,24 +58,24 @@ def check_array(
                 "is required."
             )
 
-        if X.ndim == 0:
+        if array_res.ndim == 0:
             raise ValueError(
                 f"""Expected 2D array, got scalar array instead:\narray={X!r}.\n
                     Reshape your data either using array.reshape(-1, 1) if 
                     your data has a single feature or array.reshape(1, -1) 
                     if it contains a single sample."""
             )
-        if X.ndim == 1:
+        if array_res.ndim == 1:
             warnings.warn(
                 """Passed data is one-dimensional, while estimator expects"""
                 + """ it to be at at least two-dimensional."""
             )
             array_res = np.asanyarray(X)[:, None]
 
-    if not allow_nd and X.ndim > 2:
+    if not allow_nd and array_res.ndim > 2:
         raise ValueError(
             f"""
-            Passed array with {X.ndim!r} dimensions. Estimator expected <= 2. 
+            Passed array with {array_res.ndim!r} dimensions. Estimator expected <= 2. 
             """
         )
 
@@ -83,19 +83,19 @@ def check_array(
 
 
 # TODO: add additional arguments
-def _check_y(y: NDArray[Any], y_numeric: bool = True) -> NDArray[float64]:
+def _check_y(y: ArrayLike, y_numeric: bool = True) -> NDArray[float64]:
     y = check_array(y, ensure_2d=False)
 
     if y_numeric:
         y = y.astype(np.float64)
 
-    return np.asanyarray(y)
+    return np.asanyarray(y, dtype=np.float64)
 
 
 # adapted from sklearn's check_X_y validation
 def check_X_y(
-    X: NDArray[float64],
-    y: NDArray[float64],
+    X: ArrayLike,
+    y: ArrayLike,
     ensure_X_2d: bool = True,
     allow_nd: bool = False,
     y_numeric: bool = True,
