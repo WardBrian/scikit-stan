@@ -129,6 +129,7 @@ class CoreEstimator:
         does not have np.nan or np.inf targets. !!!
         """
         no_X, no_y = X is None, y is None
+        res_X, res_y = X, y
 
         if no_X and no_y:
             raise ValueError("""Validation should be done on X,y or both.""")

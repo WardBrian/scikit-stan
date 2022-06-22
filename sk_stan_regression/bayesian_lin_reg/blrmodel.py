@@ -122,17 +122,9 @@ class BLR_Estimator(CoreEstimator):
         stan_vars = self.fitted_samples.stan_variables()
         if self.algorithm == "HMC-NUTS":
             # TODO: .summary() saves file, bypass
-            summary_df = self.fitted_samples.summary()
-            self.alpha_ = summary_df.at["alpha", "Mean"]
-
-            self.beta_: NDArray[np.float64] = np.array([])
-
-            for idx in range(X_clean.shape[1]):  # type: ignore
-                self.beta_ = np.append(  # type: ignore
-                    self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]]
-                )
-
-            self.sigma_ = summary_df.at["sigma", "Mean"]
+            self.alpha_ = stan_vars["alpha"].mean(axis=0)
+            self.beta_ = stan_vars["beta"].mean(axis=0)
+            self.sigma_ = stan_vars["sigma"].mean(axis=0)
 
             self.alpha_samples_ = stan_vars["alpha"]
             self.beta_samples_ = stan_vars["beta"]
@@ -163,12 +155,6 @@ class BLR_Estimator(CoreEstimator):
         """
         check_is_fitted(self)
 
-        if self.algorithm != "HMC-NUTS":
-            return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, np.array(X)),  # type: ignore
-                self.sigma_,
-            )
-
         if X is None:
             raise ValueError(
                 f"""This {self.__class__.__name__!r}
@@ -177,6 +163,12 @@ class BLR_Estimator(CoreEstimator):
 
         # TODO: should be a call to self._validate_data
         X_clean = check_array(X=X, ensure_2d=True)
+
+        if self.algorithm != "HMC-NUTS":
+            return stats.norm.rvs(  # type: ignore
+                self.alpha_ + np.dot(self.beta_, np.array(X_clean)),  # type: ignore
+                self.sigma_,
+            )
 
         predictions = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan")
 
@@ -211,7 +203,7 @@ class BLR_Estimator(CoreEstimator):
                 names to the corresponding numpy.ndarray containing
                 the inferred values.
         """
-        X_clean = self._validate_data(X=X, ensure_X_2d=True)
+        X_clean, _ = self._validate_data(X=X, ensure_X_2d=True)
         # note the above errors out if X is None
 
         return self._predict_distribution(  # type: ignore
@@ -226,17 +218,26 @@ if __name__ == "__main__":
     xdat = np.array(jsondat["x"])
     ydat = np.array(jsondat["y"])
 
-    # kby2 = np.column_stack((xdat, xdat))
+    kby2 = np.column_stack((xdat, xdat))
 
     blr = BLR_Estimator()
     blr.fit(xdat, ydat)
+    blr.predict(X=xdat)
+#
+    #blr2 = BLR_Estimator(algorithm="Variational")
+    #blr2.fit(xdat, ydat)
+#
+    #blr3 = BLR_Estimator(algorithm="MLE")
+    #blr3.fit(xdat, ydat)
 
-    # print(blr.predict(xdat))
+    #print(blr.predict(xdat))
     # print(blr._predict_distribution(xdat))
 
-    # blr2 = BLR_Estimator()
-    # blr2.fit(kby2, ydat)
-    # res = blr2.predict(kby2)
+    #blr2 = BLR_Estimator()
+    #blr2.fit(kby2, ydat)
+#
+    #blr2.predict(kby2)
+    #res = blr2.predict(kby2)
 
     # check exceptions
 

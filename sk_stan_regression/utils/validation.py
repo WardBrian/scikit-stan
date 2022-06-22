@@ -34,7 +34,7 @@ def check_array(
     if np.any(np.iscomplex(X)):  # type: ignore
         raise ValueError("""Complex data not supported.""")
 
-    array_res: NDArray[np.float64] = np.asanyarray(X, dtype=np.float64)
+    array_res: NDArray[np.float64] = np.asarray(X, dtype=np.float64)
 
     if np.isnan(array_res).any():
         raise ValueError("Input contains NaN.")
