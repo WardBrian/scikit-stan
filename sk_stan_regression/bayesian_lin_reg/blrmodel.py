@@ -128,7 +128,7 @@ class BLR_Estimator(CoreEstimator):
             self.beta_: NDArray[np.float64] = np.array([])
 
             for idx in range(X_clean.shape[1]):  # type: ignore
-                self.beta_ = np.append(
+                self.beta_ = np.append(  # type: ignore
                     self.beta_, [summary_df.at[f"beta[{idx+1}]", "Mean"]]
                 )
 
@@ -165,7 +165,7 @@ class BLR_Estimator(CoreEstimator):
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, np.array(X)),
+                self.alpha_ + np.dot(self.beta_, np.array(X)),  # type: ignore
                 self.sigma_,
             )
 

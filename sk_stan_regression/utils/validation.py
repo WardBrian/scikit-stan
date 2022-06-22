@@ -31,7 +31,7 @@ def check_array(
              entry; consider extracting with .data."""
         )
 
-    if np.any(np.iscomplex(X)):
+    if np.any(np.iscomplex(X)):  # type: ignore
         raise ValueError("""Complex data not supported.""")
 
     array_res: NDArray[np.float64] = np.asanyarray(X, dtype=np.float64)
