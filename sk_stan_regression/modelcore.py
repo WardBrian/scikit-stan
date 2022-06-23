@@ -129,7 +129,7 @@ class CoreEstimator:
         does not have np.nan or np.inf targets. !!!
         """
         no_X, no_y = X is None, y is None
-        res_X, res_y = X, y
+        #res_X, res_y = X, y
 
         if no_X and no_y:
             raise ValueError("""Validation should be done on X,y or both.""")
@@ -139,8 +139,10 @@ class CoreEstimator:
                 ensure_2d=ensure_X_2d,
                 allow_nd=allow_X_nd,
             )
+            res_y = None
         elif no_X and not no_y:
             res_y = _check_y(y)  # type:ignore
+            res_X = None
         else:
             # TODO: add separate validation of X and y? !!!!!
             res_X, res_y = check_X_y(X, y)  # type:ignore

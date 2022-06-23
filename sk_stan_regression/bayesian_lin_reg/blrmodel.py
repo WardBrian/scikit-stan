@@ -9,7 +9,7 @@ from cmdstanpy import CmdStanModel  # type: ignore
 from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
-from sk_stan_regression.utils.validation import check_array, check_is_fitted
+from sk_stan_regression.utils.validation import check_array, check_is_fitted, validate_family
 
 BLR_FOLDER = Path(__file__).parent
 DEFAULT_FAKE_DATA = BLR_FOLDER.parent / "data" / "fake_data.json"
@@ -48,9 +48,15 @@ class BLR_Estimator(CoreEstimator):
     def __init__(
         self,
         algorithm: str = "HMC-NUTS",
+        family: str = "gaussian", 
+        link: str = "identity",
     ):
-
         self.algorithm = algorithm
+
+        validate_family(family, link)
+
+        self.family = family
+        self.link = link 
 
     def __repr__(self) -> str:
         return (
@@ -121,7 +127,6 @@ class BLR_Estimator(CoreEstimator):
 
         stan_vars = self.fitted_samples.stan_variables()
         if self.algorithm == "HMC-NUTS":
-            # TODO: .summary() saves file, bypass
             self.alpha_ = stan_vars["alpha"].mean(axis=0)
             self.beta_ = stan_vars["beta"].mean(axis=0)
             self.sigma_ = stan_vars["sigma"].mean(axis=0)
@@ -166,7 +171,7 @@ class BLR_Estimator(CoreEstimator):
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, np.array(X_clean)),  # type: ignore
+                self.alpha_ + np.dot(self.beta_, np.array(X_clean)),
                 self.sigma_,
             )
 
@@ -181,11 +186,15 @@ class BLR_Estimator(CoreEstimator):
             "sigma": self.sigma_,
         }
 
-        samples = predictions.sample(
-            data=dat, iter_sampling=num_iterations, chains=num_chains
-        )
+        # known that fitted with HMC-NUTS, so fitted_samples is not None 
+        # TODO: this generate_quantities call does not work!
+        predicGQ = predictions.generate_quantities(dat, mcmc_sample=self.fitted_samples)
 
-        return samples.stan_variable("y_sim")  # type: ignore
+        #samples = predictions.sample(
+        #    data=dat, iter_sampling=num_iterations, chains=num_chains
+        #)
+
+        return predicGQ.stan_variable("y_sim")  # type: ignore
 
     def predict(
         self,
@@ -222,42 +231,39 @@ if __name__ == "__main__":
 
     blr = BLR_Estimator()
     blr.fit(xdat, ydat)
-    blr.predict(X=xdat)
-#
+    print(blr.predict(X=xdat))
+
     #blr2 = BLR_Estimator(algorithm="Variational")
     #blr2.fit(xdat, ydat)
 #
     #blr3 = BLR_Estimator(algorithm="MLE")
     #blr3.fit(xdat, ydat)
-
+#
     #print(blr.predict(xdat))
-    # print(blr._predict_distribution(xdat))
-
+    #print(blr._predict_distribution(xdat)) 
     #blr2 = BLR_Estimator()
     #blr2.fit(kby2, ydat)
 #
     #blr2.predict(kby2)
-    #res = blr2.predict(kby2)
+    #res = blr2.predict(kby2)   
+    ## check exceptions   
+    #blr = BLR_Estimator()
+    #blr.predict(X=xdat)
 
-    # check exceptions
+# blrvec = BLR_Estimator()
+# blrvec.fit(X=xdat, y=ydat)
+# print(blrvec.__repr__())
+# ysim = blrvec.predict(X=xdat)
+# print(ysim)
 
-    # blr = BLR_Estimator()
-    # blr.predict(X=xdat)
+# blr2 = BLR_Estimator(algorithm="MLE")
+# blr2.fit(X=xdat, y=ydat)
+# ysim2 = blr2.predict(X=xdat)
+# print(ysim2)
 
-    # blrvec = BLR_Estimator()
-    # blrvec.fit(X=xdat, y=ydat)
-    # print(blrvec.__repr__())
-    # ysim = blrvec.predict(X=xdat)
-    # print(ysim)
+# kby2 = np.column_stack((xdat, xdat))
 
-    # blr2 = BLR_Estimator(algorithm="MLE")
-    # blr2.fit(X=xdat, y=ydat)
-    # ysim2 = blr2.predict(X=xdat)
-    # print(ysim2)
-
-    # kby2 = np.column_stack((xdat, xdat))
-
-    # blrvec = BLR_Estimator()
-    # blrvec.fit(kby2, ydat)
-    # ysim2 = blrvec.predict(X=kby2)
-    # print(ysim2)
+# blrvec = BLR_Estimator()
+# blrvec.fit(kby2, ydat)
+# ysim2 = blrvec.predict(X=kby2)
+# print(ysim2)
