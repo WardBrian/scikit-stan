@@ -56,7 +56,7 @@ class BLR_Estimator(CoreEstimator):
         validate_family(family, link)
 
         self.family = 0 if family == "gaussian" else 1 if family == "binomial" else 2
-        self.link = 0 if family == "identity" else 1 if family == "log" else 2
+        self.link = 0 if link == "identity" else 1 if link == "log" else 2
 
     def __repr__(self) -> str:
         return (
@@ -190,9 +190,11 @@ class BLR_Estimator(CoreEstimator):
             "sigma": self.sigma_,
         }
 
+        print(dat )
+
         # known that fitted with HMC-NUTS, so fitted_samples is not None 
         # TODO: this generate_quantities call does not work!
-        predicGQ = predictions.generate_quantities(dat, mcmc_sample=self.fitted_samples)
+        predicGQ = predictions.generate_quantities(dat, mcmc_sample=self.fitted_samples, show_console=True)
 
         return predicGQ.stan_variable("y_sim")  # type: ignore
 
