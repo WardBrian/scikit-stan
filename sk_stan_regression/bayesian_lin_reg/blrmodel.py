@@ -2,6 +2,8 @@
 
 import json
 from pathlib import Path
+from tkinter import N
+from typing import Optional
 
 import numpy as np
 import scipy.stats as stats  # type: ignore
@@ -50,6 +52,7 @@ class BLR_Estimator(CoreEstimator):
         algorithm: str = "HMC-NUTS",
         family: str = "gaussian", 
         link: str = "identity",
+        seed: Optional[int] = None
     ):
         self.algorithm = algorithm
 
@@ -58,12 +61,15 @@ class BLR_Estimator(CoreEstimator):
         self.family = 0 if family == "gaussian" else 1 if family == "binomial" else 2
         self.link = 0 if link == "identity" else 1 if link == "log" else 2
 
+        self.seed = seed
+
     def __repr__(self) -> str:
         return (
             f"""<BLR_Estimator:
                         alpha={self.alpha_!r}, alpha_samples={self.alpha_samples_!r}, 
                         beta={self.beta_!r}, beta_samples={self.beta_samples_!r}, 
-                        sigma={self.sigma_!r}, sigma_samples={self.sigma_samples_!r}>
+                        sigma={self.sigma_!r}, sigma_samples={self.sigma_samples_!r}, 
+                        seed={self.seed!r},>
                 """
             if hasattr(self, "is_fitted_")
             else """<BLR_Estimator: unfitted>"""
@@ -124,8 +130,11 @@ class BLR_Estimator(CoreEstimator):
         }
 
         self.fitted_samples = method_dict[self.algorithm](
-            self.model_, data=dat, show_console=False
+            self.model_, data=dat, show_console=False, seed=self.seed
         )
+
+        if self.seed is None: 
+            self.seed = self.fitted_samples.metadata.cmdstan_config['seed'] 
 
         stan_vars = self.fitted_samples.stan_variables()
         if self.algorithm == "HMC-NUTS":
@@ -184,17 +193,14 @@ class BLR_Estimator(CoreEstimator):
             "K": X_clean.shape[1],
             "X": X_clean,
             "family": self.family,
-            "link": self.link, 
+            "link": self.link,  
             "alpha": self.alpha_,
             "beta": self.beta_,
             "sigma": self.sigma_,
         }
 
-        print(dat )
-
         # known that fitted with HMC-NUTS, so fitted_samples is not None 
-        # TODO: this generate_quantities call does not work!
-        predicGQ = predictions.generate_quantities(dat, mcmc_sample=self.fitted_samples, show_console=True)
+        predicGQ = predictions.generate_quantities(dat, mcmc_sample=self.fitted_samples, seed=self.seed)
 
         return predicGQ.stan_variable("y_sim")  # type: ignore
 

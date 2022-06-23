@@ -17,12 +17,11 @@ model {
   if (family == 0) { // Gaussian
     if (link == 0) {  // identity link
       y ~ normal(alpha + X * beta, sigma);
-    }
-    //else if (link == 1) { // log link
-    //  y ~ normal(log(alpha + X * beta), sigma);
-    //}
-    // else if (link == 2) { // inverse link
-    //  y ~ (1 / (normal(alpha + X * beta, sigma)));
+    } else if (link == 1) { // log link
+      y ~ normal(log(alpha + X * beta), sigma);
+    } 
+    //else if (link == 2) { // inverse link
+    //  y ~ normal(1/(alpha + X * beta), sigma);
     //}
   }
 }

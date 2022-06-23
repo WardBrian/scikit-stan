@@ -18,13 +18,13 @@ generated quantities {
     if (family == 0) { // Gaussian
       if (link == 0) {  // identity link
         y_sim = normal_rng(alpha + X * beta, sigma);
+      } else if (link == 1) { // log link
+        y_sim = normal_rng(log(alpha + X * beta), sigma);
       } 
+      //else if (link == 2) { // inverse link
+      //  y_sim = normal_rng(1/(alpha + X * beta), sigma)));
+      //}
     }
-    //else if (link == 1) { // log link
-    //  y ~ normal(log(alpha + X * beta), sigma);
-    //}
-    // else if (link == 2) { // inverse link
-    //  y ~ (1 / (normal(alpha + X * beta, sigma)));
-    //}
+   
     //y_sim = normal_rng(alpha + X*beta, sigma); 
 }
