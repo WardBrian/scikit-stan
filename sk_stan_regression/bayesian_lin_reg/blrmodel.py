@@ -141,7 +141,7 @@ class BLR_Estimator(CoreEstimator):
         self.seed_ = self.seed
 
         self.fitted_samples = method_dict[self.algorithm](
-            self.model_, data=dat, show_console=False, seed=self.seed_
+            self.model_, data=dat, show_console=False, seed=self.seed_, sig_figs=9
         )
 
         if self.seed_ is None:
@@ -212,7 +212,7 @@ class BLR_Estimator(CoreEstimator):
 
         # known that fitted with HMC-NUTS, so fitted_samples is not None
         predicGQ = predictions.generate_quantities(
-            dat, mcmc_sample=self.fitted_samples, seed=self.seed
+            dat, mcmc_sample=self.fitted_samples, seed=self.seed, sig_figs=9
         )
 
         return predicGQ.stan_variable("y_sim")  # type: ignore

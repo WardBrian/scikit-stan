@@ -24,6 +24,5 @@ generated quantities {
         y_sim = normal_rng(inv(alpha + X * beta), sigma);
       }
     }
-   
     //y_sim = normal_rng(alpha + X*beta, sigma); 
 }
