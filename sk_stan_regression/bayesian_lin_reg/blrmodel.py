@@ -189,7 +189,7 @@ class BLR_Estimator(CoreEstimator):
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, np.array(X_clean)),
+                self.alpha_ + np.dot(self.beta_, np.array(X_clean)),  # type: ignore
                 self.sigma_,
             )
 
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     xdat = np.array(jsondat["x"])
     ydat = np.array(jsondat["y"])
 
-    kby2 = np.column_stack((xdat, xdat))
+    kby2 = np.column_stack((xdat, xdat))  # type: ignore
 
     blr = BLR_Estimator()
     blr.fit(xdat, ydat)
