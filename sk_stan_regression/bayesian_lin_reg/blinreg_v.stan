@@ -19,9 +19,8 @@ model {
       y ~ normal(alpha + X * beta, sigma);
     } else if (link == 1) { // log link
       y ~ normal(log(alpha + X * beta), sigma);
-    } 
-    //else if (link == 2) { // inverse link
-    //  y ~ normal(1/(alpha + X * beta), sigma);
-    //}
+    } else if (link == 2) { // inverse link
+      y ~ normal(inv(alpha + X * beta), sigma);
+    }
   }
 }

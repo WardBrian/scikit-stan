@@ -20,10 +20,9 @@ generated quantities {
         y_sim = normal_rng(alpha + X * beta, sigma);
       } else if (link == 1) { // log link
         y_sim = normal_rng(log(alpha + X * beta), sigma);
-      } 
-      //else if (link == 2) { // inverse link
-      //  y_sim = normal_rng(1/(alpha + X * beta), sigma)));
-      //}
+      } else if (link == 2) { // inverse link
+        y_sim = normal_rng(inv(alpha + X * beta), sigma);
+      }
     }
    
     //y_sim = normal_rng(alpha + X*beta, sigma); 

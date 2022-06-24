@@ -25,6 +25,10 @@ method_dict = {
     "Variational": CmdStanModel.variational,
 }
 
+BLR_FAM_DICT = {"gaussian": 0, "poisson": 1}
+
+BLR_LINK_DICT = {"identity": 0, "log": 1, "inverse": 2}
+
 
 class BLR_Estimator(CoreEstimator):
     """
@@ -50,6 +54,7 @@ class BLR_Estimator(CoreEstimator):
     # sigma_samples_: Optional[ArrayLike] = None
     # is_fitted_: Optional[float] = None
 
+    # TODO: user defined seed ends up breaking the tests
     def __init__(
         self,
         algorithm: str = "HMC-NUTS",
@@ -120,10 +125,8 @@ class BLR_Estimator(CoreEstimator):
 
         X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True)
 
-        self.familyid = (
-            0 if self.family == "gaussian" else 1 if self.family == "binomial" else 2
-        )
-        self.linkid = 0 if self.link == "identity" else 1 if self.link == "log" else 2
+        self.linkid = BLR_LINK_DICT[self.link]
+        self.familyid = BLR_FAM_DICT[self.family]
 
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
@@ -136,12 +139,14 @@ class BLR_Estimator(CoreEstimator):
             "link": self.linkid,
         }
 
+        self.seed_ = self.seed
+
         self.fitted_samples = method_dict[self.algorithm](
-            self.model_, data=dat, show_console=False, seed=self.seed
+            self.model_, data=dat, show_console=False, seed=self.seed_
         )
 
-        if self.seed is None:
-            self.seed = self.fitted_samples.metadata.cmdstan_config["seed"]
+        if self.seed_ is None:
+            self.seed_ = self.fitted_samples.metadata.cmdstan_config["seed"]
 
         stan_vars = self.fitted_samples.stan_variables()
         if self.algorithm == "HMC-NUTS":
@@ -236,6 +241,13 @@ class BLR_Estimator(CoreEstimator):
             X_clean, num_iterations, num_chains  # type: ignore
         ).mean(axis=0, dtype=np.float64)
 
+    @classmethod
+    def _seed(self) -> Optional[int]:
+        """
+        Get the seed used to generate the samples.
+        """
+        return self.seed_ if self.seed_ == self.seed else self.seed
+
 
 if __name__ == "__main__":
     with open(DEFAULT_FAKE_DATA) as file:
@@ -248,7 +260,10 @@ if __name__ == "__main__":
 
     blr = BLR_Estimator()
     blr.fit(xdat, ydat)
-    print(blr.predict(X=xdat))
+    # print(blr.predict(X=xdat))
+
+    blrfamlink = BLR_Estimator(family="gaussian", link="inverse")
+    blrfamlink.fit(xdat, ydat)
 
     # blr2 = BLR_Estimator(algorithm="Variational")
     # blr2.fit(xdat, ydat)
