@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from tkinter import N
 from typing import Optional
 
 import numpy as np
@@ -11,7 +10,11 @@ from cmdstanpy import CmdStanModel  # type: ignore
 from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
-from sk_stan_regression.utils.validation import check_array, check_is_fitted, validate_family
+from sk_stan_regression.utils.validation import (
+    check_array,
+    check_is_fitted,
+    validate_family,
+)
 
 BLR_FOLDER = Path(__file__).parent
 DEFAULT_FAKE_DATA = BLR_FOLDER.parent / "data" / "fake_data.json"
@@ -50,16 +53,15 @@ class BLR_Estimator(CoreEstimator):
     def __init__(
         self,
         algorithm: str = "HMC-NUTS",
-        family: str = "gaussian", 
+        family: str = "gaussian",
         link: str = "identity",
-        seed: Optional[int] = None
+        seed: Optional[int] = None,
     ):
         self.algorithm = algorithm
 
         validate_family(family, link)
-
-        self.family = 0 if family == "gaussian" else 1 if family == "binomial" else 2
-        self.link = 0 if link == "identity" else 1 if link == "log" else 2
+        self.family = family
+        self.link = link
 
         self.seed = seed
 
@@ -118,6 +120,11 @@ class BLR_Estimator(CoreEstimator):
 
         X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True)
 
+        self.familyid = (
+            0 if self.family == "gaussian" else 1 if self.family == "binomial" else 2
+        )
+        self.linkid = 0 if self.link == "identity" else 1 if self.link == "log" else 2
+
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
         dat = {
@@ -125,16 +132,16 @@ class BLR_Estimator(CoreEstimator):
             "y": y_clean,
             "N": X_clean.shape[0],  # type: ignore
             "K": X_clean.shape[1],  # type: ignore
-            "family": self.family,
-            "link": self.link,
+            "family": self.familyid,
+            "link": self.linkid,
         }
 
         self.fitted_samples = method_dict[self.algorithm](
             self.model_, data=dat, show_console=False, seed=self.seed
         )
 
-        if self.seed is None: 
-            self.seed = self.fitted_samples.metadata.cmdstan_config['seed'] 
+        if self.seed is None:
+            self.seed = self.fitted_samples.metadata.cmdstan_config["seed"]
 
         stan_vars = self.fitted_samples.stan_variables()
         if self.algorithm == "HMC-NUTS":
@@ -192,15 +199,17 @@ class BLR_Estimator(CoreEstimator):
             "N": X_clean.shape[0],
             "K": X_clean.shape[1],
             "X": X_clean,
-            "family": self.family,
-            "link": self.link,  
+            "family": self.familyid,
+            "link": self.linkid,
             "alpha": self.alpha_,
             "beta": self.beta_,
             "sigma": self.sigma_,
         }
 
-        # known that fitted with HMC-NUTS, so fitted_samples is not None 
-        predicGQ = predictions.generate_quantities(dat, mcmc_sample=self.fitted_samples, seed=self.seed)
+        # known that fitted with HMC-NUTS, so fitted_samples is not None
+        predicGQ = predictions.generate_quantities(
+            dat, mcmc_sample=self.fitted_samples, seed=self.seed
+        )
 
         return predicGQ.stan_variable("y_sim")  # type: ignore
 
@@ -241,22 +250,22 @@ if __name__ == "__main__":
     blr.fit(xdat, ydat)
     print(blr.predict(X=xdat))
 
-    #blr2 = BLR_Estimator(algorithm="Variational")
-    #blr2.fit(xdat, ydat)
+    # blr2 = BLR_Estimator(algorithm="Variational")
+    # blr2.fit(xdat, ydat)
 #
-    #blr3 = BLR_Estimator(algorithm="MLE")
-    #blr3.fit(xdat, ydat)
+# blr3 = BLR_Estimator(algorithm="MLE")
+# blr3.fit(xdat, ydat)
 #
-    #print(blr.predict(xdat))
-    #print(blr._predict_distribution(xdat)) 
-    #blr2 = BLR_Estimator()
-    #blr2.fit(kby2, ydat)
+# print(blr.predict(xdat))
+# print(blr._predict_distribution(xdat))
+# blr2 = BLR_Estimator()
+# blr2.fit(kby2, ydat)
 #
-    #blr2.predict(kby2)
-    #res = blr2.predict(kby2)   
-    ## check exceptions   
-    #blr = BLR_Estimator()
-    #blr.predict(X=xdat)
+# blr2.predict(kby2)
+# res = blr2.predict(kby2)
+## check exceptions
+# blr = BLR_Estimator()
+# blr.predict(X=xdat)
 
 # blrvec = BLR_Estimator()
 # blrvec.fit(X=xdat, y=ydat)

@@ -8,15 +8,15 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
+from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
 from sk_stan_regression.bayesian_lin_reg import BLR_Estimator
+from sk_stan_regression.modelcore import CoreEstimator
 
-# from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
-
-# est.mark.parametrize("estimator", [BLR_Estimator()])
-# test_compatible_estimator(estimator: "CoreEstimator") -> None:
-# check_estimator(estimator)
+@pytest.mark.parametrize("estimator", [BLR_Estimator()])
+def test_compatible_estimator(estimator: "CoreEstimator") -> None:
+    check_estimator(estimator)
 
 
 def test_notfittederror_blr() -> None:

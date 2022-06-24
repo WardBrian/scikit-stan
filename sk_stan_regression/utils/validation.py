@@ -10,23 +10,22 @@ from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
 
-GAUSSIAN_LINKS = ['identity', 'log', 'inverse']
+GAUSSIAN_LINKS = ["identity", "log", "inverse"]
 
 
 # NOTE: family and link combinations taken from R families
 # package: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/family
-def validate_family(family:str, link:str) -> None: 
+def validate_family(family: str, link: str) -> None:
     """
-    Validation function for family and link. 
+    Validation function for family and link.
 
     :param family: str, family name
     :param link: str, link name
     """
-    if family == 'gaussian' and link not in GAUSSIAN_LINKS:
-        raise ValueError(
-            f"Link {link} not supported for family {family}."
-        )
-    
+    if family == "gaussian" and link not in GAUSSIAN_LINKS:
+        raise ValueError(f"Link {link} not supported for family {family}.")
+
+
 # TODO: write docstrings for everything
 # adapted from sklearn's data validation scheme
 def check_array(
@@ -47,7 +46,7 @@ def check_array(
              entry; consider extracting with .data."""
         )
 
-    if np.any(np.iscomplex(X)):  
+    if np.any(np.iscomplex(X)):
         raise ValueError("""Complex data not supported.""")
 
     array_res: NDArray[np.float64] = np.asarray(X, dtype=np.float64)

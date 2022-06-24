@@ -40,7 +40,7 @@ jobs:
 
       - name: Run flake8
         run: |
-          flake8 sk_stan_regression test --ignore=E127,E201,E202,E203,E231,E252,E266,E402,E999,F841,W503,W605,W291
+          flake8 sk_stan_regression test --ignore=E265,E127,E201,E202,E203,E231,E252,E266,E402,E999,F841,W503,W605,W291
 
       - name: Run mypy
         run: | 
