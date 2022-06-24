@@ -11,6 +11,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
 from sk_stan_regression.utils.validation import (
+    GAUSSIAN_LINKS,
     check_array,
     check_is_fitted,
     validate_family,
@@ -26,8 +27,6 @@ method_dict = {
 }
 
 BLR_FAM_DICT = {"gaussian": 0, "poisson": 1}
-
-BLR_LINK_DICT = {"identity": 0, "log": 1, "inverse": 2}
 
 
 class BLR_Estimator(CoreEstimator):
@@ -125,7 +124,7 @@ class BLR_Estimator(CoreEstimator):
 
         X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True)
 
-        self.linkid = BLR_LINK_DICT[self.link]
+        self.linkid = GAUSSIAN_LINKS[self.link]
         self.familyid = BLR_FAM_DICT[self.family]
 
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")

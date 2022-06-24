@@ -10,7 +10,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
 
-GAUSSIAN_LINKS = ["identity", "log", "inverse"]
+GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2}
 
 
 # NOTE: family and link combinations taken from R families
