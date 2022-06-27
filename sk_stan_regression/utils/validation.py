@@ -14,8 +14,7 @@ GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2}
 
 # corresponding to logistic, normal and Cauchy CDFs respectively
 BINOMIAL_LINKS = {"logit": 0, "probit": 1, "cauchit": 2,
-"log": 3, 
-"cloglog": 4}
+"log": 3, "cloglog": 4}
 
 GAMMA_LINKS = {
     "identity": 0,
@@ -60,7 +59,7 @@ def validate_family(family: str, link: str) -> None:
         )
     
     if link not in FAMILY_LINKS_MAP[family].keys():
-        raise ValueError(f"Link {link} not supported for family {family}.")
+        raise ValueError(f"Link {link} not supported for family {family}. Try one of these: {FAMILY_LINKS_MAP[family].keys()}.")
 
 
 # TODO: write docstrings for everything

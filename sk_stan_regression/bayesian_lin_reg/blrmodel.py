@@ -210,7 +210,7 @@ class BLR_Estimator(CoreEstimator):
             mcmc_sample=self.fitted_samples_,
             seed=self.seed_,
             sig_figs=9,
-            show_console=True,
+            show_console=False,
         )
 
         return predicGQ.stan_variable("y_sim")  # type: ignore
@@ -271,11 +271,14 @@ if __name__ == "__main__":
     ydat = np.array(jsondat["y"])
 
     kby2 = np.column_stack((xdat, xdat))  # type: ignore
-    print(kby2.shape)
+    #print(kby2.shape)
 
-    blr = BLR_Estimator()
+    blr = BLR_Estimator(link="inverse")
+    print(blr.fit(X=xdat, y=ydat).__dict__)
+    blr.predict(X=xdat)
+
     blr.fit(kby2, ydat)
-    print(blr.predict(X=xdat))
+    blr.predict(X=kby2)
 
     # blrfamlink = BLR_Estimator(family="gaussian", link="inverse")
     # blrfamlink.fit(xdat, ydat)

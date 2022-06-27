@@ -8,6 +8,7 @@ from sk_stan_regression.utils.validation import (
     validate_family, 
     FAMILY_LINKS_MAP
 )
+
 # -> Generator[Tuple[str, str], None, None]
 def incompatible_fam_link_gen() : 
     """Generator for family and link combinations that are incompatible."""
