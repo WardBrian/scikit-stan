@@ -26,7 +26,7 @@ method_dict = {
     "Variational": CmdStanModel.variational,
 }
 
-BLR_FAM_DICT = {"gaussian": 0, "poisson": 1}
+BLR_FAMILIES = {"gaussian": 0, "binomial": 1, "gamma": 2, "poisson": 3, "inverse-gaussian": 4}
 
 
 class BLR_Estimator(CoreEstimator):
@@ -44,14 +44,6 @@ class BLR_Estimator(CoreEstimator):
 
     :param algorithm: algorithm that performs an operation on the posterior
     """
-
-    # alpha_: float = None
-    # alpha_samples_: ArrayLike = None
-    # beta_: Optional[ArrayLike] = None
-    # beta_samples_: Optional[ArrayLike] = None
-    # sigma_: Optional[float] = None
-    # sigma_samples_: Optional[ArrayLike] = None
-    # is_fitted_: Optional[float] = None
 
     # TODO: user defined seed ends up breaking the tests
     def __init__(
@@ -125,7 +117,7 @@ class BLR_Estimator(CoreEstimator):
         X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True)
 
         self.linkid_ = GAUSSIAN_LINKS[self.link]
-        self.familyid_ = BLR_FAM_DICT[self.family]
+        self.familyid_ = BLR_FAMILIES[self.family]
 
         self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
 
@@ -282,8 +274,8 @@ if __name__ == "__main__":
     print(kby2.shape)
 
     blr = BLR_Estimator()
-    blr.fit(xdat, ydat)
-    print(blr.predict(X=kby2))
+    blr.fit(kby2, ydat)
+    print(blr.predict(X=xdat))
 
     # blrfamlink = BLR_Estimator(family="gaussian", link="inverse")
     # blrfamlink.fit(xdat, ydat)

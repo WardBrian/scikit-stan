@@ -12,6 +12,37 @@ from ..exceptions import NotFittedError
 
 GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2}
 
+# corresponding to logistic, normal and Cauchy CDFs respectively
+BINOMIAL_LINKS = {"logit": 0, "probit": 1, "cauchit": 2,
+"log": 3, 
+"cloglog": 4}
+
+GAMMA_LINKS = {
+    "identity": 0,
+    "inverse": 1, 
+    "log": 2,
+}
+
+POISSON_LINKS = {
+  "identity": 0, 
+  "log": 1,
+  "sqrt": 2 
+}
+
+INVERSE_GAUSSIAN_LINKS = {
+    "identity": 0, 
+    "inverse": 1, 
+    "log": 2, 
+    "1/mu^2": 3
+}
+
+FAMILY_LINKS_MAP = { 
+    "gaussian": GAUSSIAN_LINKS,
+    "binomial": BINOMIAL_LINKS,
+    "gamma": GAMMA_LINKS,
+    "poisson": POISSON_LINKS,
+    "inverse_gaussian": INVERSE_GAUSSIAN_LINKS
+}
 
 # NOTE: family and link combinations taken from R families
 # package: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/family
@@ -22,7 +53,13 @@ def validate_family(family: str, link: str) -> None:
     :param family: str, family name
     :param link: str, link name
     """
-    if family == "gaussian" and link not in GAUSSIAN_LINKS:
+    if family not in FAMILY_LINKS_MAP:
+        raise ValueError(
+            f"""Family {family} not supported.
+            Supported families: {list(FAMILY_LINKS_MAP.keys())}"""
+        )
+    
+    if link not in FAMILY_LINKS_MAP[family].keys():
         raise ValueError(f"Link {link} not supported for family {family}.")
 
 
