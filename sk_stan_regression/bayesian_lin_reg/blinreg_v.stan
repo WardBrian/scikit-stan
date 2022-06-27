@@ -10,8 +10,16 @@ data {
 parameters {
   real alpha;           // intercept
   vector[K] beta;       // coefficients for predictors
-  real<lower=0> sigma;  // error scale
+  real<lower=0> sigma;  // error scale OR variance of the error distribution !!!
 }
+//transformed parameters {
+//  if (family == 2) { // Gamma
+//    if (link == 2) { // log link  
+//      mu <- exp(alpha + X * beta); 
+//    }
+//  }
+//  beta_t <- beta ./ mu; 
+//}
 model {
   // see Gaussian links: https://cran.r-project.org/web/packages/GlmSimulatoR/vignettes/exploring_links_for_the_gaussian_distribution.html 
   if (family == 0) { // Gaussian
@@ -34,16 +42,21 @@ model {
     //} 
   //}
   else if (family == 2) { // Gamma
-    beta[1] ~ cauchy(0,10); //prior for the intercept following Gelman 2008
-    sigma ~ exponential(1); //error scale
+    //beta[1] ~ cauchy(0,10); //prior for the intercept following Gelman 2008
+    //sigma ~ exponential(1); //error scale
 
-    //beta[2:] ~ cauchy(0,2.5);//prior for the slopes following Gelman 2008
+    //if (size(beta) > 1) { 
+    //  beta[2:] ~ cauchy(0,2.5);//prior for the slopes following Gelman 2008
+    //}
+    print("sigma: ", sigma);
+    print("alpha: ", alpha);
+    print("beta: ", beta);
     if (link == 0) {  // identity link
-      y ~ gamma(sigma, sigma ./ (alpha + X * beta));
+      y ~ gamma(sigma, (sigma ./ (alpha + X * beta)));
     } else if (link == 1) { // log link
-      y ~ gamma(sigma, sigma ./ exp(alpha + X * beta));
+      y ~ gamma(sigma, (sigma ./ exp(alpha + X * beta)));
     } else if (link == 2) { // inverse link
-      y ~ gamma(sigma, sigma ./ inv(alpha + X * beta));
+      y ~ gamma(sigma, (sigma ./ inv(alpha + X * beta)));
     }
   }
   // else if (family == 3) { // Poisson

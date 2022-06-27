@@ -26,7 +26,13 @@ method_dict = {
     "Variational": CmdStanModel.variational,
 }
 
-BLR_FAMILIES = {"gaussian": 0, "binomial": 1, "gamma": 2, "poisson": 3, "inverse-gaussian": 4}
+BLR_FAMILIES = {
+    "gaussian": 0,
+    "binomial": 1,
+    "gamma": 2,
+    "poisson": 3,
+    "inverse-gaussian": 4,
+}
 
 
 class BLR_Estimator(CoreEstimator):
@@ -133,7 +139,7 @@ class BLR_Estimator(CoreEstimator):
         self.seed_ = self.seed
 
         self.fitted_samples_ = method_dict[self.algorithm](
-            self.model_, data=dat, show_console=False, seed=self.seed_, sig_figs=9
+            self.model_, data=dat, show_console=True, seed=self.seed_, sig_figs=9
         )
 
         if self.seed_ is None:
@@ -271,9 +277,9 @@ if __name__ == "__main__":
     ydat = np.array(jsondat["y"])
 
     kby2 = np.column_stack((xdat, xdat))  # type: ignore
-    #print(kby2.shape)
+    # print(kby2.shape)
 
-    blr = BLR_Estimator(link="inverse")
+    blr = BLR_Estimator(family="gamma", link="log")
     print(blr.fit(X=xdat, y=ydat).__dict__)
     blr.predict(X=xdat)
 
