@@ -129,6 +129,7 @@ class CoreEstimator:
         Standard input checks are also applied to y, such as checking that y
         does not have np.nan or np.inf targets. !!!
         """
+        print(dtype)
         no_X, no_y = X is None, y is None
         # res_X, res_y = X, y
 
@@ -143,10 +144,10 @@ class CoreEstimator:
             )
             res_y = None
         elif no_X and not no_y:
-            res_y = _check_y(y)  # type:ignore
+            res_y = _check_y(y,dtype=dtype)  # type:ignore
             res_X = None
         else:
             # TODO: add separate validation of X and y? !!!!!
-            res_X, res_y = check_X_y(X, y)  # type:ignore
+            res_X, res_y = check_X_y(X, y, dtype=dtype)  # type:ignore
 
         return res_X, res_y

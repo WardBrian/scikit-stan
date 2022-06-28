@@ -126,11 +126,13 @@ class BLR_Estimator(CoreEstimator):
         self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link]
         self.familyid_ = BLR_FAMILIES[self.family]
 
-        cont_dat = self.familyid_ in [0, 2, 4] # if true, continuous, else discrete
+        is_cont_dat = self.familyid_ in [0, 2, 4] # if true, continuous, else discrete
 
-        X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True, dtype=np.float64 if cont_dat else np.int64)
+        X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True, dtype=np.float64 if is_cont_dat else np.int64)
 
-        self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_continuous.stan") if cont_dat else CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_discrete.stan")
+        self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_continuous.stan") if is_cont_dat else CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_discrete.stan")
+
+        print(type(X_clean[0][0]))
 
         # TODO: this is a hack, make validation cast to either ints or floats!!!
         dat = {

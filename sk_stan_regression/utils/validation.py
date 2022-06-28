@@ -129,14 +129,16 @@ def check_array(
             """
         )
 
+    print(type(array_res[0]))
     return array_res
 
 
 # TODO: add additional arguments
 def _check_y(y: ArrayLike, dtype:type =np.float64) -> NDArray[Union[np.float64, np.int64]]:
-    y = check_array(y, ensure_2d=False)
+    #y = 
 
-    return np.asanyarray(y, dtype=dtype)
+    return check_array(y, ensure_2d=False, dtype=dtype)
+    #return np.asanyarray(y, dtype=dtype)
 
 
 # adapted from sklearn's check_X_y validation
@@ -147,7 +149,7 @@ def check_X_y(
     allow_nd: bool = False,
     dtype: type = np.float64
 ) -> Tuple[NDArray[Union[np.float64, np.int64]], NDArray[Union[np.float64, np.int64]]]:
-    X_checked = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd)
+    X_checked = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd, dtype=dtype)
     y_checked = _check_y(y, dtype=dtype)
 
     return X_checked, y_checked

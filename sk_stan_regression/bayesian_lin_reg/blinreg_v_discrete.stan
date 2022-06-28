@@ -5,7 +5,6 @@ data {
   int y[N];      // outcome vector
   int<lower=0> family; // family of the model
   int<lower=0> link; // link function of the model 
-
 }
 parameters {
   real alpha;           // intercept
