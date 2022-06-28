@@ -2,9 +2,9 @@
 
 from collections import defaultdict
 from inspect import signature
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from numpy import float64
+import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.utils.validation import _check_y
@@ -120,7 +120,8 @@ class CoreEstimator:
         y: Optional[ArrayLike] = None,
         ensure_X_2d: bool = True,
         allow_X_nd: bool = False,
-    ) -> Tuple[Optional[NDArray[float64]], Optional[NDArray[float64]]]:
+        dtype: type = np.float64
+    ) -> Tuple[Optional[NDArray[Union[np.float64, np.int64]]], Optional[NDArray[Union[np.float64, np.int64]]]]:
         """
         Input validation for standard estimators.
         Checks X and y for consistent length, enforces X to be 2D and y 1D. By
@@ -138,6 +139,7 @@ class CoreEstimator:
                 X,  # type: ignore
                 ensure_2d=ensure_X_2d,
                 allow_nd=allow_X_nd,
+                dtype=dtype
             )
             res_y = None
         elif no_X and not no_y:

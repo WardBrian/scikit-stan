@@ -67,8 +67,8 @@ def check_array(
     X: ArrayLike,
     ensure_2d: bool = True,
     allow_nd: bool = False,
-    dtype: str = "numeric",
-) -> NDArray[float64]:
+    dtype: type = np.float64
+) -> NDArray[Union[np.float64, np.int64]]:
     """
     Input validation on an array, list, sparse matrix or similar.
     By default, the input is checked to be a non-empty 2D array containing
@@ -84,7 +84,7 @@ def check_array(
     if np.any(np.iscomplex(X)):  # type: ignore
         raise ValueError("""Complex data not supported.""")
 
-    array_res: NDArray[np.float64] = np.asarray(X, dtype=np.float64)
+    array_res: NDArray[Union[np.float64, np.int64]] = np.asarray(X, dtype=dtype)
 
     if np.isnan(array_res).any():
         raise ValueError("Input contains NaN.")
@@ -133,13 +133,10 @@ def check_array(
 
 
 # TODO: add additional arguments
-def _check_y(y: ArrayLike, y_numeric: bool = True) -> NDArray[float64]:
+def _check_y(y: ArrayLike, dtype:type =np.float64) -> NDArray[Union[np.float64, np.int64]]:
     y = check_array(y, ensure_2d=False)
 
-    if y_numeric:
-        y = y.astype(np.float64)
-
-    return np.asanyarray(y, dtype=np.float64)
+    return np.asanyarray(y, dtype=dtype)
 
 
 # adapted from sklearn's check_X_y validation
@@ -148,10 +145,10 @@ def check_X_y(
     y: ArrayLike,
     ensure_X_2d: bool = True,
     allow_nd: bool = False,
-    y_numeric: bool = True,
-) -> Tuple[NDArray[float64], NDArray[float64]]:
+    dtype: type = np.float64
+) -> Tuple[NDArray[Union[np.float64, np.int64]], NDArray[Union[np.float64, np.int64]]]:
     X_checked = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd)
-    y_checked = _check_y(y, y_numeric=y_numeric)
+    y_checked = _check_y(y, dtype=dtype)
 
     return X_checked, y_checked
 

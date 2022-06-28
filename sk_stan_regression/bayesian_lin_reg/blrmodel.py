@@ -5,12 +5,13 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 import scipy.stats as stats  # type: ignore
+# TODO: update cmdstanpy version to 1.0.2 for typing
 from cmdstanpy import CmdStanModel  # type: ignore
 from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
 from sk_stan_regression.utils.validation import (
-    GAUSSIAN_LINKS,
+    FAMILY_LINKS_MAP,
     check_array,
     check_is_fitted,
     validate_family,
@@ -122,16 +123,19 @@ class BLR_Estimator(CoreEstimator):
                 Variational)."""
             )
 
-        X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True)
-
-        self.linkid_ = GAUSSIAN_LINKS[self.link]
+        self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link]
         self.familyid_ = BLR_FAMILIES[self.family]
 
-        self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v.stan")
+        cont_dat = self.familyid_ in [0, 2, 4] # if true, continuous, else discrete
 
+        X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True, dtype=np.float64 if cont_dat else np.int64)
+
+        self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_continuous.stan") if cont_dat else CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_discrete.stan")
+
+        # TODO: this is a hack, make validation cast to either ints or floats!!!
         dat = {
             "X": X_clean,
-            "y": y_clean,
+            "y": np.asarray(y_clean, dtype=np.int32), 
             "N": X_clean.shape[0],  # type: ignore
             "K": X_clean.shape[1],  # type: ignore
             "family": self.familyid_,
@@ -152,6 +156,7 @@ class BLR_Estimator(CoreEstimator):
             self.seed_ = self.fitted_samples_.metadata.cmdstan_config["seed"]
 
         stan_vars = self.fitted_samples_.stan_variables()
+        print(stan_vars['mu'].mean(axis=0))
         if self.algorithm == "HMC-NUTS":
             self.alpha_ = stan_vars["alpha"].mean(axis=0)
             self.beta_ = stan_vars["beta"].mean(axis=0)

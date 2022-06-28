@@ -1,6 +1,6 @@
 data {
-  int<lower=0> N;   // number of data items
-  int<lower=0> K;   // number of predictors
+  int<lower=1> N;   // number of data items
+  int<lower=1> K;   // number of predictors
   matrix[N, K] X;   // predictor matrix
   vector[N] y;      // outcome vector
   int<lower=0> family; // family of the model
@@ -67,10 +67,13 @@ model {
     //print("dims beta:", dims(beta_t));
     if (link == 0) {  // identity link
       y ~ gamma(sigma, (sigma ./ (alpha + X * beta)));
-    } else if (link == 1) { // log link
-      y ~ gamma(sigma, (sigma ./ exp(alpha + X * beta)));
-    } else if (link == 2) { // inverse link
+    } else if (link == 1) { // inverse link
       y ~ gamma(sigma, (sigma ./ inv(alpha + X * beta)));
+    } else if (link == 2) { // log link
+      print("alpha: ", alpha);
+      print("beta: ", beta);
+      print("sigma: ", sigma);
+      y ~ gamma(sigma, (sigma ./ exp(alpha + X * beta)));
     }
   }
   // else if (family == 3) { // Poisson
