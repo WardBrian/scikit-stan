@@ -13,12 +13,25 @@ parameters {
   real<lower=0> sigma;  // error scale OR variance of the error distribution !!!
 }
 //transformed parameters {
+//  vector[N] mu;         
+//  vector[N] beta_t; 
+//
 //  if (family == 2) { // Gamma
 //    if (link == 2) { // log link  
-//      mu <- exp(alpha + X * beta); 
+//      mu = exp(alpha + X * beta); 
 //    }
 //  }
-//  beta_t <- beta ./ mu; 
+//
+//  print("transformed variables");
+//  print("sigma: ", sigma);
+//  print("alpha: ", alpha);
+//  print("beta: ", beta);
+//  print("dims beta:", dims(beta_t));   
+//  print("dims mu:", dims(mu));
+//  print("dims rep", dims(rep_vector(sigma, N)));
+//  beta_t = rep_vector(sigma, N) ./ beta;
+//  print(mu); 
+//  print(beta_t);
 //}
 model {
   // see Gaussian links: https://cran.r-project.org/web/packages/GlmSimulatoR/vignettes/exploring_links_for_the_gaussian_distribution.html 
@@ -42,15 +55,16 @@ model {
     //} 
   //}
   else if (family == 2) { // Gamma
-    //beta[1] ~ cauchy(0,10); //prior for the intercept following Gelman 2008
-    //sigma ~ exponential(1); //error scale
+    beta[1] ~ cauchy(0,10); //prior for the intercept following Gelman 2008
+    sigma ~ exponential(1); //error scale
 
-    //if (size(beta) > 1) { 
-    //  beta[2:] ~ cauchy(0,2.5);//prior for the slopes following Gelman 2008
-    //}
-    print("sigma: ", sigma);
-    print("alpha: ", alpha);
-    print("beta: ", beta);
+    if (size(beta) > 1) { 
+      beta[2:] ~ cauchy(0,2.5);//prior for the slopes following Gelman 2008
+    }
+    //print("sigma: ", sigma);
+    //print("alpha: ", alpha);
+    //print("beta: ", beta);
+    //print("dims beta:", dims(beta_t));
     if (link == 0) {  // identity link
       y ~ gamma(sigma, (sigma ./ (alpha + X * beta)));
     } else if (link == 1) { // log link

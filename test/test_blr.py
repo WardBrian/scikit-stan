@@ -1,16 +1,13 @@
 """Tests with confirmation from sklearn for estimators."""
 
-import sys
-from pathlib import Path
+import json
 
 import numpy as np
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 import pytest
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
 from sk_stan_regression.bayesian_lin_reg import BLR_Estimator
+from sk_stan_regression.bayesian_lin_reg.blrmodel import DEFAULT_FAKE_DATA
 from sk_stan_regression.modelcore import CoreEstimator
 
 
@@ -25,5 +22,46 @@ def test_notfittederror_blr() -> None:
         blr.predict(X=np.array([2, 4, 8, 16]))
 
 
+@pytest.mark.parametrize("algorithm", ["HMC-NUTS", "Variational", "MLE"])
+def test_fake_data_1d_gaussI_algos(algorithm: str) -> None:
+    blr = BLR_Estimator(algorithm=algorithm)
+    with open(DEFAULT_FAKE_DATA) as file:
+        jsondat = json.load(file)
+
+    xdat = np.array(jsondat["x"])
+    ydat = np.array(jsondat["y"])
+
+    blr.fit(X=xdat, y=ydat)
+
+    reg_coeffs = np.array([])  # type: ignore
+    for val in [blr.alpha_, blr.beta_, blr.sigma_]:
+        reg_coeffs = np.append(reg_coeffs, val)
+
+    np.testing.assert_allclose(
+        reg_coeffs, np.array([0.6, 0.2, 0.3]), rtol=1e-1, atol=1e-1
+    )
+
+
 if __name__ == "__main__":
-    sys.exit(pytest.main(["-qq"]))
+    with open(DEFAULT_FAKE_DATA) as file:
+        jsondat = json.load(file)
+
+    xdat = np.array(jsondat["x"])
+    ydat = np.array(jsondat["y"])
+
+    kby2 = np.column_stack((xdat, xdat))  # type: ignore
+    # print(kby2.shape)
+
+    # blr = BLR_Estimator(family="gamma", link="log")
+    blr = BLR_Estimator(algorithm="Variational")
+    print(blr.fit(X=xdat, y=ydat).__dict__)
+    # blr.predict(X=xdat)
+
+    # print(blr.fit(kby2, ydat).__dict__)
+    # blr.predict(X=kby2)
+
+    # blrfamlink = BLR_Estimator(family="gaussian", link="inverse")
+    # blrfamlink.fit(xdat, ydat)
+
+    # blr2 = BLR_Estimator(algorithm="Variational")
+    # blr2.fit(xdat, ydat)

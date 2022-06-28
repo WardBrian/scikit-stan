@@ -1,6 +1,5 @@
 """Vectorized BLR model with sk-learn type API"""
 
-import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -58,6 +57,7 @@ class BLR_Estimator(CoreEstimator):
         family: str = "gaussian",
         link: str = "identity",
         seed: Optional[int] = None,
+        show_console: bool = False,
     ):
         self.algorithm = algorithm
 
@@ -66,6 +66,8 @@ class BLR_Estimator(CoreEstimator):
         self.link = link
 
         self.seed = seed
+
+        self.show_console = show_console
 
     def __repr__(self) -> str:
         return (
@@ -139,7 +141,11 @@ class BLR_Estimator(CoreEstimator):
         self.seed_ = self.seed
 
         self.fitted_samples_ = method_dict[self.algorithm](
-            self.model_, data=dat, show_console=True, seed=self.seed_, sig_figs=9
+            self.model_,
+            data=dat,
+            show_console=self.show_console,
+            seed=self.seed_,
+            sig_figs=9,
         )
 
         if self.seed_ is None:
@@ -216,7 +222,7 @@ class BLR_Estimator(CoreEstimator):
             mcmc_sample=self.fitted_samples_,
             seed=self.seed_,
             sig_figs=9,
-            show_console=False,
+            show_console=self.show_console,
         )
 
         return predicGQ.stan_variable("y_sim")  # type: ignore
@@ -267,59 +273,3 @@ class BLR_Estimator(CoreEstimator):
         Get the seed used to generate the samples.
         """
         return self.seed_ if self.seed_ == self.seed else self.seed
-
-
-if __name__ == "__main__":
-    with open(DEFAULT_FAKE_DATA) as file:
-        jsondat = json.load(file)
-
-    xdat = np.array(jsondat["x"])
-    ydat = np.array(jsondat["y"])
-
-    kby2 = np.column_stack((xdat, xdat))  # type: ignore
-    # print(kby2.shape)
-
-    blr = BLR_Estimator(family="gamma", link="log")
-    print(blr.fit(X=xdat, y=ydat).__dict__)
-    blr.predict(X=xdat)
-
-    blr.fit(kby2, ydat)
-    blr.predict(X=kby2)
-
-    # blrfamlink = BLR_Estimator(family="gaussian", link="inverse")
-    # blrfamlink.fit(xdat, ydat)
-
-    # blr2 = BLR_Estimator(algorithm="Variational")
-    # blr2.fit(xdat, ydat)
-#
-# blr3 = BLR_Estimator(algorithm="MLE")
-# blr3.fit(xdat, ydat)
-#
-# print(blr.predict(xdat))
-# print(blr._predict_distribution(xdat))
-# blr2 = BLR_Estimator()
-# blr2.fit(kby2, ydat)
-#
-# blr2.predict(kby2)
-# res = blr2.predict(kby2)
-## check exceptions
-# blr = BLR_Estimator()
-# blr.predict(X=xdat)
-
-# blrvec = BLR_Estimator()
-# blrvec.fit(X=xdat, y=ydat)
-# print(blrvec.__repr__())
-# ysim = blrvec.predict(X=xdat)
-# print(ysim)
-
-# blr2 = BLR_Estimator(algorithm="MLE")
-# blr2.fit(X=xdat, y=ydat)
-# ysim2 = blr2.predict(X=xdat)
-# print(ysim2)
-
-# kby2 = np.column_stack((xdat, xdat))
-
-# blrvec = BLR_Estimator()
-# blrvec.fit(kby2, ydat)
-# ysim2 = blrvec.predict(X=kby2)
-# print(ysim2)
