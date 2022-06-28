@@ -151,13 +151,13 @@ class BLR_Estimator(CoreEstimator):
 
         self.seed_ = self.seed
 
-        self.fitted_samples_ = method_dict[self.algorithm](
+        self.fitted_samples_ = method_dict[self.algorithm](  # type: ignore
             self.model_,
             data=dat,
             show_console=self.show_console,
             seed=self.seed_,
             sig_figs=9,
-        )  # type: ignore
+        )  
 
         if self.seed_ is None:
             self.seed_ = self.fitted_samples_.metadata.cmdstan_config["seed"]
