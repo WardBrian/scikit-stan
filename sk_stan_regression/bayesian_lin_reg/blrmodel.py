@@ -135,7 +135,7 @@ class BLR_Estimator(CoreEstimator):
         # TODO: this is a hack, make validation cast to either ints or floats!!!
         dat = {
             "X": X_clean,
-            "y": np.asarray(y_clean, dtype=np.int32), 
+            "y": y_clean,
             "N": X_clean.shape[0],  # type: ignore
             "K": X_clean.shape[1],  # type: ignore
             "family": self.familyid_,
@@ -156,19 +156,23 @@ class BLR_Estimator(CoreEstimator):
             self.seed_ = self.fitted_samples_.metadata.cmdstan_config["seed"]
 
         stan_vars = self.fitted_samples_.stan_variables()
-        print(stan_vars['mu'].mean(axis=0))
         if self.algorithm == "HMC-NUTS":
             self.alpha_ = stan_vars["alpha"].mean(axis=0)
-            self.beta_ = stan_vars["beta"].mean(axis=0)
-            self.sigma_ = stan_vars["sigma"].mean(axis=0)
-
             self.alpha_samples_ = stan_vars["alpha"]
+
+            self.beta_ = stan_vars["beta"].mean(axis=0)
             self.beta_samples_ = stan_vars["beta"]
-            self.sigma_samples_ = stan_vars["sigma"]
+
+            # sigma error scale only for gaussian...
+            if self.family == "gaussian":
+                self.sigma_ = stan_vars["sigma"].mean(axis=0)
+                self.sigma_samples_ = stan_vars["sigma"]
         else:
             self.alpha_ = stan_vars["alpha"]
             self.beta_ = stan_vars["beta"]
-            self.sigma_ = stan_vars["sigma"]
+            
+            if self.family == "gaussian":
+                self.sigma_ = stan_vars["sigma"]
 
         self.is_fitted_ = True
         self.n_features_in_ = X_clean.shape[1]  # type: ignore
