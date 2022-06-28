@@ -7,7 +7,7 @@ import numpy as np
 import scipy.stats as stats  # type: ignore
 
 # TODO: update cmdstanpy version to 1.0.2 for typing
-from cmdstanpy import CmdStanModel  # type: ignore
+from cmdstanpy import CmdStanModel  
 from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
@@ -157,7 +157,7 @@ class BLR_Estimator(CoreEstimator):
             show_console=self.show_console,
             seed=self.seed_,
             sig_figs=9,
-        )
+        )  # type: ignore
 
         if self.seed_ is None:
             self.seed_ = self.fitted_samples_.metadata.cmdstan_config["seed"]
@@ -241,7 +241,7 @@ class BLR_Estimator(CoreEstimator):
             show_console=self.show_console,
         )
 
-        return predicGQ.stan_variable("y_sim")  # type: ignore
+        return predicGQ.stan_variable("y_sim") 
 
     def predict(
         self,
