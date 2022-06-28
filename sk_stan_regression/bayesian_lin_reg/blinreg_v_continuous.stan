@@ -61,18 +61,12 @@ model {
     if (size(beta) > 1) { 
       beta[2:] ~ cauchy(0,2.5);//prior for the slopes following Gelman 2008
     }
-    //print("sigma: ", sigma);
-    //print("alpha: ", alpha);
-    //print("beta: ", beta);
-    //print("dims beta:", dims(beta_t));
+
     if (link == 0) {  // identity link
       y ~ gamma(sigma, (sigma ./ (alpha + X * beta)));
     } else if (link == 1) { // inverse link
       y ~ gamma(sigma, (sigma ./ inv(alpha + X * beta)));
     } else if (link == 2) { // log link
-      print("alpha: ", alpha);
-      print("beta: ", beta);
-      print("sigma: ", sigma);
       y ~ gamma(sigma, (sigma ./ exp(alpha + X * beta)));
     }
   }

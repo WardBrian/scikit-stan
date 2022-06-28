@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 import scipy.stats as stats  # type: ignore
+
 # TODO: update cmdstanpy version to 1.0.2 for typing
 from cmdstanpy import CmdStanModel  # type: ignore
 from numpy.typing import ArrayLike, NDArray
@@ -28,7 +29,7 @@ method_dict = {
 
 BLR_FAMILIES = {
     "gaussian": 0,
-    "binomial": 1,
+    "bernoulli": 1,
     "gamma": 2,
     "poisson": 3,
     "inverse-gaussian": 4,
@@ -126,13 +127,17 @@ class BLR_Estimator(CoreEstimator):
         self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link]
         self.familyid_ = BLR_FAMILIES[self.family]
 
-        is_cont_dat = self.familyid_ in [0, 2, 4] # if true, continuous, else discrete
+        is_cont_dat = self.familyid_ in [0, 2, 4]  # if true, continuous, else discrete
 
-        X_clean, y_clean = self._validate_data(X=X, y=y, ensure_X_2d=True, dtype=np.float64 if is_cont_dat else np.int64)
+        X_clean, y_clean = self._validate_data(
+            X=X, y=y, ensure_X_2d=True, dtype=np.float64 if is_cont_dat else np.int64
+        )
 
-        self.model_ = CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_continuous.stan") if is_cont_dat else CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_discrete.stan")
-
-        print(type(X_clean[0][0]))
+        self.model_ = (
+            CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_continuous.stan")
+            if is_cont_dat
+            else CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_discrete.stan")
+        )
 
         # TODO: this is a hack, make validation cast to either ints or floats!!!
         dat = {
@@ -172,7 +177,7 @@ class BLR_Estimator(CoreEstimator):
         else:
             self.alpha_ = stan_vars["alpha"]
             self.beta_ = stan_vars["beta"]
-            
+
             if self.family == "gaussian":
                 self.sigma_ = stan_vars["sigma"]
 

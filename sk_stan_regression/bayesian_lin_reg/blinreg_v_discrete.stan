@@ -16,14 +16,31 @@ transformed parameters {
     mu = alpha + X * beta; // lienar predictor 
 }
 model {
-    print(y);
     // TODO: add error scales for alpha & beta?
     //alpha ~ normal(0., sigma); 
     //beta ~ normal(0., sigma);
 
     // likelihood
-    // binomial with logit link 
-    y ~ bernoulli_logit(mu); 
+    // bernoulli family 
+    if (family == 1) { 
+        if (link == 0) { // logit link
+            y ~ bernoulli_logit(mu); 
+        } else if (link == 1) { // probit link
+            y ~ bernoulli(Phi_approx(mu));
+        } else if (link == 3) // log link
+            y ~ bernoulli(exp(mu));
+        else { // cloglog link 
+            y ~ bernoulli(inv_cloglog(mu));
+        }
+    } else if (family == 3) { 
+        if (link == 0) { // identity link 
+            y ~ poisson(mu); 
+        } else if (link == 1) { // log link  
+            y ~ poisson(exp(mu));
+        } else { // sqrt link 
+            y ~ poisson(sqrt(mu)); 
+        }
+    }
 }
 //generated quantities {
 //   vector[N] y_sim; 

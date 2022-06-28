@@ -5,7 +5,6 @@ from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp  # type: ignore
-from numpy import float64
 from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
@@ -14,7 +13,7 @@ GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2}
 
 
 # corresponding to logistic, normal and Cauchy CDFs respectively
-BINOMIAL_LINKS = {"logit": 0, "probit": 1, "cauchit": 2, "log": 3, "cloglog": 4}
+BERNOULLI_LINKS = {"logit": 0, "probit": 1, "cauchit": 2, "log": 3, "cloglog": 4}
 
 
 GAMMA_LINKS = {
@@ -32,7 +31,7 @@ INVERSE_GAUSSIAN_LINKS = {"identity": 0, "inverse": 1, "log": 2, "1/mu^2": 3}
 
 FAMILY_LINKS_MAP = {
     "gaussian": GAUSSIAN_LINKS,
-    "binomial": BINOMIAL_LINKS,
+    "bernoulli": BERNOULLI_LINKS,
     "gamma": GAMMA_LINKS,
     "poisson": POISSON_LINKS,
     "inverse_gaussian": INVERSE_GAUSSIAN_LINKS,
@@ -57,7 +56,7 @@ def validate_family(family: str, link: str) -> None:
     if link not in FAMILY_LINKS_MAP[family].keys():
         raise ValueError(
             f"""Link {link} not supported for family {family}. 
-            Try one of these: {FAMILY_LINKS_MAP[family].keys()}."""
+            These links are supported for {family}: {FAMILY_LINKS_MAP[family].keys()}."""
         )
 
 
@@ -67,7 +66,7 @@ def check_array(
     X: ArrayLike,
     ensure_2d: bool = True,
     allow_nd: bool = False,
-    dtype: type = np.float64
+    dtype: type = np.float64,
 ) -> NDArray[Union[np.float64, np.int64]]:
     """
     Input validation on an array, list, sparse matrix or similar.
@@ -129,16 +128,14 @@ def check_array(
             """
         )
 
-    print(type(array_res[0]))
     return array_res
 
 
 # TODO: add additional arguments
-def _check_y(y: ArrayLike, dtype:type =np.float64) -> NDArray[Union[np.float64, np.int64]]:
-    #y = 
-
+def _check_y(
+    y: ArrayLike, dtype: type = np.float64
+) -> NDArray[Union[np.float64, np.int64]]:
     return check_array(y, ensure_2d=False, dtype=dtype)
-    #return np.asanyarray(y, dtype=dtype)
 
 
 # adapted from sklearn's check_X_y validation
@@ -147,7 +144,7 @@ def check_X_y(
     y: ArrayLike,
     ensure_X_2d: bool = True,
     allow_nd: bool = False,
-    dtype: type = np.float64
+    dtype: type = np.float64,
 ) -> Tuple[NDArray[Union[np.float64, np.int64]], NDArray[Union[np.float64, np.int64]]]:
     X_checked = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd, dtype=dtype)
     y_checked = _check_y(y, dtype=dtype)

@@ -11,10 +11,6 @@ from sk_stan_regression.utils.validation import _check_y
 
 from .utils import check_array, check_X_y
 
-# TODO: why does this exist and why doesn't mypy like it?
-# from typing_extensions import Self
-# TODO: how to properly type annotate methods that return self?
-
 
 # NOTE: these are the same as sk-learn's three methods
 class CoreEstimator:
@@ -120,16 +116,17 @@ class CoreEstimator:
         y: Optional[ArrayLike] = None,
         ensure_X_2d: bool = True,
         allow_X_nd: bool = False,
-        dtype: type = np.float64
-    ) -> Tuple[Optional[NDArray[Union[np.float64, np.int64]]], Optional[NDArray[Union[np.float64, np.int64]]]]:
+        dtype: type = np.float64,
+    ) -> Tuple[
+        Optional[NDArray[Union[np.float64, np.int64]]],
+        Optional[NDArray[Union[np.float64, np.int64]]],
+    ]:
         """
         Input validation for standard estimators.
         Checks X and y for consistent length, enforces X to be 2D and y 1D. By
         default, X is checked to be non-empty and containing only finite values.
         Standard input checks are also applied to y, such as checking that y
-        does not have np.nan or np.inf targets. !!!
         """
-        print(dtype)
         no_X, no_y = X is None, y is None
         # res_X, res_y = X, y
 
@@ -140,11 +137,11 @@ class CoreEstimator:
                 X,  # type: ignore
                 ensure_2d=ensure_X_2d,
                 allow_nd=allow_X_nd,
-                dtype=dtype
+                dtype=dtype,
             )
             res_y = None
         elif no_X and not no_y:
-            res_y = _check_y(y,dtype=dtype)  # type:ignore
+            res_y = _check_y(y, dtype=dtype)  # type:ignore
             res_X = None
         else:
             # TODO: add separate validation of X and y? !!!!!
