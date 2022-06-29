@@ -220,18 +220,7 @@ class BLR_Estimator(CoreEstimator):
                 random_state=self.seed_,
             )
 
-        predictions = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan")
-
-        #dat = {
-        #    "N": X_clean.shape[0],
-        #    "K": X_clean.shape[1],
-        #    "X": X_clean,
-        #    "family": self.familyid_,
-        #    "link": self.linkid_,
-        #    "alpha": self.alpha_,
-        #    "beta": self.beta_,
-        #    "sigma": self.sigma_,
-        #}
+        predictions = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan") if self.is_cont_dat else CmdStanModel(stan_file=BLR_FOLDER / "sample_dist_discrete.stan")
 
         dat = { 
             "N": X_clean.shape[0],

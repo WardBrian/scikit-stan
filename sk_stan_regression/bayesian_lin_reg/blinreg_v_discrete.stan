@@ -27,6 +27,8 @@ model {
             y ~ bernoulli(inv_logit(mu)); 
         } else if (link == 1) { // probit link
             y ~ bernoulli(Phi(mu));
+        } else if (link == 2) { // cauchit link
+            y ~ bernoulli(0.5 + atan(mu) / pi()); 
         } else if (link == 3) // log link
             y ~ bernoulli(exp(mu));
         else { // cloglog link 
@@ -41,9 +43,4 @@ model {
             y ~ poisson(square(mu)); 
         }
     }
-}
-generated quantities {
-    array[N] int y_sim; 
-
-    y_sim = bernoulli_rng(mu);
 }
