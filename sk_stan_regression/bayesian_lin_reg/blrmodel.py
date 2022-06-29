@@ -147,8 +147,6 @@ class BLR_Estimator(CoreEstimator):
             "K": X_clean.shape[1],  # type: ignore
             "family": self.familyid_,
             "link": self.linkid_,
-            "N_new": 0, 
-            "x_new": np.zeros((0,X_clean.shape[1]))
         }
 
         self.seed_ = self.seed
@@ -236,18 +234,15 @@ class BLR_Estimator(CoreEstimator):
         #}
 
         dat = { 
-            "N": 0,
+            "N": X_clean.shape[0],
             "K": X_clean.shape[1],
-            "X": np.zeros((0,X_clean.shape[1])),
-            "y": np.zeros((0,1)),
+            "X": X_clean,
             "family": self.familyid_,
             "link": self.linkid_,
-            "N_new": X_clean.shape[0], 
-            "x_new": X_clean
         }
 
         # known that fitted with HMC-NUTS, so fitted_samples is not None
-        predicGQ = self.model_.generate_quantities(
+        predicGQ = predictions.generate_quantities(
             dat,
             mcmc_sample=self.fitted_samples_,
             seed=self.seed_,

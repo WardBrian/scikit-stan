@@ -6,9 +6,6 @@ data {
   int<lower=0> family; // family of the model
   int<lower=0> link; // link function of the model 
   // 0: Gaussian, | 0: identity, 1: log, 2: inverse 
-
-  int<lower=0> N_new; 
-  matrix[N_new, K] x_new; 
 }
 parameters {
   real alpha;           // intercept
@@ -16,9 +13,9 @@ parameters {
   real<lower=0> sigma;  // error scale OR variance of the error distribution !!!
 }
 transformed parameters {
-   vector[N] mu; 
+  vector[N] mu; 
    
-   mu = alpha + X * beta; 
+  mu = alpha + X * beta; 
 }
 //transformed parameters {
 //  vector[N] mu;         
@@ -105,8 +102,3 @@ model {
   //  }
   //}
 }
-//generated quantities {
-//    real y_sim[N_new]; 
-//
-//    y_sim = normal_rng(alpha + x_new * beta, sigma); 
-//}
