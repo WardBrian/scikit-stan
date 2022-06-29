@@ -24,9 +24,9 @@ model {
     // bernoulli family 
     if (family == 1) { 
         if (link == 0) { // logit link
-            y ~ bernoulli_logit(mu); 
+            y ~ bernoulli(inv_logit(mu)); 
         } else if (link == 1) { // probit link
-            y ~ bernoulli(Phi_approx(mu));
+            y ~ bernoulli(Phi(mu));
         } else if (link == 3) // log link
             y ~ bernoulli(exp(mu));
         else { // cloglog link 
@@ -38,12 +38,12 @@ model {
         } else if (link == 1) { // log link  
             y ~ poisson(exp(mu));
         } else { // sqrt link 
-            y ~ poisson(sqrt(mu)); 
+            y ~ poisson(square(mu)); 
         }
     }
 }
-//generated quantities {
-//   vector[N] y_sim; 
-//
-//   y_sim ~ bernoulli_rng(mu);
-//}
+generated quantities {
+    array[N] int y_sim; 
+
+    y_sim = bernoulli_rng(mu);
+}

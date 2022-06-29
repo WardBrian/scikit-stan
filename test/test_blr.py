@@ -58,7 +58,8 @@ if __name__ == "__main__":
     # kby2 = np.column_stack((xdat, xdat))  # type: ignore
     # print(kby2.shape)
 
-    blr = BLR_Estimator(family="bernoulli", link="log")
+    # NOTE: rate parameter sometimes becomes negative for poisson?
+    blr = BLR_Estimator(family="poisson", link="sqrt")
     # blr = BLR_Estimator(family="gamma", link="log", show_console=True)
     # print(blr.fit(X=xdat, y=ydat).__dict__)
 
