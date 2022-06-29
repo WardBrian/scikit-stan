@@ -1,16 +1,24 @@
 data {
-  int<lower=1> N;   // number of data items
-  int<lower=1> K;   // number of predictors
+  int<lower=0> N;   // number of data items
+  int<lower=0> K;   // number of predictors
   matrix[N, K] X;   // predictor matrix
   vector[N] y;      // outcome vector
   int<lower=0> family; // family of the model
   int<lower=0> link; // link function of the model 
   // 0: Gaussian, | 0: identity, 1: log, 2: inverse 
+
+  int<lower=0> N_new; 
+  matrix[N_new, K] x_new; 
 }
 parameters {
   real alpha;           // intercept
   vector[K] beta;       // coefficients for predictors
   real<lower=0> sigma;  // error scale OR variance of the error distribution !!!
+}
+transformed parameters {
+   vector[N] mu; 
+   
+   mu = alpha + X * beta; 
 }
 //transformed parameters {
 //  vector[N] mu;         
@@ -37,11 +45,11 @@ model {
   // see Gaussian links: https://cran.r-project.org/web/packages/GlmSimulatoR/vignettes/exploring_links_for_the_gaussian_distribution.html 
   if (family == 0) { // Gaussian
     if (link == 0) {  // identity link
-      y ~ normal(alpha + X * beta, sigma);
+      y ~ normal(mu, sigma);
     } else if (link == 1) { // log link
-      y ~ normal(exp(alpha + X * beta), sigma);
+      y ~ normal(exp(mu), sigma);
     } else if (link == 2) { // inverse link
-      y ~ normal(inv(alpha + X * beta), sigma);
+      y ~ normal(inv(mu), sigma);
     } 
   } 
   // TODO: add other families
@@ -63,11 +71,11 @@ model {
     }
 
     if (link == 0) {  // identity link
-      y ~ gamma(sigma, (sigma ./ (alpha + X * beta)));
+      y ~ gamma(sigma, (sigma ./ (mu)));
     } else if (link == 1) { // inverse link
-      y ~ gamma(sigma, (sigma ./ inv(alpha + X * beta)));
+      y ~ gamma(sigma, (sigma ./ inv(mu)));
     } else if (link == 2) { // log link
-      y ~ gamma(sigma, (sigma ./ exp(alpha + X * beta)));
+      y ~ gamma(sigma, (sigma ./ exp(mu)));
     }
   }
   // else if (family == 3) { // Poisson
@@ -97,3 +105,8 @@ model {
   //  }
   //}
 }
+//generated quantities {
+//    real y_sim[N_new]; 
+//
+//    y_sim = normal_rng(alpha + x_new * beta, sigma); 
+//}

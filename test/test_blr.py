@@ -59,9 +59,10 @@ if __name__ == "__main__":
     # print(kby2.shape)
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
-    blr = BLR_Estimator(family="poisson", link="sqrt")
-    # blr = BLR_Estimator(family="gamma", link="log", show_console=True)
-    # print(blr.fit(X=xdat, y=ydat).__dict__)
+    #blr = BLR_Estimator(family="poisson", link="sqrt")
+    blr = BLR_Estimator()
+    blr.fit(X=xdat, y=ydat, show_console=False)
+    blr.predict(X=xdat, show_console=True)
 
     # true params
     β0_true = 0.7
@@ -77,7 +78,7 @@ if __name__ == "__main__":
     ## Generate data
     y = rng.binomial(n, p_true)
     # print(y)
-    print(blr.fit(X=x, y=y).__dict__)
+    #print(blr.fit(X=x, y=y).__dict__)
 #
 # print(blr.fit(X=xdat, y=ydat).__dict__)
 # blr.predict(X=xdat)
