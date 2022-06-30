@@ -13,7 +13,7 @@ GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2}
 
 
 # corresponding to logistic, normal and Cauchy CDFs respectively
-BERNOULLI_LINKS = {"logit": 0, "probit": 1, "cauchit": 2, "log": 3, "cloglog": 4}
+BINOMIAL_LINKS = {"logit": 0, "probit": 1, "cauchit": 2, "log": 3, "cloglog": 4}
 
 
 GAMMA_LINKS = {
@@ -31,10 +31,11 @@ INVERSE_GAUSSIAN_LINKS = {"identity": 0, "inverse": 1, "log": 2, "1/mu^2": 3}
 
 FAMILY_LINKS_MAP = {
     "gaussian": GAUSSIAN_LINKS,
-    "bernoulli": BERNOULLI_LINKS,
+    "binomial": BINOMIAL_LINKS,
     "gamma": GAMMA_LINKS,
     "poisson": POISSON_LINKS,
     "inverse_gaussian": INVERSE_GAUSSIAN_LINKS,
+    # "binomial" : BINOMIAL_LINKS
 }
 
 

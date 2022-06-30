@@ -59,10 +59,10 @@ if __name__ == "__main__":
     # print(kby2.shape)
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
-    blr = GLM(family="bernoulli")
-    # blr = BLR_Estimator()
-    # blr.fit(X=xdat, y=ydat, show_console=False)
-    # blr.predict(X=xdat, show_console=True)
+    # blr = GLM(family="bernoulli")
+    blr = GLM(family="gamma", link="inverse")
+    print(blr.fit(X=xdat, y=ydat, show_console=True))
+    print(blr.predict(X=xdat, show_console=True))
 
     # true params
     β0_true = 0.7

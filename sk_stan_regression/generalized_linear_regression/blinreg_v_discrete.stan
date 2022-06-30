@@ -22,19 +22,20 @@ model {
 
     // likelihood
     // bernoulli family 
-    if (family == 1) { 
-        if (link == 0) { // logit link
-            y ~ bernoulli(inv_logit(mu)); 
-        } else if (link == 1) { // probit link
-            y ~ bernoulli(Phi(mu));
-        } else if (link == 2) { // cauchit link
-            y ~ bernoulli(0.5 + atan(mu) / pi()); 
-        } else if (link == 3) // log link
-            y ~ bernoulli(exp(mu));
-        else { // cloglog link 
-            y ~ bernoulli(inv_cloglog(mu));
-        }
-    } else if (family == 3) { 
+    //if (family == 1) { 
+    //    if (link == 0) { // logit link
+    //        y ~ binomial(inv_logit(mu)); 
+    //    } else if (link == 1) { // probit link
+    //        y ~ binomial(Phi(mu));
+    //    } else if (link == 2) { // cauchit link
+    //        y ~ binomial(0.5 + atan(mu) / pi()); 
+    //    } else if (link == 3) // log link
+    //        y ~ binomial(exp(mu));
+    //    else { // cloglog link 
+    //        y ~ binomial(inv_cloglog(mu));
+    //    }
+    //} 
+    if (family == 3) { 
         if (link == 0) { // identity link 
             y ~ poisson(mu); 
         } else if (link == 1) { // log link  

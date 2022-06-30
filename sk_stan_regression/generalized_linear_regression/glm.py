@@ -27,7 +27,7 @@ method_dict = {
 
 GLM_FAMILIES = {
     "gaussian": 0,
-    "bernoulli": 1,
+    "binomial": 1,
     "gamma": 2,
     "poisson": 3,
     "inverse-gaussian": 4,
