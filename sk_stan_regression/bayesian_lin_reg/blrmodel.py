@@ -6,8 +6,7 @@ from typing import Any, Dict, Optional, Union
 import numpy as np
 import scipy.stats as stats  # type: ignore
 
-# TODO: update cmdstanpy version to 1.0.2 for typing
-from cmdstanpy import CmdStanModel
+from cmdstanpy import CmdStanModel  
 from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
@@ -59,7 +58,6 @@ class BLR_Estimator(CoreEstimator):
         family: str = "gaussian",
         link: str = "identity",
         seed: Optional[int] = None,
-        
     ):
         self.algorithm = algorithm
 
@@ -69,7 +67,7 @@ class BLR_Estimator(CoreEstimator):
 
         self.seed = seed
 
-        #self.show_console = show_console
+        # self.show_console = show_console
 
     def __repr__(self) -> str:
         return (
@@ -128,10 +126,17 @@ class BLR_Estimator(CoreEstimator):
         self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link]
         self.familyid_ = BLR_FAMILIES[self.family]
 
-        self.is_cont_dat = self.familyid_ in [0, 2, 4]  # if true, continuous, else discrete
+        self.is_cont_dat = self.familyid_ in [
+            0,
+            2,
+            4,
+        ]  # if true, continuous, else discrete
 
         X_clean, y_clean = self._validate_data(
-            X=X, y=y, ensure_X_2d=True, dtype=np.float64 if self.is_cont_dat else np.int64
+            X=X,
+            y=y,
+            ensure_X_2d=True,
+            dtype=np.float64 if self.is_cont_dat else np.int64,
         )
 
         self.model_ = (
@@ -188,11 +193,11 @@ class BLR_Estimator(CoreEstimator):
 
     def _predict_distribution(
         self,
-        X: NDArray[np.float64],
+        X: NDArray[Union[np.float64, np.int64]],
         num_iterations: int = 1000,
         num_chains: int = 4,
         show_console: bool = False,
-    ) -> NDArray[np.float64]:
+    ) -> NDArray[Union[np.float64, np.int64]]:
         """
         Predict using a fitted model after fit() has been applied.
 
@@ -211,18 +216,24 @@ class BLR_Estimator(CoreEstimator):
             )
 
         # TODO: should be a call to self._validate_data
-        X_clean = check_array(X=X, ensure_2d=True, dtype=np.float64 if self.is_cont_dat else np.int64)
+        X_clean = check_array(
+            X=X, ensure_2d=True, dtype=np.float64 if self.is_cont_dat else np.int64
+        )
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, X_clean),  # type: ignore
+                self.alpha_ + np.dot(self.beta_, X_clean),  
                 self.sigma_,
                 random_state=self.seed_,
             )
 
-        predictions = CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan") if self.is_cont_dat else CmdStanModel(stan_file=BLR_FOLDER / "sample_dist_discrete.stan")
+        predictions = (
+            CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan")
+            if self.is_cont_dat
+            else CmdStanModel(stan_file=BLR_FOLDER / "sample_dist_discrete.stan")
+        )
 
-        dat = { 
+        dat = {
             "N": X_clean.shape[0],
             "K": X_clean.shape[1],
             "X": X_clean,
@@ -262,12 +273,16 @@ class BLR_Estimator(CoreEstimator):
         # note the above errors out if X is None
 
         return self._predict_distribution(  # type: ignore
-            X_clean, num_iterations, num_chains, show_console=show_console,  # type: ignore
+            X_clean,  # type: ignore
+            num_iterations,
+            num_chains,
+            show_console=show_console,  
         ).mean(axis=0, dtype=np.float64)
 
     def _more_tags(self) -> Dict[str, Any]:
         """
-            Sets tags for current model that exclude certain sk-learn estimator checks that are not applicable to this model.
+        Sets tags for current model that exclude certain sk-learn estimator
+        checks that are not applicable to this model.
         """
         return {
             "_xfail_checks": {

@@ -60,9 +60,9 @@ if __name__ == "__main__":
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
     blr = BLR_Estimator(family="bernoulli", link="cauchit")
-    #blr = BLR_Estimator()
-    #blr.fit(X=xdat, y=ydat, show_console=False)
-    #blr.predict(X=xdat, show_console=True)
+    # blr = BLR_Estimator()
+    # blr.fit(X=xdat, y=ydat, show_console=False)
+    # blr.predict(X=xdat, show_console=True)
 
     # true params
     β0_true = 0.7
