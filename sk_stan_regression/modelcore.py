@@ -107,9 +107,33 @@ class CoreEstimator:
 
         return self
 
+    # TODO; fix typing and overloading issues!
+    @overload
+    def _validate_data(
+        self,
+        X: ArrayLike,
+        y: Optional[ArrayLike] = None,
+        ensure_X_2d: bool = True,
+        allow_X_nd: bool = False,
+        dtype: type = np.float64,
+    ) -> Tuple[
+        NDArray[Union[np.float64, np.int64]],
+        Optional[NDArray[Union[np.float64, np.int64]]],
+    ]:
+        ...
 
     @overload
-    def _validate_data(self, X: ArrayLike, y: Optional[ArrayLike] = None) -> Tuple[NDArray, Optional[NDArray]]:
+    def _validate_data(
+        self,
+        X: Optional[ArrayLike],
+        y: ArrayLike,
+        ensure_X_2d: bool = True,
+        allow_X_nd: bool = False,
+        dtype: type = np.float64,
+    ) -> Tuple[
+        Optional[NDArray[Union[np.float64, np.int64]]],
+        NDArray[Union[np.float64, np.int64]],
+    ]:
         ...
 
     # custom function adapted from sklearn's validations

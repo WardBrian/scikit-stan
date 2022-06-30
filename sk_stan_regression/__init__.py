@@ -1,3 +1,3 @@
-from .bayesian_lin_reg import BLR_Estimator
+from .generalized_linear_regression import GLM
 
-__all__ = ["BLR_Estimator"]
+__all__ = ["GLM"]

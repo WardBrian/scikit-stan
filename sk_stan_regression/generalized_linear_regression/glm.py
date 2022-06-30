@@ -5,8 +5,7 @@ from typing import Any, Dict, Optional, Union
 
 import numpy as np
 import scipy.stats as stats  # type: ignore
-
-from cmdstanpy import CmdStanModel  
+from cmdstanpy import CmdStanModel
 from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
@@ -17,8 +16,8 @@ from sk_stan_regression.utils.validation import (
     validate_family,
 )
 
-BLR_FOLDER = Path(__file__).parent
-DEFAULT_FAKE_DATA = BLR_FOLDER.parent / "data" / "fake_data.json"
+GLM_FOLDER = Path(__file__).parent
+DEFAULT_FAKE_DATA = GLM_FOLDER.parent / "data" / "fake_data.json"
 
 method_dict = {
     "HMC-NUTS": CmdStanModel.sample,
@@ -26,7 +25,7 @@ method_dict = {
     "Variational": CmdStanModel.variational,
 }
 
-BLR_FAMILIES = {
+GLM_FAMILIES = {
     "gaussian": 0,
     "bernoulli": 1,
     "gamma": 2,
@@ -34,8 +33,9 @@ BLR_FAMILIES = {
     "inverse-gaussian": 4,
 }
 
+
 # TODO: change to GLM name
-class BLR_Estimator(CoreEstimator):
+class GLM(CoreEstimator):
     """
     Vectorized, multidimensional version of the BLR Estimator above.
     Note that the intercept alpha and error scale sigma remain as scalar values
@@ -66,19 +66,6 @@ class BLR_Estimator(CoreEstimator):
 
         self.seed = seed
 
-        # self.show_console = show_console
-
-    def __repr__(self) -> str:
-        return (
-            f"""<BLR_Estimator:
-                        alpha={self.alpha_!r}, alpha_samples={self.alpha_samples_!r}, 
-                        beta={self.beta_!r}, beta_samples={self.beta_samples_!r}, 
-                        sigma={self.sigma_!r}, sigma_samples={self.sigma_samples_!r}, 
-                        seed={self.seed!r},>
-                """
-            if hasattr(self, "is_fitted_")
-            else """<BLR_Estimator: unfitted>"""
-        )
 
     def fit(
         self,
@@ -125,27 +112,26 @@ class BLR_Estimator(CoreEstimator):
         validate_family(self.family, self.link)
 
         self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link]
-        self.familyid_ = BLR_FAMILIES[self.family]
+        self.familyid_ = GLM_FAMILIES[self.family]
 
-        # TODO: change to str rather than 
-        self.is_cont_dat = self.familyid_ in [
-            0,
-            2,
-            4,
+        self.is_cont_dat_ = self.family in [
+            "gaussian",
+            "gamma",
+            "inverse_gaussian",
         ]  # if true, continuous, else discrete
 
         X_clean, y_clean = self._validate_data(
             X=X,
             y=y,
             ensure_X_2d=True,
-            dtype=np.float64 if self.is_cont_dat else np.int64,
+            dtype=np.float64 if self.is_cont_dat_ else np.int64,
         )
 
-        # TODO: move to top of file 
+        # TODO: move to top of file
         self.model_ = (
-            CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_continuous.stan")
-            if self.is_cont_dat
-            else CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_discrete.stan")
+            CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_continuous.stan")
+            if self.is_cont_dat_
+            else CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_discrete.stan")
         )
 
         dat = {
@@ -195,7 +181,7 @@ class BLR_Estimator(CoreEstimator):
 
         return self
 
-    def _predict_distribution(
+    def predict_distribution(
         self,
         X: NDArray[Union[np.float64, np.int64]],
         num_iterations: int = 1000,
@@ -221,20 +207,20 @@ class BLR_Estimator(CoreEstimator):
 
         # TODO: should be a call to self._validate_data
         X_clean = check_array(
-            X=X, ensure_2d=True, dtype=np.float64 if self.is_cont_dat else np.int64
+            X=X, ensure_2d=True, dtype=np.float64 if self.is_cont_dat_ else np.int64
         )
 
         if self.algorithm != "HMC-NUTS":
             return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, X_clean),  
+                self.alpha_ + np.dot(self.beta_, X_clean),
                 self.sigma_,
                 random_state=self.seed_,
             )
 
         predictions = (
-            CmdStanModel(stan_file=BLR_FOLDER / "sample_normal_v.stan")
-            if self.is_cont_dat
-            else CmdStanModel(stan_file=BLR_FOLDER / "sample_dist_discrete.stan")
+            CmdStanModel(stan_file=GLM_FOLDER / "sample_normal_v.stan")
+            if self.is_cont_dat_
+            else CmdStanModel(stan_file=GLM_FOLDER / "sample_dist_discrete.stan")
         )
 
         dat = {
@@ -276,11 +262,11 @@ class BLR_Estimator(CoreEstimator):
         X_clean, _ = self._validate_data(X=X, ensure_X_2d=True)
         # note the above errors out if X is None
 
-        return self._predict_distribution(  # type: ignore
-            X_clean,  # type: ignore
+        return self.predict_distribution(  # type: ignore
+            X_clean,
             num_iterations,
             num_chains,
-            show_console=show_console,  
+            show_console=show_console,
         ).mean(axis=0, dtype=np.float64)
 
     def _more_tags(self) -> Dict[str, Any]:

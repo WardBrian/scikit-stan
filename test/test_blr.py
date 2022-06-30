@@ -7,37 +7,37 @@ import numpy as np
 import pytest
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
-from sk_stan_regression.bayesian_lin_reg import BLR_Estimator
+from sk_stan_regression.generalized_linear_regression import GLM
 from sk_stan_regression.modelcore import CoreEstimator
 
 FAKE_DATA = Path(__file__).parent / "data" / "fake_data.json"
 
 
-@pytest.mark.parametrize("estimator", [BLR_Estimator()])
+@pytest.mark.parametrize("estimator", [GLM()])
 def test_compatible_estimator(estimator: "CoreEstimator") -> None:
     check_estimator(estimator)
 
 
-def test_notfittederror_blr() -> None:
-    blr = BLR_Estimator()
+def test_notfittederror_glm() -> None:
+    glm = GLM()
     with pytest.raises(Exception) as e_info:
-        blr.predict(X=np.array([2, 4, 8, 16]))
+        glm.predict(X=np.array([2, 4, 8, 16]))
 
 
 # TODO: use scipy rvs to remove dependence on json input
 @pytest.mark.parametrize("algorithm", ["HMC-NUTS", "Variational", "MLE"])
 def test_fake_data_1d_gaussI_algos(algorithm: str) -> None:
-    blr = BLR_Estimator(algorithm=algorithm)
+    glm = GLM(algorithm=algorithm)
     with open(FAKE_DATA) as file:
         jsondat = json.load(file)
 
     xdat = np.array(jsondat["x"])
     ydat = np.array(jsondat["y"])
 
-    blr.fit(X=xdat, y=ydat)
+    glm.fit(X=xdat, y=ydat)
 
     reg_coeffs = np.array([])  # type: ignore
-    for val in [blr.alpha_, blr.beta_, blr.sigma_]:
+    for val in [glm.alpha_, glm.beta_, glm.sigma_]:
         reg_coeffs = np.append(reg_coeffs, val)
 
     np.testing.assert_allclose(
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     # print(kby2.shape)
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
-    blr = BLR_Estimator(family="bernoulli", link="cauchit")
+    blr = GLM(family="bernoulli", link="cauchit")
     # blr = BLR_Estimator()
     # blr.fit(X=xdat, y=ydat, show_console=False)
     # blr.predict(X=xdat, show_console=True)
