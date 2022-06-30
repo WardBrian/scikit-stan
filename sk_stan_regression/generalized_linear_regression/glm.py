@@ -33,8 +33,16 @@ GLM_FAMILIES = {
     "inverse-gaussian": 4,
 }
 
+# compile continuous & discrete models once so they aren't compiled every time fit() is called
+GLM_CONTINUOUS_STAN = CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_continuous.stan")
 
-# TODO: change to GLM name
+GLM_DISCRETE_STAN = CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_discrete.stan")
+
+# compile continuous & discrete sampling methods so they aren't compiled every time predict() is called 
+GLM_SAMPLE_CONTINUOUS_STAN = CmdStanModel(stan_file=GLM_FOLDER / "sample_normal_v.stan")
+
+GLM_SAMPLE_DISCRETE_STAN = CmdStanModel(stan_file=GLM_FOLDER / "sample_dist_discrete.stan")
+
 class GLM(CoreEstimator):
     """
     Vectorized, multidimensional version of the BLR Estimator above.
@@ -51,7 +59,6 @@ class GLM(CoreEstimator):
     :param algorithm: algorithm that performs an operation on the posterior
     """
 
-    # TODO: user defined seed ends up breaking the tests
     def __init__(
         self,
         algorithm: str = "HMC-NUTS",
@@ -128,11 +135,10 @@ class GLM(CoreEstimator):
         )
 
         # TODO: move to top of file
-        self.model_ = (
-            CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_continuous.stan")
-            if self.is_cont_dat_
-            else CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_discrete.stan")
-        )
+        self.model_ = GLM_CONTINUOUS_STAN if self.is_cont_dat_ else GLM_DISCRETE_STAN
+            #CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_continuous.stan")
+            #if self.is_cont_dat_
+            #else CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_discrete.stan")
 
         dat = {
             "X": X_clean,
@@ -164,16 +170,15 @@ class GLM(CoreEstimator):
             self.beta_ = stan_vars["beta"].mean(axis=0)
             self.beta_samples_ = stan_vars["beta"]
 
-            # sigma error scale only for gaussian...
-            # TODO: every continuous model has a sigma error scale!
-            if self.family == "gaussian":
+            # sigma error scale only for continuous models...
+            if self.is_cont_dat_: 
                 self.sigma_ = stan_vars["sigma"].mean(axis=0)
                 self.sigma_samples_ = stan_vars["sigma"]
         else:
             self.alpha_ = stan_vars["alpha"]
             self.beta_ = stan_vars["beta"]
 
-            if self.family == "gaussian":
+            if self.is_cont_dat_:
                 self.sigma_ = stan_vars["sigma"]
 
         self.is_fitted_ = True
@@ -217,11 +222,7 @@ class GLM(CoreEstimator):
                 random_state=self.seed_,
             )
 
-        predictions = (
-            CmdStanModel(stan_file=GLM_FOLDER / "sample_normal_v.stan")
-            if self.is_cont_dat_
-            else CmdStanModel(stan_file=GLM_FOLDER / "sample_dist_discrete.stan")
-        )
+        predictions = GLM_SAMPLE_CONTINUOUS_STAN if self.is_cont_dat_ else GLM_SAMPLE_DISCRETE_STAN 
 
         dat = {
             "N": X_clean.shape[0],
