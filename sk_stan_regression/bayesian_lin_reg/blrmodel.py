@@ -34,7 +34,7 @@ BLR_FAMILIES = {
     "inverse-gaussian": 4,
 }
 
-
+# TODO: change to GLM name
 class BLR_Estimator(CoreEstimator):
     """
     Vectorized, multidimensional version of the BLR Estimator above.
@@ -61,7 +61,6 @@ class BLR_Estimator(CoreEstimator):
     ):
         self.algorithm = algorithm
 
-        validate_family(family, link)
         self.family = family
         self.link = link
 
@@ -123,9 +122,12 @@ class BLR_Estimator(CoreEstimator):
                 Variational)."""
             )
 
+        validate_family(self.family, self.link)
+
         self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link]
         self.familyid_ = BLR_FAMILIES[self.family]
 
+        # TODO: change to str rather than 
         self.is_cont_dat = self.familyid_ in [
             0,
             2,
@@ -139,6 +141,7 @@ class BLR_Estimator(CoreEstimator):
             dtype=np.float64 if self.is_cont_dat else np.int64,
         )
 
+        # TODO: move to top of file 
         self.model_ = (
             CmdStanModel(stan_file=BLR_FOLDER / "blinreg_v_continuous.stan")
             if self.is_cont_dat
@@ -176,6 +179,7 @@ class BLR_Estimator(CoreEstimator):
             self.beta_samples_ = stan_vars["beta"]
 
             # sigma error scale only for gaussian...
+            # TODO: every continuous model has a sigma error scale!
             if self.family == "gaussian":
                 self.sigma_ = stan_vars["sigma"].mean(axis=0)
                 self.sigma_samples_ = stan_vars["sigma"]
@@ -258,7 +262,7 @@ class BLR_Estimator(CoreEstimator):
         num_iterations: int = 1000,
         num_chains: int = 4,
         show_console: bool = False,
-    ) -> Union[np.float64, np.int64]:
+    ) -> NDArray[np.float64]:
         """
         Predict using a fitted model after fit() has been applied.
 

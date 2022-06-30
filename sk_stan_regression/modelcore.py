@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 from inspect import signature
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, overload
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
@@ -106,6 +106,11 @@ class CoreEstimator:
             valid_params[key].set_params(**sub_params)
 
         return self
+
+
+    @overload
+    def _validate_data(self, X: ArrayLike, y: Optional[ArrayLike] = None) -> Tuple[NDArray, Optional[NDArray]]:
+        ...
 
     # custom function adapted from sklearn's validations
     # TODO: add check that X and y have the same relevant
