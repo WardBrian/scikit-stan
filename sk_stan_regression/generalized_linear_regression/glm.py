@@ -38,10 +38,14 @@ GLM_CONTINUOUS_STAN = CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_continuous.
 
 GLM_DISCRETE_STAN = CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_discrete.stan")
 
-# compile continuous & discrete sampling methods so they aren't compiled every time predict() is called 
+# compile continuous & discrete sampling methods
+# so they aren't compiled every time predict() is called
 GLM_SAMPLE_CONTINUOUS_STAN = CmdStanModel(stan_file=GLM_FOLDER / "sample_normal_v.stan")
 
-GLM_SAMPLE_DISCRETE_STAN = CmdStanModel(stan_file=GLM_FOLDER / "sample_dist_discrete.stan")
+GLM_SAMPLE_DISCRETE_STAN = CmdStanModel(
+    stan_file=GLM_FOLDER / "sample_dist_discrete.stan"
+)
+
 
 class GLM(CoreEstimator):
     """
@@ -72,7 +76,6 @@ class GLM(CoreEstimator):
         self.link = link
 
         self.seed = seed
-
 
     def fit(
         self,
@@ -116,16 +119,20 @@ class GLM(CoreEstimator):
                 Variational)."""
             )
 
-        validate_family(self.family, self.link)
-
-        self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link]
-        self.familyid_ = GLM_FAMILIES[self.family]
-
         self.is_cont_dat_ = self.family in [
             "gaussian",
             "gamma",
             "inverse_gaussian",
         ]  # if true, continuous, else discrete
+
+        # family is discrete and link was not set by user, set link to canonical link function
+        if not self.is_cont_dat_ and self.link == "identity":
+            self.link = "logit" if self.family == "bernoulli" else "log"
+
+        validate_family(self.family, self.link)
+
+        self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link]
+        self.familyid_ = GLM_FAMILIES[self.family]
 
         X_clean, y_clean = self._validate_data(
             X=X,
@@ -134,11 +141,7 @@ class GLM(CoreEstimator):
             dtype=np.float64 if self.is_cont_dat_ else np.int64,
         )
 
-        # TODO: move to top of file
         self.model_ = GLM_CONTINUOUS_STAN if self.is_cont_dat_ else GLM_DISCRETE_STAN
-            #CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_continuous.stan")
-            #if self.is_cont_dat_
-            #else CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_discrete.stan")
 
         dat = {
             "X": X_clean,
@@ -171,7 +174,7 @@ class GLM(CoreEstimator):
             self.beta_samples_ = stan_vars["beta"]
 
             # sigma error scale only for continuous models...
-            if self.is_cont_dat_: 
+            if self.is_cont_dat_:
                 self.sigma_ = stan_vars["sigma"].mean(axis=0)
                 self.sigma_samples_ = stan_vars["sigma"]
         else:
@@ -222,7 +225,11 @@ class GLM(CoreEstimator):
                 random_state=self.seed_,
             )
 
-        predictions = GLM_SAMPLE_CONTINUOUS_STAN if self.is_cont_dat_ else GLM_SAMPLE_DISCRETE_STAN 
+        predictions = (
+            GLM_SAMPLE_CONTINUOUS_STAN
+            if self.is_cont_dat_
+            else GLM_SAMPLE_DISCRETE_STAN
+        )
 
         dat = {
             "N": X_clean.shape[0],
