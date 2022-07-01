@@ -9,6 +9,7 @@ from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
 from sk_stan_regression.generalized_linear_regression import GLM
 from sk_stan_regression.modelcore import CoreEstimator
+from data import gen_fam_dat
 
 FAKE_DATA = Path(__file__).parent / "data" / "fake_data.json"
 
@@ -44,6 +45,9 @@ def test_fake_data_1d_gaussI_algos(algorithm: str) -> None:
         reg_coeffs, np.array([0.6, 0.2, 0.3]), rtol=1e-1, atol=1e-1
     )
 
+#def test_gamma_scipy_gen() -> None: 
+#    glm = GLM()
+#    
 
 if __name__ == "__main__":
     from scipy.special import expit  # type: ignore
@@ -60,9 +64,14 @@ if __name__ == "__main__":
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
-    blr = GLM(family="gamma", link="inverse")
-    print(blr.fit(X=xdat, y=ydat, show_console=True))
-    print(blr.predict(X=xdat, show_console=True))
+    blr = GLM(family="gaussian")
+    gamma_dat_X, gamma_dat_Y = gen_fam_dat("gaussian", Nsize=1000, alpha=0.6, beta=0.2) 
+
+    print(blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True))
+    print(blr.predict(X=xdat, show_console=False))
+    print(blr.alpha_, blr.beta_)
+    #print(blr.fit(X=xdat, y=ydat, show_console=True))
+    #print(blr.predict(X=xdat, show_console=True))
 
     # true params
     β0_true = 0.7
