@@ -16,8 +16,7 @@ from sk_stan_regression.utils.validation import (
     validate_family,
 )
 
-GLM_FOLDER = Path(__file__).parent
-DEFAULT_FAKE_DATA = GLM_FOLDER.parent / "data" / "fake_data.json"
+GLM_STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
 
 method_dict = {
     "HMC-NUTS": CmdStanModel.sample,
@@ -35,16 +34,22 @@ GLM_FAMILIES = {
 
 # pre-compile continuous & discrete models
 # so they aren't compiled every time fit() is called
-GLM_CONTINUOUS_STAN = CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_continuous.stan")
+GLM_CONTINUOUS_STAN = CmdStanModel(
+    stan_file=GLM_STAN_FILES_FOLDER / "glm_v_continuous.stan"
+)
 
-GLM_DISCRETE_STAN = CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_discrete.stan")
+GLM_DISCRETE_STAN = CmdStanModel(
+    stan_file=GLM_STAN_FILES_FOLDER / "glm_v_discrete.stan"
+)
 
 # pre-compile continuous & discrete sampling methods
 # so they aren't compiled every time predict() is called
-GLM_SAMPLE_CONTINUOUS_STAN = CmdStanModel(stan_file=GLM_FOLDER / "sample_normal_v.stan")
+GLM_SAMPLE_CONTINUOUS_STAN = CmdStanModel(
+    stan_file=GLM_STAN_FILES_FOLDER / "sample_normal_v.stan"
+)
 
 GLM_SAMPLE_DISCRETE_STAN = CmdStanModel(
-    stan_file=GLM_FOLDER / "sample_dist_discrete.stan"
+    stan_file=GLM_STAN_FILES_FOLDER / "sample_dist_discrete.stan"
 )
 
 
@@ -142,7 +147,7 @@ class GLM(CoreEstimator):
             dtype=np.float64 if self.is_cont_dat_ else np.int64,
         )
 
-        #self.model_ = CmdStanModel(stan_file=GLM_FOLDER / "glm_gamma_simple.stan")
+        # self.model_ = CmdStanModel(stan_file=GLM_FOLDER / "glm_gamma_simple.stan")
         self.model_ = GLM_CONTINUOUS_STAN if self.is_cont_dat_ else GLM_DISCRETE_STAN
 
         dat = {

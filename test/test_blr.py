@@ -1,16 +1,12 @@
 """Tests with confirmation from sklearn for estimators."""
 
-import json
-from pathlib import Path
-from cmdstanpy import CmdStanModel
-
 import numpy as np
 import pytest
+from data import gen_fam_dat
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
 from sk_stan_regression.generalized_linear_regression import GLM
 from sk_stan_regression.modelcore import CoreEstimator
-from data import gen_fam_dat
 
 
 @pytest.mark.parametrize("estimator", [GLM()])
@@ -27,18 +23,22 @@ def test_notfittederror_glm() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("algorithm", ["HMC-NUTS", "Variational", "MLE"])
-def test_default_gauss_gen_predictions(algorithm:str) -> None: 
+def test_default_gauss_gen_predictions(algorithm: str) -> None:
     """
     GLM is fitted on randomly generated data with alpha=0.6, beta=0.2, sigma=0.3,
     and the predictions are performed on a different set of data that were generated
     with the same parameters.
     """
     glm1 = GLM(algorithm=algorithm)
-    fake_data_1_X, fake_data_1_y = gen_fam_dat("gaussian", Nsize=1000, alpha=0.6, beta=0.2, sigma=0.3)
+    fake_data_1_X, fake_data_1_y = gen_fam_dat(
+        "gaussian", Nsize=1000, alpha=0.6, beta=0.2, sigma=0.3
+    )
     glm1.fit(X=fake_data_1_X, y=fake_data_1_y)
 
-    glm2 = GLM() 
-    fake_data_2_X, fake_data_2_y = gen_fam_dat("gaussian", Nsize=1000, alpha=0.6, beta=0.2, sigma=0.3)
+    glm2 = GLM()
+    fake_data_2_X, fake_data_2_y = gen_fam_dat(
+        "gaussian", Nsize=1000, alpha=0.6, beta=0.2, sigma=0.3
+    )
     glm2.fit(X=fake_data_2_X, y=fake_data_2_y)
 
     # use one GLM to predict results on other set of data
@@ -63,45 +63,44 @@ def test_default_gauss_gen_predictions(algorithm:str) -> None:
     )
 
     # the GLMs have similar predictions
-    np.testing.assert_allclose(
-        reg_coeffs1, reg_coeffs2, rtol=1e-1, atol=1e-1
-    )
+    np.testing.assert_allclose(reg_coeffs1, reg_coeffs2, rtol=1e-1, atol=1e-1)
 
-#def test_gamma_scipy_gen() -> None: 
+
+# def test_gamma_scipy_gen() -> None:
 #    glm = GLM()
-#    
+#
 
 if __name__ == "__main__":
-    from scipy.special import expit  # type: ignore
+    # from scipy.special import expit  # type: ignore
 
     rng = np.random.default_rng(1234)
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
     blr = GLM(family="gaussian")
-    gamma_dat_X, gamma_dat_Y = gen_fam_dat("gaussian", Nsize=1000, alpha=0.6, beta=0.2) 
+    gamma_dat_X, gamma_dat_Y = gen_fam_dat("gaussian", Nsize=1000, alpha=0.6, beta=0.2)
     blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True)
-    #print(blr.predict(X=xdat, show_console=False))
+    # print(blr.predict(X=xdat, show_console=False))
     print(blr.alpha_, blr.beta_)
-    #print(blr.fit(X=xdat, y=ydat, show_console=True))
-    #print(blr.predict(X=xdat, show_console=True))
+    # print(blr.fit(X=xdat, y=ydat, show_console=True))
+    # print(blr.predict(X=xdat, show_console=True))
 
     # true params
-    #β0_true = 0.7
-    #β1_true = 0.4
+    # β0_true = 0.7
+    # β1_true = 0.4
     ### number of yes/no questions
-    #n = 1
-    #sample_size = 30
-    #x = np.linspace(-10, 20, sample_size)
+    # n = 1
+    # sample_size = 30
+    # x = np.linspace(-10, 20, sample_size)
     ### Linear model
-    #μ_true = β0_true + β1_true * x
+    # μ_true = β0_true + β1_true * x
     ### transformation (inverse logit function = expit)
-    #p_true = expit(μ_true)
+    # p_true = expit(μ_true)
     ### Generate data
-    #y = rng.binomial(n, p_true)
+    # y = rng.binomial(n, p_true)
     ## print(y)
-    #blr.fit(X=x, y=y)
-    #print(blr.predict(X=x))
+    # blr.fit(X=x, y=y)
+    # print(blr.predict(X=x))
 #
 # print(blr.fit(X=xdat, y=ydat).__dict__)
 # blr.predict(X=xdat)
