@@ -33,12 +33,13 @@ GLM_FAMILIES = {
     "inverse-gaussian": 4,
 }
 
-# compile continuous & discrete models once so they aren't compiled every time fit() is called
+# pre-compile continuous & discrete models
+# so they aren't compiled every time fit() is called
 GLM_CONTINUOUS_STAN = CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_continuous.stan")
 
 GLM_DISCRETE_STAN = CmdStanModel(stan_file=GLM_FOLDER / "blinreg_v_discrete.stan")
 
-# compile continuous & discrete sampling methods
+# pre-compile continuous & discrete sampling methods
 # so they aren't compiled every time predict() is called
 GLM_SAMPLE_CONTINUOUS_STAN = CmdStanModel(stan_file=GLM_FOLDER / "sample_normal_v.stan")
 
@@ -141,6 +142,7 @@ class GLM(CoreEstimator):
             dtype=np.float64 if self.is_cont_dat_ else np.int64,
         )
 
+        #self.model_ = CmdStanModel(stan_file=GLM_FOLDER / "glm_gamma_simple.stan")
         self.model_ = GLM_CONTINUOUS_STAN if self.is_cont_dat_ else GLM_DISCRETE_STAN
 
         dat = {

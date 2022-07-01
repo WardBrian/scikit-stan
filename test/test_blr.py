@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from cmdstanpy import CmdStanModel
 
 import numpy as np
 import pytest
@@ -11,10 +12,9 @@ from sk_stan_regression.generalized_linear_regression import GLM
 from sk_stan_regression.modelcore import CoreEstimator
 from data import gen_fam_dat
 
-FAKE_DATA = Path(__file__).parent / "data" / "fake_data.json"
-
 
 @pytest.mark.parametrize("estimator", [GLM()])
+@pytest.mark.slow
 def test_compatible_estimator(estimator: "CoreEstimator") -> None:
     check_estimator(estimator)
 
@@ -25,24 +25,46 @@ def test_notfittederror_glm() -> None:
         glm.predict(X=np.array([2, 4, 8, 16]))
 
 
-# TODO: use scipy rvs to remove dependence on json input
+@pytest.mark.slow
 @pytest.mark.parametrize("algorithm", ["HMC-NUTS", "Variational", "MLE"])
-def test_fake_data_1d_gaussI_algos(algorithm: str) -> None:
-    glm = GLM(algorithm=algorithm)
-    with open(FAKE_DATA) as file:
-        jsondat = json.load(file)
+def test_default_gauss_gen_predictions(algorithm:str) -> None: 
+    """
+    GLM is fitted on randomly generated data with alpha=0.6, beta=0.2, sigma=0.3,
+    and the predictions are performed on a different set of data that were generated
+    with the same parameters.
+    """
+    glm1 = GLM(algorithm=algorithm)
+    fake_data_1_X, fake_data_1_y = gen_fam_dat("gaussian", Nsize=1000, alpha=0.6, beta=0.2, sigma=0.3)
+    glm1.fit(X=fake_data_1_X, y=fake_data_1_y)
 
-    xdat = np.array(jsondat["x"])
-    ydat = np.array(jsondat["y"])
+    glm2 = GLM() 
+    fake_data_2_X, fake_data_2_y = gen_fam_dat("gaussian", Nsize=1000, alpha=0.6, beta=0.2, sigma=0.3)
+    glm2.fit(X=fake_data_2_X, y=fake_data_2_y)
 
-    glm.fit(X=xdat, y=ydat)
+    # use one GLM to predict results on other set of data
+    glm1.predict(X=fake_data_2_X)
+    glm2.predict(X=fake_data_1_X)
 
-    reg_coeffs = np.array([])  # type: ignore
-    for val in [glm.alpha_, glm.beta_, glm.sigma_]:
-        reg_coeffs = np.append(reg_coeffs, val)
+    reg_coeffs1 = np.array([])  # type: ignore
+    for val in [glm1.alpha_, glm1.beta_, glm1.sigma_]:
+        reg_coeffs1 = np.append(reg_coeffs1, val)
+
+    reg_coeffs2 = np.array([])  # type: ignore
+    for val in [glm1.alpha_, glm1.beta_, glm1.sigma_]:
+        reg_coeffs2 = np.append(reg_coeffs2, val)
+
+    # each individual GLM has the correct coefficients
+    np.testing.assert_allclose(
+        reg_coeffs1, np.array([0.6, 0.2, 0.3]), rtol=1e-1, atol=1e-1
+    )
 
     np.testing.assert_allclose(
-        reg_coeffs, np.array([0.6, 0.2, 0.3]), rtol=1e-1, atol=1e-1
+        reg_coeffs2, np.array([0.6, 0.2, 0.3]), rtol=1e-1, atol=1e-1
+    )
+
+    # the GLMs have similar predictions
+    np.testing.assert_allclose(
+        reg_coeffs1, reg_coeffs2, rtol=1e-1, atol=1e-1
     )
 
 #def test_gamma_scipy_gen() -> None: 
@@ -53,42 +75,33 @@ if __name__ == "__main__":
     from scipy.special import expit  # type: ignore
 
     rng = np.random.default_rng(1234)
-    with open(FAKE_DATA) as file:
-        jsondat = json.load(file)
-
-    xdat = np.array(jsondat["x"])
-    ydat = np.array(jsondat["y"])
-    #
-    # kby2 = np.column_stack((xdat, xdat))  # type: ignore
-    # print(kby2.shape)
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
     blr = GLM(family="gaussian")
     gamma_dat_X, gamma_dat_Y = gen_fam_dat("gaussian", Nsize=1000, alpha=0.6, beta=0.2) 
-
-    print(blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True))
-    print(blr.predict(X=xdat, show_console=False))
+    blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True)
+    #print(blr.predict(X=xdat, show_console=False))
     print(blr.alpha_, blr.beta_)
     #print(blr.fit(X=xdat, y=ydat, show_console=True))
     #print(blr.predict(X=xdat, show_console=True))
 
     # true params
-    β0_true = 0.7
-    β1_true = 0.4
-    ## number of yes/no questions
-    n = 1
-    sample_size = 30
-    x = np.linspace(-10, 20, sample_size)
-    ## Linear model
-    μ_true = β0_true + β1_true * x
-    ## transformation (inverse logit function = expit)
-    p_true = expit(μ_true)
-    ## Generate data
-    y = rng.binomial(n, p_true)
-    # print(y)
-    blr.fit(X=x, y=y)
-    print(blr.predict(X=x))
+    #β0_true = 0.7
+    #β1_true = 0.4
+    ### number of yes/no questions
+    #n = 1
+    #sample_size = 30
+    #x = np.linspace(-10, 20, sample_size)
+    ### Linear model
+    #μ_true = β0_true + β1_true * x
+    ### transformation (inverse logit function = expit)
+    #p_true = expit(μ_true)
+    ### Generate data
+    #y = rng.binomial(n, p_true)
+    ## print(y)
+    #blr.fit(X=x, y=y)
+    #print(blr.predict(X=x))
 #
 # print(blr.fit(X=xdat, y=ydat).__dict__)
 # blr.predict(X=xdat)

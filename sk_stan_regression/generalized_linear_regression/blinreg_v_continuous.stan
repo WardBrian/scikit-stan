@@ -13,9 +13,15 @@ parameters {
   real<lower=0> sigma;  // error scale OR variance of the error distribution !!!
 }
 transformed parameters {
-  vector[N] mu; 
-   
+  vector[N] mu; // expected values / linear predictor
+
   mu = alpha + X * beta; 
+  vector[N] beta_internal; // rate parameter for gamma distribution 
+  if (family == 2) { // Gamma
+    mu = exp(mu); // using log link 
+
+    beta_internal = rep_vector(sigma, N) ./ mu;  
+  }
 }
 //transformed parameters {
 //  vector[N] mu;         
@@ -60,19 +66,20 @@ model {
     //} 
   //}
   else if (family == 2) { // Gamma
-    beta[1] ~ cauchy(0,10); //prior for the intercept following Gelman 2008
-    sigma ~ exponential(1); //error scale
+    alpha ~ cauchy(0,10); //prior for the intercept following Gelman 2008
+    sigma ~ exponential(1); //prior for inverse dispersion parameter
 
-    if (size(beta) > 1) { 
-      beta[2:] ~ cauchy(0,2.5);//prior for the slopes following Gelman 2008
-    }
+    #if (size(beta) > 1) { 
+    beta[1:] ~ cauchy(0,2.5); //prior for the slopes following Gelman 2008
+    #}
 
     if (link == 0) {  // identity link
       y ~ gamma(sigma, (sigma ./ (mu)));
     } else if (link == 1) { // inverse link
       y ~ gamma(sigma, (sigma ./ inv(mu)));
     } else if (link == 2) { // log link
-      y ~ gamma(sigma, (sigma ./ exp(mu)));
+      print(sigma); 
+      y ~ gamma(sigma, beta_internal);
     }
   }
   // else if (family == 3) { // Poisson
