@@ -66,11 +66,11 @@ model {
     //} 
   //}
   else if (family == 2) { // Gamma
-    alpha ~ cauchy(0,10); //prior for the intercept following Gelman 2008
-    sigma ~ exponential(1); //prior for inverse dispersion parameter
-
-    #if (size(beta) > 1) { 
-    beta[1:] ~ cauchy(0,2.5); //prior for the slopes following Gelman 2008
+    #alpha ~ cauchy(0,10); //prior for the intercept following Gelman 2008
+    #sigma ~ exponential(1); //prior for inverse dispersion parameter
+#
+    ##if (size(beta) > 1) { 
+    #beta[1:] ~ cauchy(0,2.5); //prior for the slopes following Gelman 2008
     #}
 
     if (link == 0) {  // identity link
@@ -78,7 +78,7 @@ model {
     } else if (link == 1) { // inverse link
       y ~ gamma(sigma, (sigma ./ inv(mu)));
     } else if (link == 2) { // log link
-      print(sigma); 
+      //print(sigma); 
       y ~ gamma(sigma, beta_internal);
     }
   }

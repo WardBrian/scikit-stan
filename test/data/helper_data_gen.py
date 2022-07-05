@@ -3,7 +3,7 @@ import scipy.stats as stats  # type: ignore
 
 
 # TODO: make multidimensional size input & output
-def gen_fam_dat(
+def _gen_fam_dat(
     family: str,
     Nsize=1000,
     alpha=0.6,

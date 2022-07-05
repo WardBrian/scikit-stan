@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from data import gen_fam_dat
+from data import _gen_fam_dat
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
 from sk_stan_regression.generalized_linear_regression import GLM
@@ -30,13 +30,13 @@ def test_default_gauss_gen_predictions(algorithm: str) -> None:
     with the same parameters.
     """
     glm1 = GLM(algorithm=algorithm)
-    fake_data_1_X, fake_data_1_y = gen_fam_dat(
+    fake_data_1_X, fake_data_1_y = _gen_fam_dat(
         "gaussian", Nsize=1000, alpha=0.6, beta=0.2, sigma=0.3
     )
     glm1.fit(X=fake_data_1_X, y=fake_data_1_y)
 
     glm2 = GLM()
-    fake_data_2_X, fake_data_2_y = gen_fam_dat(
+    fake_data_2_X, fake_data_2_y = _gen_fam_dat(
         "gaussian", Nsize=1000, alpha=0.6, beta=0.2, sigma=0.3
     )
     glm2.fit(X=fake_data_2_X, y=fake_data_2_y)
@@ -72,16 +72,19 @@ def test_default_gauss_gen_predictions(algorithm: str) -> None:
 
 if __name__ == "__main__":
     # from scipy.special import expit  # type: ignore
-
+    from data import bcdata_dict
     rng = np.random.default_rng(1234)
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
-    blr = GLM(family="gaussian")
-    gamma_dat_X, gamma_dat_Y = gen_fam_dat("gaussian", Nsize=1000, alpha=0.6, beta=0.2)
-    blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True)
+    blr = GLM(family="gamma", link="inverse")
+    #gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.6, beta=0.2)
+    bc_data_y, bc_data_X = np.log(bcdata_dict['u']), np.column_stack((bcdata_dict['lot1'], bcdata_dict['lot2']))
+    print(bc_data_X.shape, bc_data_y.shape)
+    #blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True)
+    blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
     # print(blr.predict(X=xdat, show_console=False))
-    print(blr.alpha_, blr.beta_)
+    print(blr.alpha_, blr.beta_) #-1.68296667742 [-0.03430016  0.07737138]
     # print(blr.fit(X=xdat, y=ydat, show_console=True))
     # print(blr.predict(X=xdat, show_console=True))
 

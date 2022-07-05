@@ -45,7 +45,7 @@ GLM_DISCRETE_STAN = CmdStanModel(
 # pre-compile continuous & discrete sampling methods
 # so they aren't compiled every time predict() is called
 GLM_SAMPLE_CONTINUOUS_STAN = CmdStanModel(
-    stan_file=GLM_STAN_FILES_FOLDER / "sample_normal_v.stan"
+    stan_file=GLM_STAN_FILES_FOLDER / "sample_dist_continuous.stan"
 )
 
 GLM_SAMPLE_DISCRETE_STAN = CmdStanModel(
