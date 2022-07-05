@@ -66,6 +66,17 @@ def test_default_gauss_gen_predictions(algorithm: str) -> None:
     np.testing.assert_allclose(reg_coeffs1, reg_coeffs2, rtol=1e-1, atol=1e-1)
 
 
+@pytest.mark.parametrize("family", ["gaussian", "gamma", "inverse_gaussian"])
+def test_auto_canonical_link_continuous(family: str) -> None:
+    """
+    Test that the canonical link is automatically chosen for the family.
+    """
+    canonical_links = {"gaussian": "identity", "gamma": "inverse", "inverse_gaussian": "1/mu^2"}
+    glm = GLM(family=family)
+    glm.fit(X=np.array([[1, 2, 3], [4, 5, 6]]), y=np.array([1, 2]))
+
+    assert glm.link == canonical_links[family]
+
 # TODO: add predict...
 def test_gamma_scipy_gen() -> None:
     glm_gamma = GLM(family="gamma", link="inverse")  # canonical link function
@@ -81,20 +92,29 @@ def test_gamma_scipy_gen() -> None:
 
 if __name__ == "__main__":
     # from scipy.special import expit  # type: ignore
-    from data import bcdata_dict
+    import matplotlib.pyplot as plt
+
+    # from data import bcdata_dict
 
     rng = np.random.default_rng(1234)
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
-    blr = GLM(family="gamma", link="inverse")
-    # gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.9, beta=0.3)
+    blr = GLM(family="gaussian", link="identity")
+    # gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=100, alpha=0.9, beta=0.3, sigma=1.9)
+    gauss_dat_X, gauss_dat_y = _gen_fam_dat(
+        "gaussian", Nsize=100, alpha=0.9, beta=0.3, sigma=1.9
+    )
     # bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), np.column_stack(
     #    (bcdata_dict["lot1"], bcdata_dict["lot2"])
     # )
-    bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), bcdata_dict["lot1"]
-    # blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True)
-    blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
+    # bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), bcdata_dict["lot1"]
+    blr.fit(X=gauss_dat_X, y=gauss_dat_y, show_console=True)
+    # blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
+    predics = blr.predict(X=gauss_dat_X)
+    plt.hist(gauss_dat_y, density=True, histtype="stepfilled", alpha=0.2)
+    plt.hist(predics, density=True, histtype="stepfilled", alpha=0.2)
+    plt.show()
     # print(blr.predict(X=bc_data_X, show_console=False))
     print(blr.alpha_, blr.beta_, blr.sigma_)  # -1.68296667742 [-0.03430016  0.07737138]
     # print(blr.fit(X=xdat, y=ydat, show_console=True))

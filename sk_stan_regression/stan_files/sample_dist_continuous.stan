@@ -32,18 +32,18 @@ transformed parameters {
   # TODO: this isn't necessary for every model? 
   beta_internal = rep_vector(sigma, N) ./ mu;  
 }
-generated quantities {
-    real y_sim[N]; 
-
-     // see Gaussian links: https://cran.r-project.org/web/packages/GlmSimulatoR/vignettes/exploring_links_for_the_gaussian_distribution.html 
-    if (family == 0) { // Gaussian
-      if (link == 0) {  // identity link
-        y_sim = normal_rng(alpha + X * beta, sigma);
-      } else if (link == 1) { // log link
-        y_sim = normal_rng(exp(alpha + X * beta), sigma);
-      } else if (link == 2) { // inverse link
-        y_sim = normal_rng(inv(alpha + X * beta), sigma);
-      }
-    }
-    //y_sim = normal_rng(alpha + X*beta, sigma); 
-}
+#generated quantities {
+#    real y_sim[N]; 
+#
+#     // see Gaussian links: https://cran.r-project.org/web/packages/GlmSimulatoR/vignettes/exploring_links_for_the_gaussian_distribution.html 
+#    if (family == 0) { // Gaussian
+#      if (link == 0) {  // identity link
+#        y_sim = normal_rng(alpha + X * beta, sigma);
+#      } else if (link == 1) { // log link
+#        y_sim = normal_rng(exp(alpha + X * beta), sigma);
+#      } else if (link == 2) { // inverse link
+#        y_sim = normal_rng(inv(alpha + X * beta), sigma);
+#      }
+#    }
+#    //y_sim = normal_rng(alpha + X*beta, sigma); 
+#}

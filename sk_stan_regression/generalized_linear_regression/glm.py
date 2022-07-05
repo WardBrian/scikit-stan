@@ -29,7 +29,7 @@ GLM_FAMILIES = {
     "binomial": 1,
     "gamma": 2,
     "poisson": 3,
-    "inverse-gaussian": 4,
+    "inverse_gaussian": 4,
 }
 
 # pre-compile continuous & discrete models
@@ -73,7 +73,7 @@ class GLM(CoreEstimator):
         self,
         algorithm: str = "HMC-NUTS",
         family: str = "gaussian",
-        link: str = "identity",
+        link: Optional[str] = None,
         seed: Optional[int] = None,
     ):
         self.algorithm = algorithm
@@ -131,9 +131,22 @@ class GLM(CoreEstimator):
             "inverse_gaussian",
         ]  # if true, continuous, else discrete
 
-        # family is discrete and link was not set by user, set link to canonical link function
-        # TODO: generalize this so canonical link functions are chosen
-        # when user does not specify link
+        # set the canonical link function for each family if 
+        # user does not specify the link function
+        if not self.link: # link has not been set  
+            if self.family == "gaussian": 
+                self.link = "identity"
+            elif self.family == "gamma": 
+                self.link = "inverse" 
+            elif self.family == "inverse_gaussian": 
+                self.link = "1/mu^2"
+            elif self.family == "poisson": 
+                self.link = "log" 
+            # TODO: add support for additional discrete families here
+            elif any(self.family == x for x in ["bernoulli", "binomial"]): 
+                self.link = "logit"
+
+        print(self.link)
         if not self.is_cont_dat_ and self.link == "identity":
             self.link = "logit" if self.family == "bernoulli" else "log"
 
@@ -154,10 +167,11 @@ class GLM(CoreEstimator):
         dat = {
             "X": X_clean,
             "y": y_clean,
-            "N": X_clean.shape[0],  # type: ignore
-            "K": X_clean.shape[1],  # type: ignore
+            "N": X_clean.shape[0],
+            "K": X_clean.shape[1],
             "family": self.familyid_,
             "link": self.linkid_,
+            "predictor": 0,
         }
 
         self.seed_ = self.seed
@@ -193,7 +207,7 @@ class GLM(CoreEstimator):
                 self.sigma_ = stan_vars["sigma"]
 
         self.is_fitted_ = True
-        self.n_features_in_ = X_clean.shape[1]  # type: ignore
+        self.n_features_in_ = X_clean.shape[1]
 
         return self
 
@@ -230,19 +244,19 @@ class GLM(CoreEstimator):
         if self.algorithm != "HMC-NUTS":
             if self.family == "gaussian":
                 return stats.norm.rvs(  # type: ignore
-                    self.alpha_ + np.dot(self.beta_, X_clean),
+                    self.alpha_ + np.dot(self.beta_, X_clean),  # type: ignore
                     self.sigma_,
                     random_state=self.seed_,
                 )
             elif self.family == "gamma":
                 return stats.gamma.rvs(  # type: ignore
-                    self.alpha_ + np.dot(self.beta_, X_clean),
+                    self.alpha_ + np.dot(self.beta_, X_clean),  # type: ignore
                     self.sigma_,
                     random_state=self.seed_,
                 )
             elif self.family == "inverse_gaussian":
                 return stats.invgauss.rvs(  # type: ignore
-                    self.alpha_ + np.dot(self.beta_, X_clean),
+                    self.alpha_ + np.dot(self.beta_, X_clean),  # type: ignore
                     self.sigma_,
                     random_state=self.seed_,
                 )
@@ -260,6 +274,15 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
         }
+        # dat = {
+        #    "N": X_clean.shape[0],
+        #    "K": X_clean.shape[1],
+        #    "X": X_clean,
+        #    "y": [],
+        #    "family": self.familyid_,
+        #    "link": self.linkid_,
+        #    "predictor": 1
+        # }
 
         # known that fitted with HMC-NUTS, so fitted_samples is not None
         predicGQ = predictions.generate_quantities(
@@ -290,7 +313,7 @@ class GLM(CoreEstimator):
                 the inferred values.
         """
         X_clean, _ = self._validate_data(X=X, ensure_X_2d=True)
-        # note the above errors out if X is None
+        # NOTE: the above errors out if X is None
 
         return self.predict_distribution(  # type: ignore
             X_clean,

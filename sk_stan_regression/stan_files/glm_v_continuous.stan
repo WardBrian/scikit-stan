@@ -1,8 +1,9 @@
 data {
   int<lower=0> N;   // number of data items
   int<lower=0> K;   // number of predictors
+  int<lower=0, upper=1> predictor; 
   matrix[N, K] X;   // predictor matrix
-  vector[N] y;      // outcome vector
+  vector[(predictor > 0) ? 0 : N] y;      // outcome vector
   int<lower=0> family; // family of the model
   int<lower=0> link; // link function of the model 
 }
@@ -92,9 +93,15 @@ model {
   //  }
   //}
 }
-//generated quantities {
-//   real y_sim[N]; 
-//
-//   y_sim = normal_rng(mu, sigma); 
-//   
-//}
+generated quantities {
+  real y_sim[N]; 
+  
+  if (family == 0) { 
+    y_sim = normal_rng(mu, sigma); 
+  }
+  else if (family == 2) { 
+    y_sim = gamma_rng(beta_internal, sigma); 
+  }
+
+
+}

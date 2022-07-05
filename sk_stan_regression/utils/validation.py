@@ -51,7 +51,7 @@ FAMILY_LINKS_MAP = {
 }
 
 
-# NOTE: family and link combinations taken from R families
+# NOTE: family and link combinations match R families package
 # package: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/family
 def validate_family(family: str, link: str) -> None:
     """
