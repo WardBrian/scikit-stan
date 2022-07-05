@@ -8,9 +8,8 @@ from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 from sk_stan_regression.generalized_linear_regression import GLM
 from sk_stan_regression.modelcore import CoreEstimator
 
-
-@pytest.mark.parametrize("estimator", [GLM()])
 @pytest.mark.slow
+@pytest.mark.parametrize("estimator", [GLM()])
 def test_compatible_estimator(estimator: "CoreEstimator") -> None:
     check_estimator(estimator)
 
@@ -73,18 +72,21 @@ def test_default_gauss_gen_predictions(algorithm: str) -> None:
 if __name__ == "__main__":
     # from scipy.special import expit  # type: ignore
     from data import bcdata_dict
+
     rng = np.random.default_rng(1234)
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
     blr = GLM(family="gamma", link="inverse")
-    #gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.6, beta=0.2)
-    bc_data_y, bc_data_X = np.log(bcdata_dict['u']), np.column_stack((bcdata_dict['lot1'], bcdata_dict['lot2']))
-    print(bc_data_X.shape, bc_data_y.shape)
-    #blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True)
-    blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
+    gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.9, beta=0.3)
+    #bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), np.column_stack(
+    #    (bcdata_dict["lot1"], bcdata_dict["lot2"])
+    #)
+    #bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), bcdata_dict["lot1"]
+    blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True)
+    #blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
     # print(blr.predict(X=xdat, show_console=False))
-    print(blr.alpha_, blr.beta_) #-1.68296667742 [-0.03430016  0.07737138]
+    print(blr.alpha_, blr.beta_, blr.sigma_)  # -1.68296667742 [-0.03430016  0.07737138]
     # print(blr.fit(X=xdat, y=ydat, show_console=True))
     # print(blr.predict(X=xdat, show_console=True))
 

@@ -18,10 +18,16 @@ transformed parameters {
   mu = alpha + X * beta; 
   vector[N] beta_internal; // rate parameter for gamma distribution 
   if (family == 2) { // Gamma
-    mu = exp(mu); // using log link 
-
-    beta_internal = rep_vector(sigma, N) ./ mu;  
+    if (link == 1) { // using inverse link  
+      mu = inv(mu); 
+    }
+    if (link == 2) { // using log link  
+      mu = exp(mu);
+    }
   }
+
+  beta_internal = rep_vector(sigma, N) ./ mu;  
+
 }
 //transformed parameters {
 //  vector[N] mu;         
@@ -46,6 +52,7 @@ transformed parameters {
 //}
 model {
   // see Gaussian links: https://cran.r-project.org/web/packages/GlmSimulatoR/vignettes/exploring_links_for_the_gaussian_distribution.html 
+  # TODO: move variable transformation to transformed parameters
   if (family == 0) { // Gaussian
     if (link == 0) {  // identity link
       y ~ normal(mu, sigma);
@@ -73,14 +80,15 @@ model {
     #beta[1:] ~ cauchy(0,2.5); //prior for the slopes following Gelman 2008
     #}
 
-    if (link == 0) {  // identity link
-      y ~ gamma(sigma, (sigma ./ (mu)));
-    } else if (link == 1) { // inverse link
-      y ~ gamma(sigma, (sigma ./ inv(mu)));
-    } else if (link == 2) { // log link
-      //print(sigma); 
-      y ~ gamma(sigma, beta_internal);
-    }
+    y ~ gamma(beta_internal, sigma); 
+    #if (link == 0) {  // identity link
+    #  y ~ gamma(sigma, (sigma ./ (mu)));
+    #} else if (link == 1) { // inverse link
+    #  y ~ gamma(sigma, (sigma ./ inv(mu)));
+    #} else if (link == 2) { // log link
+    #  //print(sigma); 
+    #  y ~ gamma(sigma, beta_internal);
+    #}
   }
   // else if (family == 3) { // Poisson
   //  if (link == 0) {  // identity link

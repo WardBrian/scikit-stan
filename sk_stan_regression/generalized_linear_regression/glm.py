@@ -226,11 +226,25 @@ class GLM(CoreEstimator):
         )
 
         if self.algorithm != "HMC-NUTS":
-            return stats.norm.rvs(  # type: ignore
-                self.alpha_ + np.dot(self.beta_, X_clean),
-                self.sigma_,
-                random_state=self.seed_,
-            )
+            if self.family == "gaussian": 
+                return stats.norm.rvs(  # type: ignore
+                    self.alpha_ + np.dot(self.beta_, X_clean),
+                    self.sigma_,
+                    random_state=self.seed_,
+                )
+            # TODO: change these default behaviors for other algorithms 
+            elif self.family == "gamma":
+                return stats.gamma.rvs(
+                    self.alpha_ + np.dot(self.beta_, X_clean),
+                    self.sigma_,
+                    random_state=self.seed_,
+                )
+            elif self.family == "inverse_gaussian":
+                return stats.invgauss.rvs(
+                    self.alpha_ + np.dot(self.beta_, X_clean),
+                    self.sigma_,
+                    random_state=self.seed_,
+                ) 
 
         predictions = (
             GLM_SAMPLE_CONTINUOUS_STAN
