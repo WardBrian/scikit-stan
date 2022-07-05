@@ -9,24 +9,36 @@ from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
 
+### GENERAL LINK MAP ###
+#   identity - 0
+#   log - 1
+#   inverse - 2
+#   sqrt - 3
+#   1/mu^2 - 4
+#   logit - 5
+#   probit - 6
+#   cloglog - 7
+#   cauchit - 8
+########################
+
 GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2}
 
 
 # corresponding to logistic, normal and Cauchy CDFs respectively
-BINOMIAL_LINKS = {"logit": 0, "probit": 1, "cauchit": 2, "log": 3, "cloglog": 4}
+BINOMIAL_LINKS = {"log": 1, "logit": 5, "probit": 6, "cloglog": 7, "cauchit": 8}
 
 
 GAMMA_LINKS = {
     "identity": 0,
-    "inverse": 1,
-    "log": 2,
+    "log": 1,
+    "inverse": 2,
 }
 
 
-POISSON_LINKS = {"identity": 0, "log": 1, "sqrt": 2}
+POISSON_LINKS = {"identity": 0, "log": 1, "sqrt": 3}
 
 
-INVERSE_GAUSSIAN_LINKS = {"identity": 0, "inverse": 1, "log": 2, "1/mu^2": 3}
+INVERSE_GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2, "1/mu^2": 4}
 
 
 FAMILY_LINKS_MAP = {

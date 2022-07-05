@@ -1,4 +1,4 @@
-"""Tests with confirmation from sklearn for estimators."""
+"""Tests for consistency of generalized linear model and adherence to sklearn style."""
 
 import numpy as np
 import pytest
@@ -7,6 +7,7 @@ from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
 from sk_stan_regression.generalized_linear_regression import GLM
 from sk_stan_regression.modelcore import CoreEstimator
+
 
 @pytest.mark.slow
 @pytest.mark.parametrize("estimator", [GLM()])
@@ -65,9 +66,18 @@ def test_default_gauss_gen_predictions(algorithm: str) -> None:
     np.testing.assert_allclose(reg_coeffs1, reg_coeffs2, rtol=1e-1, atol=1e-1)
 
 
-# def test_gamma_scipy_gen() -> None:
-#    glm = GLM()
-#
+# TODO: add predict...
+def test_gamma_scipy_gen() -> None:
+    glm_gamma = GLM(family="gamma", link="inverse")  # canonical link function
+    gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.9, beta=0.3)
+    glm_gamma.fit(X=gamma_dat_X, y=gamma_dat_Y)
+
+    reg_coeffs = np.array([])
+    for val in [glm_gamma.alpha_, glm_gamma.beta_]:
+        reg_coeffs = np.append(reg_coeffs, val)
+
+    np.testing.assert_allclose(reg_coeffs, np.array([0.9, 0.3]), rtol=1e-1, atol=1e-1)
+
 
 if __name__ == "__main__":
     # from scipy.special import expit  # type: ignore
@@ -78,14 +88,14 @@ if __name__ == "__main__":
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
     blr = GLM(family="gamma", link="inverse")
-    gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.9, beta=0.3)
-    #bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), np.column_stack(
+    # gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.9, beta=0.3)
+    # bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), np.column_stack(
     #    (bcdata_dict["lot1"], bcdata_dict["lot2"])
-    #)
-    #bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), bcdata_dict["lot1"]
-    blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True)
-    #blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
-    # print(blr.predict(X=xdat, show_console=False))
+    # )
+    bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), bcdata_dict["lot1"]
+    # blr.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=True)
+    blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
+    # print(blr.predict(X=bc_data_X, show_console=False))
     print(blr.alpha_, blr.beta_, blr.sigma_)  # -1.68296667742 [-0.03430016  0.07737138]
     # print(blr.fit(X=xdat, y=ydat, show_console=True))
     # print(blr.predict(X=xdat, show_console=True))

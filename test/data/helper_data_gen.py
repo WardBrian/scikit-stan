@@ -3,6 +3,7 @@ import scipy.stats as stats  # type: ignore
 
 
 # TODO: make multidimensional size input & output
+# TODO: generalize to include different link functions
 def _gen_fam_dat(
     family: str,
     Nsize=1000,
@@ -23,11 +24,11 @@ def _gen_fam_dat(
     #    X = stats.binom.rvs(Nsize, discrete_prob)
     #    # TODO: how to generate Y data?
     elif family == "gamma":
-        X = stats.gamma.rvs(1.9, size=Nsize)
+        X = stats.gamma.rvs(sigma, size=Nsize)
         Y = stats.gamma.rvs(alpha + beta * X, size=Nsize)
     elif family == "poisson":
         X = np.random.poisson(mu, size=Nsize)
-        Y = np.random.poisson(alpha + beta * X, sigma, size=Nsize)
+        Y = np.random.poisson(alpha + beta * X, size=Nsize)
     elif family == "inverse_gaussian":
         X = stats.invgauss.rvs(mu, size=Nsize)
         Y = stats.invgauss.rvs(alpha + beta * X, size=Nsize)

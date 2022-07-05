@@ -132,6 +132,8 @@ class GLM(CoreEstimator):
         ]  # if true, continuous, else discrete
 
         # family is discrete and link was not set by user, set link to canonical link function
+        # TODO: generalize this so canonical link functions are chosen
+        # when user does not specify link
         if not self.is_cont_dat_ and self.link == "identity":
             self.link = "logit" if self.family == "bernoulli" else "log"
 
@@ -147,7 +149,6 @@ class GLM(CoreEstimator):
             dtype=np.float64 if self.is_cont_dat_ else np.int64,
         )
 
-        # self.model_ = CmdStanModel(stan_file=GLM_FOLDER / "glm_gamma_simple.stan")
         self.model_ = GLM_CONTINUOUS_STAN if self.is_cont_dat_ else GLM_DISCRETE_STAN
 
         dat = {
@@ -180,7 +181,7 @@ class GLM(CoreEstimator):
             self.beta_ = stan_vars["beta"].mean(axis=0)
             self.beta_samples_ = stan_vars["beta"]
 
-            # sigma error scale only for continuous models...
+            # sigma error scale only for continuous models
             if self.is_cont_dat_:
                 self.sigma_ = stan_vars["sigma"].mean(axis=0)
                 self.sigma_samples_ = stan_vars["sigma"]
@@ -220,31 +221,31 @@ class GLM(CoreEstimator):
              estimator requires X to be passed, but it is None"""
             )
 
-        # TODO: should be a call to self._validate_data
         X_clean = check_array(
             X=X, ensure_2d=True, dtype=np.float64 if self.is_cont_dat_ else np.int64
         )
 
+        # TODO: link functions???
+        # TODO: discrete families
         if self.algorithm != "HMC-NUTS":
-            if self.family == "gaussian": 
+            if self.family == "gaussian":
                 return stats.norm.rvs(  # type: ignore
                     self.alpha_ + np.dot(self.beta_, X_clean),
                     self.sigma_,
                     random_state=self.seed_,
                 )
-            # TODO: change these default behaviors for other algorithms 
             elif self.family == "gamma":
-                return stats.gamma.rvs(
+                return stats.gamma.rvs(  # type: ignore
                     self.alpha_ + np.dot(self.beta_, X_clean),
                     self.sigma_,
                     random_state=self.seed_,
                 )
             elif self.family == "inverse_gaussian":
-                return stats.invgauss.rvs(
+                return stats.invgauss.rvs(  # type: ignore
                     self.alpha_ + np.dot(self.beta_, X_clean),
                     self.sigma_,
                     random_state=self.seed_,
-                ) 
+                )
 
         predictions = (
             GLM_SAMPLE_CONTINUOUS_STAN

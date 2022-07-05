@@ -11,6 +11,27 @@ parameters {
   vector[K] beta;       // coefficients for predictors
   real<lower=0> sigma;  // error scale
 }
+transformed parameters {
+  vector[N] mu; // expected values / linear predictor
+
+  mu = alpha + X * beta; 
+  vector[N] beta_internal; // rate parameter for gamma distribution 
+  // family-link combination has been validated up to this point
+  // only links corresponding to continuous families 
+  if (link == 1) { // using log link  
+    mu = exp(mu); 
+  }
+  else if (link == 2) { // using inverse link  
+    mu = inv(mu);
+  }
+  else if (link == 3) { // using sqrt link
+    mu = square(mu); 
+  }
+  # TODO: 1/mu^2 link? combination of square and inverse
+
+  # TODO: this isn't necessary for every model? 
+  beta_internal = rep_vector(sigma, N) ./ mu;  
+}
 generated quantities {
     real y_sim[N]; 
 
