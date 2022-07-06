@@ -21,7 +21,7 @@ from ..exceptions import NotFittedError
 #   cauchit - 8
 ########################
 
-# NOTE: linear model regression assumes constant variance, 
+# NOTE: linear model regression assumes constant variance,
 
 GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2}
 
@@ -29,7 +29,7 @@ GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2}
 # corresponding to logistic, normal and Cauchy CDFs respectively
 BINOMIAL_LINKS = {"log": 1, "logit": 5, "probit": 6, "cloglog": 7, "cauchit": 8}
 
-# NOTE: the Gamma regression is on parameterized Gamma(mu, alpha) 
+# NOTE: the Gamma regression is on parameterized Gamma(mu, alpha)
 # where alpha is considered fixed as linear models all assume constant variance
 GAMMA_LINKS = {
     "identity": 0,

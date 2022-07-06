@@ -10,21 +10,21 @@
 * Assumes proper validation has occurred prior to this call. 
 
 */
-real gaussian_llh(vector y, real sigma, vector mu, int link) {
-    real L = -0.5 * rows(y) * log(2 * pi() * sigma);
-
-    if (link == 0) { // identity link   
-        L -= 0.5 * square((y - mu) / sigma); 
-    }
-    else if (link == 1) { // log link 
-        L -= 0.5 * square((y - exp(mu)) / sigma);
-    }
-    else if (link == 2) { // inverse link  
-        L -= 0.5 * square((y - inv(mu)) / sigma);
-    }
-
-    return L;
-}
+//real gaussian_llh(vector y, real sigma, vector mu, int link) {
+//    real L = -0.5 * rows(y) * log(2 * pi() * sigma);
+//
+//    if (link == 0) { // identity link   
+//        L -= 0.5 * square((y - mu) / sigma); 
+//    }
+//    else if (link == 1) { // log link 
+//        L -= 0.5 * square((y - exp(mu)) / sigma);
+//    }
+//    else if (link == 2) { // inverse link  
+//        L -= 0.5 * square((y - inv(mu)) / sigma);
+//    }
+//
+//    return L;
+//}
 
 
 /**
@@ -48,7 +48,7 @@ real gamma_llh(vector y, real s_log_y,
                  vector mu, real alpha, 
                  int link) {
     real L = (alpha - 1) * s_log_y + 
-                rows(y) * (alpha * log(alpha) - lgamma(shape));
+                rows(y) * (alpha * log(alpha) - lgamma(alpha));
 
     if (link == 0) { // identity link 
         L -= alpha * (sum(y ./ mu) + sum(log(mu))); 
@@ -60,6 +60,5 @@ real gamma_llh(vector y, real s_log_y,
         L +=  alpha * (- dot_product(mu, y) + sum(log(mu))); 
     }
 
-    return L; 
-                
+    return L;                
 }

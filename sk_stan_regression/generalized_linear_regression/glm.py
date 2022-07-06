@@ -26,10 +26,10 @@ method_dict = {
 
 GLM_FAMILIES = {
     "gaussian": 0,
-    "binomial": 1,
-    "gamma": 2,
+    "gamma": 1,
+    "inverse_gaussian": 2,
     "poisson": 3,
-    "inverse_gaussian": 4,
+    "binomial": 4,
 }
 
 # pre-compile continuous & discrete models
@@ -131,19 +131,19 @@ class GLM(CoreEstimator):
             "inverse_gaussian",
         ]  # if true, continuous, else discrete
 
-        # set the canonical link function for each family if 
+        # set the canonical link function for each family if
         # user does not specify the link function
-        if not self.link: # link has not been set  
-            if self.family == "gaussian": 
+        if not self.link:  # link has not been set
+            if self.family == "gaussian":
                 self.link = "identity"
-            elif self.family == "gamma": 
-                self.link = "inverse" 
-            elif self.family == "inverse_gaussian": 
+            elif self.family == "gamma":
+                self.link = "inverse"
+            elif self.family == "inverse_gaussian":
                 self.link = "1/mu^2"
-            elif self.family == "poisson": 
-                self.link = "log" 
+            elif self.family == "poisson":
+                self.link = "log"
             # TODO: add support for additional discrete families here
-            elif any(self.family == x for x in ["bernoulli", "binomial"]): 
+            elif any(self.family == x for x in ["bernoulli", "binomial"]):
                 self.link = "logit"
 
         if not self.is_cont_dat_ and self.link == "identity":
