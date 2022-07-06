@@ -56,6 +56,7 @@ model {
     #beta[1:] ~ cauchy(0,2.5); //prior for the slopes following Gelman 2008
     #}
 
+    // TODO: no, regress on second parameter, not first
     y ~ gamma(beta_internal, sigma); 
     #if (link == 0) {  // identity link
     #  y ~ gamma(sigma, (sigma ./ (mu)));

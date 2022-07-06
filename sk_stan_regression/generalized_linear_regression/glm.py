@@ -146,7 +146,6 @@ class GLM(CoreEstimator):
             elif any(self.family == x for x in ["bernoulli", "binomial"]): 
                 self.link = "logit"
 
-        print(self.link)
         if not self.is_cont_dat_ and self.link == "identity":
             self.link = "logit" if self.family == "bernoulli" else "log"
 

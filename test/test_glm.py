@@ -77,6 +77,7 @@ def test_auto_canonical_link_continuous(family: str) -> None:
 
     assert glm.link == canonical_links[family]
 
+
 # TODO: add predict...
 def test_gamma_scipy_gen() -> None:
     glm_gamma = GLM(family="gamma", link="inverse")  # canonical link function
