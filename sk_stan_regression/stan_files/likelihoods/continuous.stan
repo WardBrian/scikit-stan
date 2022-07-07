@@ -45,20 +45,19 @@
 
 */ 
 real gamma_llh(vector y, real s_log_y,
-                vector mu, real alpha, 
-                int link) {
+                vector mu, real alpha) {
     real L = (alpha - 1) * s_log_y + 
-                rows(y) * (alpha * log(alpha) - lgamma(alpha));
+                rows(y) * (alpha * log(alpha) - lgamma(alpha)) - alpha * (sum(y ./ mu) + sum(log(mu)));
 
-    if (link == 0) { // identity link 
-        L -= alpha * (sum(y ./ mu) + sum(log(mu))); 
-    }
-    else if (link == 1) { // log link 
-        L -= alpha * (sum(y ./ exp(mu)) + sum(mu)); 
-    }
-    else if (link == 2) { // inverse link  
-        L +=  alpha * (- dot_product(mu, y) + sum(log(mu))); 
-    }
+    //if (link == 0) { // identity link 
+    //    L -= alpha * (sum(y ./ mu) + sum(log(mu))); 
+    //}
+    //else if (link == 1) { // log link 
+    //    L -= alpha * (sum(y ./ exp(mu)) + sum(mu)); 
+    //}
+    //else if (link == 2) { // inverse link  
+    //    L +=  alpha * (- dot_product(mu, y) + sum(log(mu))); 
+    //}
 
     return L;                
 }
@@ -70,21 +69,21 @@ real gamma_llh(vector y, real s_log_y,
 
 real inv_gaussian_llh(vector y, real s_log_y, 
                         vector mu, real sigma, 
-                        vector sqrt_y, int link) {
-    real L = 0.5 * ( rows(y) * log(sigma / (2 * pi() ))) - 1.5 * s_log_y;
+                        vector sqrt_y) {
+    real L = 0.5 * ( rows(y) * log(sigma / (2 * pi() - sigma * dot_self((y-mu) ./ (mu .* sqrt_y))))) - 1.5 * s_log_y;
 
-    if (link == 0) { // identity link 
-        L -= 0.5 * sigma * dot_self((y-mu) ./ (mu .* sqrt_y)); 
-    }
-    else if (link == 1) { // log link 
-        L -= 0.5 * sigma * dot_self((y-exp(mu)) ./ (exp(mu) .* sqrt_y)); 
-    }
-    else if (link == 2) { // inverse link  
-        L -= 0.5  * sigma * dot_self((y-inv(mu)) ./ (inv(mu) .* sqrt_y)); 
-    }
-    else if (link == 4) { 
-        L -= 0.5  * sigma * dot_self((y-inv_sqrt(mu)) ./ (inv_sqrt(mu) .* sqrt_y));
-    }
+    //if (link == 0) { // identity link 
+    //    L -= 0.5 * sigma * dot_self((y-mu) ./ (mu .* sqrt_y)); 
+    //}
+    //else if (link == 1) { // log link 
+    //    L -= 0.5 * sigma * dot_self((y-exp(mu)) ./ (exp(mu) .* sqrt_y)); 
+    //}
+    //else if (link == 2) { // inverse link  
+    //    L -= 0.5  * sigma * dot_self((y-inv(mu)) ./ (inv(mu) .* sqrt_y)); 
+    //}
+    //else if (link == 4) { 
+    //    L -= 0.5  * sigma * dot_self((y-inv_sqrt(mu)) ./ (inv_sqrt(mu) .* sqrt_y));
+    //}
 
     return L; 
 }

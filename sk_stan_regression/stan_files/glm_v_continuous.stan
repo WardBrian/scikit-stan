@@ -20,6 +20,7 @@ parameters {
 }
 transformed parameters {
   real s_log_y = sum(log(y)); 
+  vector[N] sqrt_y = sqrt(y); 
 
   vector[N] mu; // expected values / linear predictor
 
@@ -29,7 +30,7 @@ model {
   if (family == 0) { // Gaussian
     //Increment target log probability density with
     // normal_lpdf( y | mu, sigma) dropping constant additive terms.
-    y ~ normal(mu, sigma); 
+    y ~ normal(common_invert_link(mu, link), sigma); 
   } 
   else if (family == 1) { // Gamma
     #alpha ~ cauchy(0,10); //prior for the intercept following Gelman 2008
@@ -39,7 +40,10 @@ model {
     #beta[1:] ~ cauchy(0,2.5); //prior for the slopes following Gelman 2008
     #}
 
-    target += gamma_llh(y, s_log_y, mu, sigma, link);
+    target += gamma_llh(y, s_log_y, common_invert_link(mu, link), sigma);
+  }
+  else if (family == 2) { // inverse Gaussian
+    target += inv_gaussian_llh(y, s_log_y, common_invert_link(mu, link), sigma, sqrt_y);
   }
  
   //} else if (family == 5) { // Inverse Gaussian

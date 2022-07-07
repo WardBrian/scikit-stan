@@ -13,7 +13,8 @@
                      */
 
 // TODO: add discrete. maybe separate discrete/continuous? 
-vector common_invert_link(vector mu, int link) { 
+vector common_invert_link(vector mu, int link) {
+    // NOTE: this assumes validated family-link combinations 
     if (link == 0) { // identity
         return mu;
     } 

@@ -1,6 +1,5 @@
 """Tests for consistency of generalized linear model and adherence to sklearn style."""
 
-from math import gamma
 import numpy as np
 import pytest
 from data import _gen_fam_dat
@@ -126,36 +125,36 @@ def test_gamma_bloodclotting(lotnumber: str) -> None:
 if __name__ == "__main__":
     # from scipy.special import expit  # type: ignore
     import matplotlib.pyplot as plt
-    from data import bcdata_dict
 
-    rng = np.random.default_rng(1234)
-
+    # from data import bcdata_dict
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
-    #blr = GLM(family="gamma", link="inverse")
+    # blr = GLM(family="gamma", link="inverse")
     glm = GLM(family="gamma", link="inverse")
 
-    gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.9, beta=0.3, sigma=1.9)
-    #gauss_dat_X, gauss_dat_y = _gen_fam_dat(
+    gamma_dat_X, gamma_dat_Y = _gen_fam_dat(
+        "gamma", Nsize=1000, alpha=0.9, beta=0.3, sigma=1.9
+    )
+    # gauss_dat_X, gauss_dat_y = _gen_fam_dat(
     #    "gaussian", Nsize=1000, alpha=0.9, beta=0.3
     # )
     # bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), np.column_stack(
     #    (bcdata_dict["lot1"], bcdata_dict["lot2"])
     # )
-    #bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict["lot2"]
-    #blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
-    glm.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=False)
-    print(glm.alpha_, glm.beta_, glm.sigma_)  
-    #glm.fit(X=gauss_dat_X, y=gauss_dat_y, show_console=True)
+    # bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict["lot2"]
     # blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
-    #predics = glm.predict(X=gauss_dat_X)
+    glm.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=False)
+    print(glm.alpha_, glm.beta_, glm.sigma_)
+    # glm.fit(X=gauss_dat_X, y=gauss_dat_y, show_console=True)
+    # blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
+    # predics = glm.predict(X=gauss_dat_X)
     predics = glm.predict(X=gamma_dat_X)
-    #plt.scatter(gauss_dat_X, gauss_dat_y)
-    #plt.scatter(gauss_dat_X, predics)
+    # plt.scatter(gauss_dat_X, gauss_dat_y)
+    # plt.scatter(gauss_dat_X, predics)
     plt.hist(gamma_dat_Y, density=True, histtype="stepfilled", alpha=0.2)
     plt.hist(predics, density=True, histtype="stepfilled", alpha=0.2)
-    #plt.scatter(gamma_dat_X, gamma_dat_Y)
-    #plt.scatter(gamma_dat_X, predics)
+    # plt.scatter(gamma_dat_X, gamma_dat_Y)
+    # plt.scatter(gamma_dat_X, predics)
 
     plt.show()
     # print(blr.predict(X=bc_data_X, show_console=False))
