@@ -30,6 +30,4 @@ vector common_invert_link(vector mu, int link) {
     else {  // 1/mu^2 link
         return inv_sqrt(mu);
     } 
-
-    
 }

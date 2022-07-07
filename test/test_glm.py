@@ -8,6 +8,8 @@ from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 from sk_stan_regression.generalized_linear_regression import GLM
 from sk_stan_regression.modelcore import CoreEstimator
 
+from data import bcdata_dict
+
 
 @pytest.mark.slow
 @pytest.mark.parametrize("estimator", [GLM()])
@@ -98,8 +100,6 @@ def test_gamma_scipy_gen() -> None:
 
 @pytest.mark.parametrize("lotnumber", ["lot1", "lot2"])
 def test_gamma_bloodclotting(lotnumber: str) -> None:
-    from data import bcdata_dict
-
     glm_gamma = GLM(family="gamma", link="inverse")
 
     bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict[lotnumber]
