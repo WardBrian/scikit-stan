@@ -14,7 +14,7 @@ from ..exceptions import NotFittedError
 #   log - 1
 #   inverse - 2
 #   sqrt - 3
-#   1/mu^2 - 4
+#   inverse-square - 4
 #   logit - 5
 #   probit - 6
 #   cloglog - 7
@@ -41,7 +41,7 @@ GAMMA_LINKS = {
 POISSON_LINKS = {"identity": 0, "log": 1, "sqrt": 3}
 
 
-INVERSE_GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2, "1/mu^2": 4}
+INVERSE_GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2, "inverse-square": 4}
 
 
 FAMILY_LINKS_MAP = {

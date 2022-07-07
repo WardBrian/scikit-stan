@@ -1,6 +1,7 @@
 // GLM for Gaussian, Gamma, inverse Gaussian, and Beta models 
 functions { 
   #include /likelihoods/continuous.stan 
+  #include /likelihoods/common.stan 
 }
 data {
   int<lower=0> N;   // number of data items
@@ -23,27 +24,11 @@ transformed parameters {
   vector[N] mu; // expected values / linear predictor
 
   mu = alpha + X * beta; 
-  #vector[N] beta_internal; // rate parameter for gamma distribution 
-  #// family-link combination has been validated up to this point
-  #// only links corresponding to continuous families 
-  #if (link == 1) { // using log link  
-  #  mu = exp(mu); 
-  #}
-  #else if (link == 2) { // using inverse link  
-  #  mu = inv(mu);
-  #}
-  #else if (link == 3) { // using sqrt link
-  #  mu = square(mu); 
-  #}
-  ## TODO: 1/mu^2 link? combination of square and inverse
-#
-  ## TODO: this isn't necessary for every model? 
-  #beta_internal = rep_vector(sigma, N) ./ mu;  
 }
 model {
   if (family == 0) { // Gaussian
-  //Increment target log probability density with
-  // normal_lpdf( y | mu, sigma) dropping constant additive terms.
+    //Increment target log probability density with
+    // normal_lpdf( y | mu, sigma) dropping constant additive terms.
     y ~ normal(mu, sigma); 
   } 
   else if (family == 1) { // Gamma
@@ -69,13 +54,14 @@ model {
 }
 generated quantities {
   real y_sim[N]; 
-  
+  vector[N] mu_unlinked = common_invert_link(mu, link); 
+
   if (family == 0) { // Gaussian
-    y_sim = normal_rng(mu, sigma); 
+    y_sim = normal_rng(mu_unlinked, sigma); 
   }
-  #else if (family == 1) { // Gamma
-  #  y_sim = gamma_rng(beta_internal, sigma); 
-  #}
+  else if (family == 1) { // Gamma
+    y_sim = gamma_rng(sigma, sigma ./ mu_unlinked); 
+  }
 
 
 }

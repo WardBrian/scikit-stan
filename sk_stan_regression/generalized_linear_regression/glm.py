@@ -139,7 +139,7 @@ class GLM(CoreEstimator):
             elif self.family == "gamma":
                 self.link = "inverse"
             elif self.family == "inverse_gaussian":
-                self.link = "1/mu^2"
+                self.link = "inverse-square"
             elif self.family == "poisson":
                 self.link = "log"
             # TODO: add support for additional discrete families here

@@ -27,7 +27,6 @@ transformed parameters {
   else if (link == 3) { // using sqrt link
     mu = square(mu); 
   }
-  # TODO: 1/mu^2 link? combination of square and inverse
 
   # TODO: this isn't necessary for every model? 
   beta_internal = rep_vector(sigma, N) ./ mu;  

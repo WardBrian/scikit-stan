@@ -1,5 +1,6 @@
 """Tests for consistency of generalized linear model and adherence to sklearn style."""
 
+from math import gamma
 import numpy as np
 import pytest
 from data import _gen_fam_dat
@@ -74,7 +75,7 @@ def test_auto_canonical_link_continuous(family: str) -> None:
     canonical_links = {
         "gaussian": "identity",
         "gamma": "inverse",
-        "inverse_gaussian": "1/mu^2",
+        "inverse_gaussian": "inverse-square",
     }
     glm = GLM(family=family)
     glm.fit(X=np.array([[1, 2, 3], [4, 5, 6]]), y=np.array([1, 2]))
@@ -114,41 +115,50 @@ def test_gamma_bloodclotting(lotnumber: str) -> None:
     # McCullagh & Nelder (1989), chapter 8.4.2 p 301-302
     if lotnumber == "lot1":
         np.testing.assert_allclose(
-            reg_coeffs, np.array([-0.01655, 0.01534]), rtol=1e-1, atol=1e-1
+            reg_coeffs, np.array([-0.01655, 0.01534]), rtol=1e-2, atol=1e-2
         )
     else:
         np.testing.assert_allclose(
-            reg_coeffs, np.array([-0.02391, 0.02360]), rtol=1e-1, atol=1e-1
+            reg_coeffs, np.array([-0.02391, 0.02360]), rtol=1e-2, atol=1e-2
         )
 
 
 if __name__ == "__main__":
     # from scipy.special import expit  # type: ignore
-    # import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt
     from data import bcdata_dict
 
     rng = np.random.default_rng(1234)
 
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
-    blr = GLM(family="gamma", link="inverse")
-    # gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.9, beta=0.3, sigma=1.9)
-    # gauss_dat_X, gauss_dat_y = _gen_fam_dat(
-    #    "gaussian", Nsize=100, alpha=0.9, beta=0.3, sigma=1.9
+    #blr = GLM(family="gamma", link="inverse")
+    glm = GLM(family="gamma", link="inverse")
+
+    gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.9, beta=0.3, sigma=1.9)
+    #gauss_dat_X, gauss_dat_y = _gen_fam_dat(
+    #    "gaussian", Nsize=1000, alpha=0.9, beta=0.3
     # )
     # bc_data_y, bc_data_X = np.log(bcdata_dict["u"]), np.column_stack(
     #    (bcdata_dict["lot1"], bcdata_dict["lot2"])
     # )
-    bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict["lot2"]
-    blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
-    # blr.fit(X=gauss_dat_X, y=gauss_dat_y, show_console=True)
+    #bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict["lot2"]
+    #blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
+    glm.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=False)
+    print(glm.alpha_, glm.beta_, glm.sigma_)  
+    #glm.fit(X=gauss_dat_X, y=gauss_dat_y, show_console=True)
     # blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
-    # predics = blr.predict(X=gauss_dat_X)
-    # plt.hist(gauss_dat_y, density=True, histtype="stepfilled", alpha=0.2)
-    # plt.hist(predics, density=True, histtype="stepfilled", alpha=0.2)
-    # plt.show()
+    #predics = glm.predict(X=gauss_dat_X)
+    predics = glm.predict(X=gamma_dat_X)
+    #plt.scatter(gauss_dat_X, gauss_dat_y)
+    #plt.scatter(gauss_dat_X, predics)
+    plt.hist(gamma_dat_Y, density=True, histtype="stepfilled", alpha=0.2)
+    plt.hist(predics, density=True, histtype="stepfilled", alpha=0.2)
+    #plt.scatter(gamma_dat_X, gamma_dat_Y)
+    #plt.scatter(gamma_dat_X, predics)
+
+    plt.show()
     # print(blr.predict(X=bc_data_X, show_console=False))
-    print(blr.alpha_, blr.beta_, blr.sigma_)  # -1.68296667742 [-0.03430016  0.07737138]
     # print(blr.fit(X=xdat, y=ydat, show_console=True))
     # print(blr.predict(X=xdat, show_console=True))
 

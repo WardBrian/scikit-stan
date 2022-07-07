@@ -11,7 +11,7 @@ from sk_stan_regression.utils.validation import FAMILY_LINKS_MAP, validate_famil
 def incompatible_fam_link_gen() -> Generator[Tuple[str, str], None, None]:
     """Generator for family and link combinations that are incompatible."""
     for fam in ["gaussian", "binomial", "gamma", "poisson", "inverse_gaussian"]:
-        for link in ["identity", "inverse", "log", "1/mu^2"]:
+        for link in ["identity", "inverse", "log", "inverse-square"]:
             if link not in FAMILY_LINKS_MAP[fam].keys():
                 yield fam, link
 
@@ -19,7 +19,7 @@ def incompatible_fam_link_gen() -> Generator[Tuple[str, str], None, None]:
 def compatible_fam_link_gen() -> Generator[Tuple[str, str], None, None]:
     """Generator for family and link combinations that are compatible."""
     for fam in ["gaussian", "binomial", "gamma", "poisson", "inverse_gaussian"]:
-        for link in ["identity", "inverse", "log", "1/mu^2"]:
+        for link in ["identity", "inverse", "log", "inverse-square"]:
             if link in FAMILY_LINKS_MAP[fam].keys():
                 yield fam, link
 
