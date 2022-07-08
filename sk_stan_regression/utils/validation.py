@@ -10,7 +10,6 @@ from numpy.typing import ArrayLike, NDArray
 from ..exceptions import NotFittedError
 
 """ GENERAL LINK MAP 
-     
      identity - 0
      log - 1
      inverse - 2
@@ -20,7 +19,6 @@ from ..exceptions import NotFittedError
      probit - 6
      cloglog - 7
      cauchit - 8
-
                     """
 
 # NOTE: linear model regression assumes constant variance,

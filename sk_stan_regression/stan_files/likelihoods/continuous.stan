@@ -1,4 +1,4 @@
-/* Log-likelihood functions for different families. */
+/* Log-likelihood functions for different continuous families. */
 
 /**
 * Log-likelihood function for the Gaussian distribution.

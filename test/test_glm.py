@@ -2,13 +2,11 @@
 
 import numpy as np
 import pytest
-from data import _gen_fam_dat
+from data import _gen_fam_dat, bcdata_dict
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
 from sk_stan_regression.generalized_linear_regression import GLM
 from sk_stan_regression.modelcore import CoreEstimator
-
-from data import bcdata_dict
 
 
 @pytest.mark.slow

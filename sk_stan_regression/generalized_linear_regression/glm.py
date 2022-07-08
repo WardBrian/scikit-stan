@@ -142,7 +142,6 @@ class GLM(CoreEstimator):
                 self.link = "inverse-square"
             elif self.family == "poisson":
                 self.link = "log"
-            # TODO: add support for additional discrete families here
             elif any(self.family == x for x in ["bernoulli", "binomial"]):
                 self.link = "logit"
 
@@ -260,27 +259,27 @@ class GLM(CoreEstimator):
                     random_state=self.seed_,
                 )
 
-        #predictions = (
+        # predictions = (
         #    GLM_SAMPLE_CONTINUOUS_STAN
         #    if self.is_cont_dat_
         #    else GLM_SAMPLE_DISCRETE_STAN
-        #)
+        # )
 
-        #dat = {
+        # dat = {
         #    "N": X_clean.shape[0],
         #    "K": X_clean.shape[1],
         #    "X": X_clean,
         #    "family": self.familyid_,
         #    "link": self.linkid_,
-        #}
+        # }
         dat = {
-           "N": X_clean.shape[0],
-           "K": X_clean.shape[1],
-           "X": X_clean,
-           "y": [],
-           "family": self.familyid_,
-           "link": self.linkid_,
-           "predictor": 1
+            "N": X_clean.shape[0],
+            "K": X_clean.shape[1],
+            "X": X_clean,
+            "y": [],
+            "family": self.familyid_,
+            "link": self.linkid_,
+            "predictor": 1,
         }
 
         # known that fitted with HMC-NUTS, so fitted_samples is not None
