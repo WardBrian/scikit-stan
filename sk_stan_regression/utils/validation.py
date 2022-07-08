@@ -9,17 +9,19 @@ from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
 
-### GENERAL LINK MAP ###
-#   identity - 0
-#   log - 1
-#   inverse - 2
-#   sqrt - 3
-#   inverse-square - 4
-#   logit - 5
-#   probit - 6
-#   cloglog - 7
-#   cauchit - 8
-########################
+""" GENERAL LINK MAP 
+     
+     identity - 0
+     log - 1
+     inverse - 2
+     sqrt - 3
+     1/mu^2 - 4
+     logit - 5
+     probit - 6
+     cloglog - 7
+     cauchit - 8
+
+                    """
 
 # NOTE: linear model regression assumes constant variance,
 
@@ -49,7 +51,7 @@ FAMILY_LINKS_MAP = {
     "binomial": BINOMIAL_LINKS,
     "gamma": GAMMA_LINKS,
     "poisson": POISSON_LINKS,
-    "inverse_gaussian": INVERSE_GAUSSIAN_LINKS,
+    "inverse-gaussian": INVERSE_GAUSSIAN_LINKS,
     # "binomial" : BINOMIAL_LINKS
 }
 

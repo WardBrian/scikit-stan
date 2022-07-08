@@ -27,7 +27,7 @@ method_dict = {
 GLM_FAMILIES = {
     "gaussian": 0,
     "gamma": 1,
-    "inverse_gaussian": 2,
+    "inverse-gaussian": 2,
     "poisson": 3,
     "binomial": 4,
 }
@@ -128,7 +128,7 @@ class GLM(CoreEstimator):
         self.is_cont_dat_ = self.family in [
             "gaussian",
             "gamma",
-            "inverse_gaussian",
+            "inverse-gaussian",
         ]  # if true, continuous, else discrete
 
         # set the canonical link function for each family if
@@ -138,7 +138,7 @@ class GLM(CoreEstimator):
                 self.link = "identity"
             elif self.family == "gamma":
                 self.link = "inverse"
-            elif self.family == "inverse_gaussian":
+            elif self.family == "inverse-gaussian":
                 self.link = "inverse-square"
             elif self.family == "poisson":
                 self.link = "log"
@@ -253,38 +253,38 @@ class GLM(CoreEstimator):
                     self.sigma_,
                     random_state=self.seed_,
                 )
-            elif self.family == "inverse_gaussian":
+            elif self.family == "inverse-gaussian":
                 return stats.invgauss.rvs(  # type: ignore
                     self.alpha_ + np.dot(self.beta_, X_clean),  # type: ignore
                     self.sigma_,
                     random_state=self.seed_,
                 )
 
-        predictions = (
-            GLM_SAMPLE_CONTINUOUS_STAN
-            if self.is_cont_dat_
-            else GLM_SAMPLE_DISCRETE_STAN
-        )
+        #predictions = (
+        #    GLM_SAMPLE_CONTINUOUS_STAN
+        #    if self.is_cont_dat_
+        #    else GLM_SAMPLE_DISCRETE_STAN
+        #)
 
-        dat = {
-            "N": X_clean.shape[0],
-            "K": X_clean.shape[1],
-            "X": X_clean,
-            "family": self.familyid_,
-            "link": self.linkid_,
-        }
-        # dat = {
+        #dat = {
         #    "N": X_clean.shape[0],
         #    "K": X_clean.shape[1],
         #    "X": X_clean,
-        #    "y": [],
         #    "family": self.familyid_,
         #    "link": self.linkid_,
-        #    "predictor": 1
-        # }
+        #}
+        dat = {
+           "N": X_clean.shape[0],
+           "K": X_clean.shape[1],
+           "X": X_clean,
+           "y": [],
+           "family": self.familyid_,
+           "link": self.linkid_,
+           "predictor": 1
+        }
 
         # known that fitted with HMC-NUTS, so fitted_samples is not None
-        predicGQ = predictions.generate_quantities(
+        predicGQ = self.model.generate_quantities(
             dat,
             mcmc_sample=self.fitted_samples_,
             seed=self.seed_,

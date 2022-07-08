@@ -29,7 +29,7 @@ def _gen_fam_dat(
     elif family == "poisson":
         X = np.random.poisson(mu, size=Nsize)
         Y = np.random.poisson(alpha + beta * X, size=Nsize)
-    elif family == "inverse_gaussian":
+    elif family == "inverse-gaussian":
         X = stats.invgauss.rvs(mu, size=Nsize)
         Y = stats.invgauss.rvs(alpha + beta * X, size=Nsize)
     else:

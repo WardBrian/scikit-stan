@@ -68,7 +68,7 @@ def test_default_gauss_gen_predictions(algorithm: str) -> None:
     np.testing.assert_allclose(reg_coeffs1, reg_coeffs2, rtol=1e-1, atol=1e-1)
 
 
-@pytest.mark.parametrize("family", ["gaussian", "gamma", "inverse_gaussian"])
+@pytest.mark.parametrize("family", ["gaussian", "gamma", "inverse-gaussian"])
 def test_auto_canonical_link_continuous(family: str) -> None:
     """
     Test that the canonical link is automatically chosen for the family.
@@ -76,7 +76,7 @@ def test_auto_canonical_link_continuous(family: str) -> None:
     canonical_links = {
         "gaussian": "identity",
         "gamma": "inverse",
-        "inverse_gaussian": "inverse-square",
+        "inverse-gaussian": "inverse-square",
     }
     glm = GLM(family=family)
     glm.fit(X=np.array([[1, 2, 3], [4, 5, 6]]), y=np.array([1, 2]))
@@ -130,10 +130,10 @@ if __name__ == "__main__":
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
     # blr = GLM(family="gamma", link="inverse")
-    glm = GLM(family="gamma", link="inverse")
+    glm = GLM(family="inverse-gaussian")
 
     gamma_dat_X, gamma_dat_Y = _gen_fam_dat(
-        "gamma", Nsize=1000, alpha=0.9, beta=0.3, sigma=1.9
+        "inverse-gaussian", Nsize=1000, alpha=0.9, beta=0.3, mu=0.7, sigma=1.9
     )
     # gauss_dat_X, gauss_dat_y = _gen_fam_dat(
     #    "gaussian", Nsize=1000, alpha=0.9, beta=0.3

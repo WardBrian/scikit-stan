@@ -6,7 +6,7 @@ functions {
 data {
   int<lower=0> N;   // number of data items
   int<lower=0> K;   // number of predictors
-  int<lower=0, upper=1> predictor; 
+  int<lower=0, upper=1> predictor; // 0: fitting run, 1: prediction run
   matrix[N, K] X;   // predictor matrix
   vector[(predictor > 0) ? 0 : N] y;      // outcome vector
   int<lower=0, upper=2> family; // family of the model
@@ -23,7 +23,6 @@ transformed parameters {
   vector[N] sqrt_y = sqrt(y); 
 
   vector[N] mu; // expected values / linear predictor
-
   mu = alpha + X * beta; 
 }
 model {
@@ -63,7 +62,6 @@ generated quantities {
         for (n in 1:N) { 
           y_sim[n] = inv_gaussian_rng(mu_unlinked[n], sigma);
         }
-        //y_sim = inv_gaussian_rng(mu_unlinked, sigma);
       }
   } 
 }

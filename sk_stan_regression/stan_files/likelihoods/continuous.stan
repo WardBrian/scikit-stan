@@ -67,6 +67,9 @@ real inv_gaussian_llh(vector y, real s_log_y,
     return L; 
 }
 
+// TODO: vectorize (overload, really) the algorithm, 
+// either here or a PR to Stan math core
+
 /* (P)RNG for Inverse Gaussian distribution
 *  
 * parameters of distribution
