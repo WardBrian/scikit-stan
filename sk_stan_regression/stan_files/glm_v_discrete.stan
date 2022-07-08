@@ -23,6 +23,8 @@ transformed parameters {
     mu = alpha + X * beta; // linear predictor 
 }
 model {
+    vector[N] mu_unlinked = common_invert_link(mu, link); 
+
     // TODO: add error scales for alpha & beta?
     //alpha ~ normal(0., sigma); 
     //beta ~ normal(0., sigma);
@@ -42,7 +44,7 @@ model {
     //        y ~ binomial(inv_cloglog(mu));
     //    }
     //} 
-    if (family == 3) { 
+    if (family == 3) { // poisson family 
         if (link == 0) { // identity link 
             y ~ poisson(mu); 
         } else if (link == 1) { // log link  
