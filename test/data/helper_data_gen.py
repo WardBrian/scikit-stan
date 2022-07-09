@@ -20,9 +20,10 @@ def _gen_fam_dat(
     if family == "gaussian":
         X = stats.norm.rvs(0, 1, size=Nsize)
         Y = stats.norm.rvs(alpha + beta * X, sigma)
-    # elif family == "binomial":
-    #    X = stats.binom.rvs(Nsize, discrete_prob)
-    #    # TODO: how to generate Y data?
+    elif family == "binomial":
+        X = stats.binom.rvs(Nsize, discrete_prob)
+        Y = stats.binom.rvs(Nsize, alpha + beta * X)
+        # TODO: how to generate Y data?
     elif family == "gamma":
         X = stats.gamma.rvs(sigma, size=Nsize)
         Y = stats.gamma.rvs(alpha + beta * X, size=Nsize)

@@ -48,7 +48,8 @@ model {
   }
 }
 generated quantities {
-  real y_sim[(predictor > 0) ? 0 : N];
+  #real y_sim[(predictor > 0) ? 0 : N];
+  real y_sim[predictor * N]; 
   if (predictor) { 
       vector[N] mu_unlinked = common_invert_link(mu, link); 
 

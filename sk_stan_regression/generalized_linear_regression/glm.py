@@ -30,6 +30,7 @@ GLM_FAMILIES = {
     "inverse-gaussian": 2,
     "poisson": 3,
     "binomial": 4,
+    "negative-binomial": 5,
 }
 
 # pre-compile continuous & discrete models
@@ -160,8 +161,10 @@ class GLM(CoreEstimator):
             dtype=np.float64 if self.is_cont_dat_ else np.int64,
         )
 
-        self.model_ = GLM_CONTINUOUS_STAN if self.is_cont_dat_ else GLM_DISCRETE_STAN
-
+        # TODO: smart solution of data initialization
+        # if self.is_cont_dat_:
+        #    self.model_ = GLM_CONTINUOUS_STAN
+        #
         dat = {
             "X": X_clean,
             "y": y_clean,
@@ -171,6 +174,18 @@ class GLM(CoreEstimator):
             "link": self.linkid_,
             "predictor": 0,
         }
+        # else:
+        #    self.model_ = GLM_DISCRETE_STAN
+        #
+        #    dat = {
+        #        "trial_results"
+        #        "X": X_clean,
+        #        "y": y_clean,
+        #        "predictor": 0,
+        #
+        #    }
+
+        self.model_ = GLM_CONTINUOUS_STAN if self.is_cont_dat_ else GLM_DISCRETE_STAN
 
         self.seed_ = self.seed
 
