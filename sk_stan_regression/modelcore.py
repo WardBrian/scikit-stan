@@ -121,7 +121,6 @@ class CoreEstimator:
     ]:
         ...
 
-    # TODO; fix typing and overloading issues!
     @overload
     def _validate_data(
         self,

@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.stats as stats  # type: ignore
+from scipy.special import expit
 
 
 # TODO: make multidimensional size input & output
@@ -37,3 +38,29 @@ def _gen_fam_dat(
         raise ValueError(f"Family {family} not supported.")
 
     return X, Y
+
+
+def _gen_fam_discrete(
+    family: str,
+    link: str,
+    alpha: float,
+    beta: np.ndarray,
+    num_yn: int,
+    sample_size: int,
+) -> np.ndarray:
+    """
+    Generate data for a given discrete family and link.
+    """
+    rng = np.random.default_rng()
+
+    if family == "binomial":
+        X = np.linspace(-10, 20, sample_size)
+        mu_true = alpha + beta * X
+        p_true = expit(mu_true)
+        y = rng.binomial(num_yn, p_true)
+
+        return X, y
+
+
+if __name__ == "__main__":
+    print(_gen_fam_discrete("binomial", "a", 0.7, np.array([0.4]), 20, 30))

@@ -25,10 +25,26 @@
 @return scalar for log-likelihood 
 */ 
 real gamma_llh(vector y, real s_log_y,
-                vector mu, real alpha) {
-    return (alpha - 1) * s_log_y + 
-                rows(y) * alpha * (log(alpha) - lgamma(alpha)) - 
-                                    (sum(y ./ mu) + sum(log(mu)));                
+                vector mu, real alpha, int link) {
+    real L = (alpha - 1) * s_log_y + 
+                rows(y) * (alpha * log(alpha) - lgamma(alpha));
+
+    if (link == 0) { // identity link 
+        L -= alpha * (sum(y ./ mu) + sum(log(mu))); 
+    }
+    else if (link == 1) { // log link 
+        L -= alpha * (sum(y ./ exp(mu)) + sum(mu)); 
+    }
+    else if (link == 2) { // inverse link  
+        L +=  alpha * (- dot_product(mu, y) + sum(log(mu))); 
+    }
+
+    return L;     
+
+    // THIS IS WRONG, but could in principle be refactored to be correct...   
+    //return (alpha - 1) * s_log_y + 
+    //            rows(y) * alpha * (log(alpha) - lgamma(alpha)) - 
+    //                                (sum(y ./ mu) + sum(log(mu)));                
 }
 
 /**

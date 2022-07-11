@@ -26,29 +26,33 @@ transformed parameters {
   mu = alpha + X * beta; 
 }
 model {
-  vector[N] mu_unlinked = common_invert_link(mu, link); 
-
-  if (family == 0) { // Gaussian
-    //Increment target log probability density with
-    // normal_lpdf( y | mu, sigma) dropping constant additive terms.
-    y ~ normal(mu_unlinked, sigma); 
+  if (family == 1) { // Gamma  
+    target += gamma_llh(y, s_log_y, mu, sigma, link);
   } 
-  else if (family == 1) { // Gamma
-    #alpha ~ cauchy(0,10); //prior for the intercept following Gelman 2008
-    #sigma ~ exponential(1); //prior for inverse dispersion parameter
-#
-    ##if (size(beta) > 1) { 
-    #beta[1:] ~ cauchy(0,2.5); //prior for the slopes following Gelman 2008
-    #}
+  else { 
+    vector[N] mu_unlinked = common_invert_link(mu, link); 
 
-    target += gamma_llh(y, s_log_y, mu_unlinked, sigma);
-  }
-  else if (family == 2) { // inverse Gaussian
-    target += inv_gaussian_llh(y, s_log_y, mu_unlinked, sigma, sqrt_y);
+    if (family == 0) { // Gaussian
+      //Increment target log probability density with
+      // normal_lpdf( y | mu, sigma) dropping constant additive terms.
+      y ~ normal(mu_unlinked, sigma); 
+    } 
+    //else if (family == 1) { // Gamma
+    //  #alpha ~ cauchy(0,10); //prior for the intercept following Gelman 2008
+    //  #sigma ~ exponential(1); //prior for inverse dispersion parameter
+#/  /
+    //  ##if (size(beta) > 1) { 
+    //  #beta[1:] ~ cauchy(0,2.5); //prior for the slopes following Gelman 2008
+    //  #}
+//  
+    //  target += gamma_llh(y, s_log_y, mu, sigma);
+    //}
+    else if (family == 2) { // inverse Gaussian
+      target += inv_gaussian_llh(y, s_log_y, mu_unlinked, sigma, sqrt_y);
+    }
   }
 }
 generated quantities {
-  #real y_sim[(predictor > 0) ? 0 : N];
   real y_sim[predictor * N]; 
   if (predictor) { 
       vector[N] mu_unlinked = common_invert_link(mu, link); 
