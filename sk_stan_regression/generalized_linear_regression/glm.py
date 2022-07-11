@@ -155,10 +155,6 @@ class GLM(CoreEstimator):
             dtype=np.float64 if self.is_cont_dat_ else np.int64,
         )
 
-        # TODO: smart solution of data initialization
-        # if self.is_cont_dat_:
-        #    self.model_ = GLM_CONTINUOUS_STAN
-        #
         dat = {
             "X": X_clean,
             "y": y_clean,
@@ -168,18 +164,13 @@ class GLM(CoreEstimator):
             "link": self.linkid_,
             "predictor": 0,
         }
-        # else:
-        #    self.model_ = GLM_DISCRETE_STAN
-        #
-        #    dat = {
-        #        "trial_results"
-        #        "X": X_clean,
-        #        "y": y_clean,
-        #        "predictor": 0,
-        #
-        #    }
 
-        self.model_ = GLM_CONTINUOUS_STAN if self.is_cont_dat_ else GLM_DISCRETE_STAN
+        if self.is_cont_dat_:
+            self.model_ = GLM_CONTINUOUS_STAN
+        else:
+            self.model_ = GLM_DISCRETE_STAN
+            # TODO: this shouldn't be a repeat, this should be different for every component?
+            dat["trials"] = np.repeat(y_clean.shape[0], X_clean.shape[0])
 
         self.seed_ = self.seed
 

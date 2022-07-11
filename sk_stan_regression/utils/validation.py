@@ -61,7 +61,7 @@ def validate_family(family: str, link: Optional[str]) -> None:
     Validation function for family and link.
 
     :param family: str, family name
-    :param link: str, link name
+    :param link: str, link name, which can be optional and is set in fit() for a GLM
     """
     if not link:
         raise ValueError(f"Link function must be specified for family {family!r}")
@@ -79,7 +79,6 @@ def validate_family(family: str, link: Optional[str]) -> None:
         )
 
 
-# TODO: write docstrings for everything
 # adapted from sklearn's data validation scheme
 def check_array(
     X: ArrayLike,
@@ -91,6 +90,12 @@ def check_array(
     Input validation on an array, list, sparse matrix or similar.
     By default, the input is checked to be a non-empty 2D array containing
     only finite values.
+
+    :param X: array-like, list, sparse matrix, or similar of data to be checked
+    :param ensure_2d: bool, whether to ensure that the array is 2D
+    :param allow_nd: bool, whether to allow the array to be an n-dimensional matrix where n > 2
+    :param dtype: type, dtype of the array; regressions only supported on
+    float64 or int64 arrays
     """
     # TODO PANDAS -> np support?
     if sp.issparse(X):

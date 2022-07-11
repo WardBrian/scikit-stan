@@ -70,4 +70,4 @@ jobs:
         run: |
           mkdir run_tests
           cd run_tests
-          pytest -v ../test --cov=../sk_stan_regression
+          pytest --runslow -v ../test --cov=../sk_stan_regression

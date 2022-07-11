@@ -2,7 +2,7 @@
 
 import numpy as np
 import pytest
-from data import _gen_fam_dat, bcdata_dict
+from data import _gen_fam_dat_continuous, _gen_fam_dat_discrete, bcdata_dict
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
 from sk_stan_regression.generalized_linear_regression import GLM
@@ -16,7 +16,7 @@ def test_compatible_estimator(estimator: "CoreEstimator") -> None:
 
 
 def test_notfittederror_glm() -> None:
-    glm = GLM()
+    glm = GLM(seed=1234)
     with pytest.raises(Exception) as e_info:
         glm.predict(X=np.array([2, 4, 8, 16]))
 
@@ -29,14 +29,14 @@ def test_default_gauss_gen_predictions(algorithm: str) -> None:
     and the predictions are performed on a different set of data that were generated
     with the same parameters.
     """
-    glm1 = GLM(algorithm=algorithm)
-    fake_data_1_X, fake_data_1_y = _gen_fam_dat(
+    glm1 = GLM(algorithm=algorithm, seed=1234)
+    fake_data_1_X, fake_data_1_y = _gen_fam_dat_continuous(
         "gaussian", Nsize=1000, alpha=0.6, beta=0.2, sigma=0.3
     )
     glm1.fit(X=fake_data_1_X, y=fake_data_1_y)
 
-    glm2 = GLM()
-    fake_data_2_X, fake_data_2_y = _gen_fam_dat(
+    glm2 = GLM(seed=1234)
+    fake_data_2_X, fake_data_2_y = _gen_fam_dat_continuous(
         "gaussian", Nsize=1000, alpha=0.6, beta=0.2, sigma=0.3
     )
     glm2.fit(X=fake_data_2_X, y=fake_data_2_y)
@@ -76,7 +76,7 @@ def test_auto_canonical_link_continuous(family: str) -> None:
         "gamma": "inverse",
         "inverse-gaussian": "inverse-square",
     }
-    glm = GLM(family=family)
+    glm = GLM(family=family, seed=1234)
     glm.fit(X=np.array([[1, 2, 3], [4, 5, 6]]), y=np.array([1, 2]))
 
     assert glm.link_ == canonical_links[family]
@@ -85,8 +85,12 @@ def test_auto_canonical_link_continuous(family: str) -> None:
 # TODO: add predict...
 # TODO: parameters for gamma in this test should be random !!
 def test_gamma_scipy_gen() -> None:
-    glm_gamma = GLM(family="gamma", link="identity")  # canonical link function
-    gamma_dat_X, gamma_dat_Y = _gen_fam_dat("gamma", Nsize=1000, alpha=0.9, beta=0.3)
+    glm_gamma = GLM(
+        family="gamma", link="identity", seed=1234
+    )  # canonical link function
+    gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(
+        "gamma", Nsize=1000, alpha=0.9, beta=0.3
+    )
     glm_gamma.fit(X=gamma_dat_X, y=gamma_dat_Y)
 
     reg_coeffs = np.array([])
@@ -98,7 +102,7 @@ def test_gamma_scipy_gen() -> None:
 
 @pytest.mark.parametrize("lotnumber", ["lot1", "lot2"])
 def test_gamma_bloodclotting(lotnumber: str) -> None:
-    glm_gamma = GLM(family="gamma", link="inverse")
+    glm_gamma = GLM(family="gamma", link="inverse", seed=1234)
 
     bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict[lotnumber]
 
@@ -122,17 +126,21 @@ def test_gamma_bloodclotting(lotnumber: str) -> None:
 
 if __name__ == "__main__":
     # from scipy.special import expit  # type: ignore
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
 
     # from data import bcdata_dict
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
     # blr = GLM(family="gamma", link="inverse")
-    glm = GLM(family="inverse-gaussian")
+    glm = GLM(family="binomial")
 
-    gamma_dat_X, gamma_dat_Y = _gen_fam_dat(
-        "inverse-gaussian", Nsize=1000, alpha=0.9, beta=0.3, mu=0.7, sigma=1.9
+    binom_data_X, binom_data_y = _gen_fam_dat_discrete(
+        "binomial", "a", 0.7, np.array([0.4]), 20, 30
     )
+    glm.fit(X=binom_data_X, y=binom_data_y, show_console=True)
+    # gamma_dat_X, gamma_dat_Y = _gen_fam_dat(
+    #    "inverse-gaussian", Nsize=1000, alpha=0.9, beta=0.3, mu=0.7, sigma=1.9
+    # )
     # gauss_dat_X, gauss_dat_y = _gen_fam_dat(
     #    "gaussian", Nsize=1000, alpha=0.9, beta=0.3
     # )
@@ -141,37 +149,20 @@ if __name__ == "__main__":
     # )
     # bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict["lot2"]
     # blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
-    glm.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=False)
-    print(glm.alpha_, glm.beta_, glm.sigma_)
+    # glm.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=False)
+    print(glm.alpha_, glm.beta_)
     # glm.fit(X=gauss_dat_X, y=gauss_dat_y, show_console=True)
     # blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
     # predics = glm.predict(X=gauss_dat_X)
-    predics = glm.predict(X=gamma_dat_X)
+    # predics = glm.predict(X=gamma_dat_X)
     # plt.scatter(gauss_dat_X, gauss_dat_y)
     # plt.scatter(gauss_dat_X, predics)
-    plt.hist(gamma_dat_Y, density=True, histtype="stepfilled", alpha=0.2)
-    plt.hist(predics, density=True, histtype="stepfilled", alpha=0.2)
+    # plt.hist(gamma_dat_Y, density=True, histtype="stepfilled", alpha=0.2)
+    # plt.hist(predics, density=True, histtype="stepfilled", alpha=0.2)
     # plt.scatter(gamma_dat_X, gamma_dat_Y)
     # plt.scatter(gamma_dat_X, predics)
 
-    plt.show()
+    # plt.show()
     # print(blr.predict(X=bc_data_X, show_console=False))
     # print(blr.fit(X=xdat, y=ydat, show_console=True))
     # print(blr.predict(X=xdat, show_console=True))
-
-    # true params
-    # β0_true = 0.7
-    # β1_true = 0.4
-    ### number of yes/no questions
-    # n = 1
-    # sample_size = 30
-    # x = np.linspace(-10, 20, sample_size)
-    ### Linear model
-    # μ_true = β0_true + β1_true * x
-    ### transformation (inverse logit function = expit)
-    # p_true = expit(μ_true)
-    ### Generate data
-    # y = rng.binomial(n, p_true)
-    ## print(y)
-    # blr.fit(X=x, y=y)
-    # print(blr.predict(X=x))

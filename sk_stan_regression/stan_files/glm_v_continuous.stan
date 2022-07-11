@@ -26,11 +26,12 @@ transformed parameters {
   mu = alpha + X * beta; 
 }
 model {
+  vector[N] mu_unlinked = common_invert_link(mu, link); 
+  
   if (family == 1) { // Gamma  
     target += gamma_llh(y, s_log_y, mu, sigma, link);
   } 
   else { 
-    vector[N] mu_unlinked = common_invert_link(mu, link); 
 
     if (family == 0) { // Gaussian
       //Increment target log probability density with
