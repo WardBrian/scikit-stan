@@ -1,7 +1,12 @@
-/* Inverse Cauchit link 
+/* Common functions used for various components of the package. */
 
-*/
 // TODO: add this to Stan core math?  
+/* Inverse of the Cauchit link function; the inverse of the CDF for the Cauchy
+    distribution. 
+
+@param mu: linear predictor to be inverted under the cauchit
+@return vector of linear predictors after the Cauchit link inversion  
+*/
 vector inv_cauchit(vector mu) { 
     return atan(mu) / pi() + 0.5; 
 }
@@ -22,8 +27,14 @@ vector inv_cauchit(vector mu) {
 /* Helper function that performs link function inversion. See the table above
     for the mapping between link function and internal numerical representation. 
 
-@param mu:
+Validation of a family-link function pair is assumed to occur outside of the function. 
+
+This is a match of the R Families package: 
+https://stat.ethz.ch/R-manual/R-devel/library/stats/html/family.html
+
+@param mu: linear predictor vector to be inverted
 @param link: internal numerical representation of link function
+@return vector of the linear predictor after inverse link has been applied ("unlinked")
 */
 vector common_invert_link(vector mu, int link) {
     // NOTE: this assumes validated family-link combinations 

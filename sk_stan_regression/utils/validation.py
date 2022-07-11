@@ -56,13 +56,16 @@ FAMILY_LINKS_MAP = {
 
 # NOTE: family and link combinations match R families package
 # package: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/family
-def validate_family(family: str, link: str) -> None:
+def validate_family(family: str, link: Optional[str]) -> None:
     """
     Validation function for family and link.
 
     :param family: str, family name
     :param link: str, link name
     """
+    if not link:
+        raise ValueError(f"Link function must be specified for family {family!r}")
+
     if family not in FAMILY_LINKS_MAP:
         raise ValueError(
             f"""Family {family} not supported.

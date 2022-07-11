@@ -1,5 +1,6 @@
 """Vectorized BLR model with sk-learn type API"""
 
+import warnings
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
@@ -43,16 +44,6 @@ GLM_DISCRETE_STAN = CmdStanModel(
     stan_file=GLM_STAN_FILES_FOLDER / "glm_v_discrete.stan"
 )
 
-# pre-compile continuous & discrete sampling methods
-# so they aren't compiled every time predict() is called
-GLM_SAMPLE_CONTINUOUS_STAN = CmdStanModel(
-    stan_file=GLM_STAN_FILES_FOLDER / "sample_dist_continuous.stan"
-)
-
-GLM_SAMPLE_DISCRETE_STAN = CmdStanModel(
-    stan_file=GLM_STAN_FILES_FOLDER / "sample_dist_discrete.stan"
-)
-
 
 class GLM(CoreEstimator):
     """
@@ -60,14 +51,10 @@ class GLM(CoreEstimator):
     Note that the intercept alpha and error scale sigma remain as scalar values
     while beta becomes a vector.
 
-    :param alpha_: posterior mean of intercept of the linear regression
-    :param alpha_samples_: samples generated from the posterior for model intercept
-    :param beta_: posterior mean of slope of the linear regression
-    :param beta_samples_: samples generated from the posterior for model slope
-    :param sigma_: posterior mean of error scale of the linear regression
-    :param sigma_samples_: samples generated from the posterior for model error scale
-
     :param algorithm: algorithm that performs an operation on the posterior
+    :param family: GLM family function; all R Families are supported
+    :param link: GLM link function; all R Families links are supported in admissible combinations
+    :param seed: random seed used for probabilistic operations; chosen randomly if not specified
     """
 
     def __init__(
@@ -100,24 +87,22 @@ class GLM(CoreEstimator):
         K is the number of predictors (columns) in x:
 
         :param X: NxK predictor matrix, where K >= 0; if K = 1,
-            then X is automatically reshaped to being 2D
+            then X is automatically reshaped to being 2D; this raises a warning
         :param y: Nx1 outcome vector
+        :param show_console: whether to show the Stan console output
 
         :return: self, an object
         """
         if y is None:
             raise ValueError(
-                """This Bayesian Linear Regression
-             estimator requires y to be passed, but it is None"""
+                """This Generalized Linear Model requires a response variable y, but it is None."""
             )
 
         if X is None:
             raise ValueError(
-                """This Bayesian Linear Regression
-             estimator requires X to be passed, but it is None"""
+                """This Generalized Linear Model requires predictors X, but it is None."""
             )
 
-        # TODO: test this functionality
         if self.algorithm not in method_dict.keys():
             raise ValueError(
                 f"""Current Linear Regression created with algorithm 
@@ -130,28 +115,37 @@ class GLM(CoreEstimator):
             "gaussian",
             "gamma",
             "inverse-gaussian",
-        ]  # if true, continuous, else discrete
+        ]
 
+        self.link_ = self.link
         # set the canonical link function for each family if
         # user does not specify the link function
-        if not self.link:  # link has not been set
+        if not self.link_:  # link has not been set
             if self.family == "gaussian":
-                self.link = "identity"
+                self.link_ = "identity"
             elif self.family == "gamma":
-                self.link = "inverse"
+                self.link_ = "inverse"
             elif self.family == "inverse-gaussian":
-                self.link = "inverse-square"
+                self.link_ = "inverse-square"
             elif self.family == "poisson":
-                self.link = "log"
+                self.link_ = "log"
             elif any(self.family == x for x in ["bernoulli", "binomial"]):
-                self.link = "logit"
+                self.link_ = "logit"
 
-        if not self.is_cont_dat_ and self.link == "identity":
-            self.link = "logit" if self.family == "bernoulli" else "log"
+            warnings.warn(
+                f"""
+                    Link function not specified. Using default link function {self.link_!r}
+                    for family {self.family!r}.
+                """
+            )
 
-        validate_family(self.family, self.link)
+        if not self.is_cont_dat_ and self.link_ == "identity":
+            self.link_ = "logit" if self.family == "bernoulli" else "log"
 
-        self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link]
+        validate_family(self.family, self.link_)
+
+        # link_ is already verified to not be None
+        self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link_]  # type: ignore
         self.familyid_ = GLM_FAMILIES[self.family]
 
         X_clean, y_clean = self._validate_data(
@@ -232,13 +226,14 @@ class GLM(CoreEstimator):
         show_console: bool = False,
     ) -> NDArray[Union[np.float64, np.int64]]:
         """
-        Predict using a fitted model after fit() has been applied.
+        Predicts the distribution of the response variable after model has been fit.
+        This is distinct from predict(), which returns the mean of distribution predictions.
 
+        :param X:
         :param num_iterations: int
         :param num_chains: int number of chains for MCMC sampling
 
-        :return: Return a dictionary mapping Stan program variable names
-        to the corresponding numpy.ndarray containing the inferred values.
+        :return:
         """
         check_is_fitted(self)
 
@@ -254,6 +249,8 @@ class GLM(CoreEstimator):
 
         # TODO: link functions???
         # TODO: discrete families
+        # NOTE: in a future Stan release, generate quantities() will not be restricted
+        # to requiring an MCMC sample, so the following will be obsolete
         if self.algorithm != "HMC-NUTS":
             if self.family == "gaussian":
                 return stats.norm.rvs(  # type: ignore
@@ -298,7 +295,7 @@ class GLM(CoreEstimator):
         }
 
         # known that fitted with HMC-NUTS, so fitted_samples is not None
-        predicGQ = self.model.generate_quantities(
+        predicGQ = self.model_.generate_quantities(
             dat,
             mcmc_sample=self.fitted_samples_,
             seed=self.seed_,
@@ -318,15 +315,21 @@ class GLM(CoreEstimator):
         """
         Predict using a fitted model after fit() has been applied.
 
+        :param X:
         :param num_iterations: int
         :param num_chains: int number of
 
-        :return: Return a dictionary mapping Stan program variable
-                names to the corresponding numpy.ndarray containing
-                the inferred values.
+        :return: an NDArray of shape (n_samples, 1)
         """
+        check_is_fitted(self)
+
+        if X is None:
+            raise ValueError(
+                f"""This {self.__class__.__name__!r}
+             estimator requires X to be passed, but it is None"""
+            )
+
         X_clean, _ = self._validate_data(X=X, ensure_X_2d=True)
-        # NOTE: the above errors out if X is None
 
         return self.predict_distribution(  # type: ignore
             X_clean,

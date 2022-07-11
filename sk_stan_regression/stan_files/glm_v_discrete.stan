@@ -3,9 +3,10 @@ functions {
     #include /likelihoods/discrete.stan 
     #include ./common.stan 
 }
+/*
 data {
   int<lower=0> N;   // number of data items
-  //int<lower=0> K;   // number of predictors
+  int<lower=0> K;   // number of predictors
   int<lower=0, upper=1> predictor; // 0: fitting run, 1: prediction run
   int<lower=0> trial_results[N];   // binomial trials...
   int y[predictor * N];      // outcome vector
@@ -57,7 +58,7 @@ model {
             #}
         }
         else if (link == 5) { // logit 
-            target += binomial_logit_lpmf(y | trial_results, mu)
+            target += binomial_logit_lpmf(y | trial_results, mu);
         }    
         else if (link == 7) { // cloglog link 
             real n_exp_mu = -exp(mu);
@@ -81,3 +82,4 @@ model {
         }
     }
 }
+*/

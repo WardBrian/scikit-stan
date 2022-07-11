@@ -79,7 +79,7 @@ def test_auto_canonical_link_continuous(family: str) -> None:
     glm = GLM(family=family)
     glm.fit(X=np.array([[1, 2, 3], [4, 5, 6]]), y=np.array([1, 2]))
 
-    assert glm.link == canonical_links[family]
+    assert glm.link_ == canonical_links[family]
 
 
 # TODO: add predict...

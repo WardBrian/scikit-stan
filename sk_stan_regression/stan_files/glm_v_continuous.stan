@@ -20,7 +20,7 @@ parameters {
 }
 transformed parameters {
   real s_log_y = sum(log(y)); 
-  vector[N] sqrt_y = sqrt(y); 
+  vector[rows(y)] sqrt_y = sqrt(y); 
 
   vector[N] mu; // expected values / linear predictor
   mu = alpha + X * beta; 
