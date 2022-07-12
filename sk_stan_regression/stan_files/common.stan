@@ -24,6 +24,7 @@ vector inv_cauchit(vector mu) {
      cauchit - 8
 
                      */
+                     
 /* Helper function that performs link function inversion. See the table above
     for the mapping between link function and internal numerical representation. 
 

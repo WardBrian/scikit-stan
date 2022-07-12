@@ -171,6 +171,8 @@ class GLM(CoreEstimator):
             self.model_ = GLM_DISCRETE_STAN
             # TODO: this shouldn't be a repeat, this should be different for every component?
             dat["trials"] = np.repeat(y_clean.shape[0], X_clean.shape[0])
+            # print(dat["trials"])
+            # return
 
         self.seed_ = self.seed
 

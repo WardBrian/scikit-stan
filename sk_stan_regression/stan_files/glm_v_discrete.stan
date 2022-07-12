@@ -1,7 +1,7 @@
 // GLM for Binomial, Bernoulli, and Poisson regressions
 functions { 
     #include /likelihoods/discrete.stan 
-    #include ./common.stan 
+    //#include ./common.stan 
 }
 data {
   int<lower=0> N;                   // number of data items
@@ -29,15 +29,12 @@ model {
     //alpha ~ normal(0., sigma); 
     //beta ~ normal(0., sigma);
 
-    if (family == 4) {
-        target += binomial_logit_lpmf(y | trials, mu);
-        //target += binomial_logit_lpmf(y | )
-        //y ~ binomial(N, mu); 
-        #if (link == 5) { 
-        #    #y ~ bernoulli_logit(mu);
-        #}
+    if (family == 3) { // Poisson  
+        
     }
-    
+    else if (family == 4) { // binomial
+        target += binomial_llh(y, trials, mu, link); 
+    }
     // TODO: cholesky factor necessary? 
     // TOOD: weighted LLH?
     //if (family == 3) { // poisson  
@@ -92,3 +89,6 @@ model {
     //    }
     //}
 }
+//generated quantities {
+//    
+//}
