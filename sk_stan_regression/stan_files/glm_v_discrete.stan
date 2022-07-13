@@ -17,7 +17,7 @@ data {
 parameters {
   real alpha;           // intercept
   vector[K] beta;       // coefficients for predictors
-  real<lower=0> sigma;  // error scale OR variance of the error distribution
+  //real<lower=0> sigma;  // error scale OR variance of the error distribution
 }
 transformed parameters {
     vector[N] mu; 
@@ -32,7 +32,7 @@ model {
     //beta ~ normal(0., sigma);
 
     if (family == 3) { // Poisson  
-        y ~ poisson_log(common_invert_link(mu, link));
+        y ~ poisson(common_invert_link(mu, link));
         #if (link == 1) {
         #    target += poisson_log_lpmf(y | mu);
         #} else {
