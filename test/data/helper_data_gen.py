@@ -37,6 +37,7 @@ def _gen_fam_dat_discrete(
     beta: np.ndarray,
     num_yn: int,
     sample_size: int,
+    poisson_lambda: float,
     seed: int = 1234,
 ) -> np.ndarray:
     """
@@ -49,11 +50,24 @@ def _gen_fam_dat_discrete(
         mu_true = alpha + beta * X
         p_true = expit(mu_true)
         y = rng.binomial(num_yn, p_true)
+    elif family == "poisson":
 
-        print(mu_true, p_true)
-        print(X.shape, y.shape)
+        # data gen follows sklearn example
+        # https://scikit-learn.org/stable/auto_examples/release_highlights/plot_release_highlights_0_23_0.html#sphx-glr-auto-examples-release-highlights-plot-release-highlights-0-23-0-py
+        rng = np.random.RandomState(0)
+        X = rng.randn(1000, 20)
+        y = rng.poisson(lam=np.exp(X[:, 5]) / 2)
 
-        return X, y
+        # X = stats.poisson.rvs(poisson_lambda, size=sample_size)
+        # y = stats.poisson.rvs(alpha + beta * X)
+        # X = np.linspace(-10, 20, sample_size)
+        # lambda_true = alpha + beta * X
+        # y = rng.poisson(lambda_true, size=sample_size)
+
+    else:
+        raise ValueError(f"Family {family} not supported.")
+
+    return X, y
 
 
 if __name__ == "__main__":

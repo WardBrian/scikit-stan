@@ -171,8 +171,6 @@ class GLM(CoreEstimator):
             self.model_ = GLM_DISCRETE_STAN
             # TODO: this shouldn't be a repeat, this should be different for every component?
             dat["trials"] = np.repeat(y_clean.shape[0], X_clean.shape[0])
-            # print(dat["trials"])
-            # return
 
         self.seed_ = self.seed
 
@@ -264,24 +262,12 @@ class GLM(CoreEstimator):
                     random_state=self.seed_,
                 )
 
-        # predictions = (
-        #    GLM_SAMPLE_CONTINUOUS_STAN
-        #    if self.is_cont_dat_
-        #    else GLM_SAMPLE_DISCRETE_STAN
-        # )
-
-        # dat = {
-        #    "N": X_clean.shape[0],
-        #    "K": X_clean.shape[1],
-        #    "X": X_clean,
-        #    "family": self.familyid_,
-        #    "link": self.linkid_,
-        # }
         dat = {
             "N": X_clean.shape[0],
             "K": X_clean.shape[1],
             "X": X_clean,
             "y": [],
+            "trials": [],
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 1,

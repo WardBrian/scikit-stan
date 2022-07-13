@@ -124,6 +124,44 @@ def test_gamma_bloodclotting(lotnumber: str) -> None:
         )
 
 
+def test_poisson_sklearn_poissonregressor():
+    glm_poisson = GLM(family="poisson", link="log", seed=1234, algorithm="MLE")
+
+    X = [[1, 2], [2, 3], [3, 4], [4, 3]]
+    y = [12, 17, 22, 21]
+
+    glm_poisson.fit(X=X, y=y)
+
+    reg_coeffs = np.array([])
+
+    for val in [glm_poisson.alpha_, glm_poisson.beta_]:
+        reg_coeffs = np.append(reg_coeffs, val)
+
+    assert abs(glm_poisson.alpha_ - 2.088) < 0.1
+    np.testing.assert_allclose(
+        glm_poisson.beta_, np.array([0.121, 0.158]), rtol=0.35, atol=0.5
+    )
+
+
+# TODO: this should have 4 regression coefficients?
+
+
+def test_poisson_rstanarm_data():
+    # NOTE: this data comes from rstanarm tests
+    X = np.array(
+        [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
+    )
+
+    y = [18, 17, 15, 20, 10, 20, 25, 13, 12]
+
+    glm_poisson = GLM(family="poisson", link="log", seed=1234, algorithm="MLE")
+
+    glm_poisson.fit(X=X, y=y)
+
+    assert True
+    # print(glm_poisson.alpha_, glm_poisson.beta_)
+
+
 if __name__ == "__main__":
     # from scipy.special import expit  # type: ignore
     # import matplotlib.pyplot as plt
@@ -132,12 +170,47 @@ if __name__ == "__main__":
     # NOTE: rate parameter sometimes becomes negative for poisson?
     # blr = GLM(family="bernoulli")
     # blr = GLM(family="gamma", link="inverse")
-    glm = GLM(family="binomial")
+    # glm = GLM(family="poisson", link="log", algorithm="MLE")
 
-    binom_data_X, binom_data_y = _gen_fam_dat_discrete(
-        "binomial", "a", 0.7, np.array([0.4]), 20, 30
+    X, y = _gen_fam_dat_discrete(
+        "poisson",
+        alpha=0.9,
+        beta=0.2,
+        sample_size=30,
+        poisson_lambda=1.0,
+        link="a",
+        num_yn=10,
     )
-    glm.fit(X=binom_data_X, y=binom_data_y, show_console=True)
+    # print(X.shape, y.shape)
+    # X = [[1, 2], [2, 3], [3, 4], [4, 3]]
+    # y = [12, 17, 22, 21]
+    # glm.fit(X, y)
+    #
+    # print(glm.alpha_, glm.beta_)
+
+    # X = np.array([
+    #            [1,       1],
+    #            [1,       2],
+    #            [1,       3],
+    #            [2,       1],
+    #            [2,       2],
+    #            [2,       3],
+    #            [3,       1],
+    #            [3,       2],
+    #            [3,       3]])
+    #
+    # y = [18, 17, 15, 20, 10, 20, 25, 13, 12]
+
+    glm_poisson = GLM(family="poisson", link="log", algorithm="MLE")
+
+    glm_poisson.fit(X=X, y=y)
+
+    print(glm_poisson.alpha_, glm_poisson.beta_)
+
+    # binom_data_X, binom_data_y = _gen_fam_dat_discrete(
+    #    "binomial", "a", 0.7, np.array([0.4]), 20, 30
+    # )
+    # glm.fit(X=binom_data_X, y=binom_data_y, show_console=True)
     # gamma_dat_X, gamma_dat_Y = _gen_fam_dat(
     #    "inverse-gaussian", Nsize=1000, alpha=0.9, beta=0.3, mu=0.7, sigma=1.9
     # )
@@ -150,7 +223,7 @@ if __name__ == "__main__":
     # bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict["lot2"]
     # blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
     # glm.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=False)
-    print(glm.alpha_, glm.beta_)
+    # print(glm.alpha_, glm.beta_)
     # glm.fit(X=gauss_dat_X, y=gauss_dat_y, show_console=True)
     # blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
     # predics = glm.predict(X=gauss_dat_X)

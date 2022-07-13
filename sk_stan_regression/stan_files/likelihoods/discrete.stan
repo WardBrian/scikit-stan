@@ -1,6 +1,4 @@
-//functions { 
 #include "./common.stan"
-//}
 /* Log-likelihood functions for different discrete families. */
 
 // TODO: the following implementations are clunky, clean them up.
@@ -8,6 +6,7 @@
 real bernoulli_llh(vector y, real p) {
     return log(p) * sum(y) + log(1 - p) * (rows(y) - sum(y));
 }
+
 
 /* Log-likelihood for binomial distribution. 
 
