@@ -293,6 +293,7 @@ class GLM(CoreEstimator):
     ) -> NDArray[np.float64]:
         """
         Predict using a fitted model after fit() has been applied.
+        Computes the mean of the predicted distribution, given by y_sim.
 
         :param X:
         :param num_iterations: int
