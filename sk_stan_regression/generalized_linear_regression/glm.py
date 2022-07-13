@@ -212,19 +212,15 @@ class GLM(CoreEstimator):
     def predict_distribution(
         self,
         X: NDArray[Union[np.float64, np.int64]],
-        num_iterations: int = 1000,
-        num_chains: int = 4,
         show_console: bool = False,
     ) -> NDArray[Union[np.float64, np.int64]]:
         """
         Predicts the distribution of the response variable after model has been fit.
         This is distinct from predict(), which returns the mean of distribution predictions.
 
-        :param X:
-        :param num_iterations: int
-        :param num_chains: int number of chains for MCMC sampling
+        :param X: predictor matrix or array to use as basis for prediction
 
-        :return:
+        :return: predictions made by fitted model an NDArray of shape (n_samples, 1)
         """
         check_is_fitted(self)
 
@@ -295,9 +291,7 @@ class GLM(CoreEstimator):
         Predict using a fitted model after fit() has been applied.
         Computes the mean of the predicted distribution, given by y_sim.
 
-        :param X:
-        :param num_iterations: int
-        :param num_chains: int number of
+        :param X: predictor matrix or array to use as basis for prediction
 
         :return: an NDArray of shape (n_samples, 1)
         """

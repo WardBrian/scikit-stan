@@ -84,10 +84,10 @@ def test_auto_canonical_link_continuous(family: str) -> None:
 
 @pytest.mark.parametrize("link", ["identity", "log", "inverse"])
 def test_gaussian_link_scipy_gen(link: str):
-    if link == "inverse":
-        pytest.skip(
-            reason="Gaussian + inverse is known not to work with default priors"
-        )
+    #if link == "inverse":
+    #    pytest.skip(
+    #        reason="Gaussian + inverse is known not to work with default priors"
+    #    )
 
     glm = GLM(family="gaussian", link=link, seed=1234)
 
@@ -106,22 +106,14 @@ def test_gaussian_link_scipy_gen(link: str):
 
 @pytest.mark.parametrize("link", ["identity", "log", "inverse"])
 def test_gamma_link_scipy_gen(link: str) -> None:
-    if link in ["identity", "log"]:
-        pytest.skip(
-            reason="""identity and log links are known not to work with default priors"""
-        )
-
     glm = GLM(family="gamma", link=link, seed=1234)
 
-    gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(family="gamma", link=link)
+    gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(family="gamma", link=link, Nsize=100)
 
-    glm.fit(X=gamma_dat_X, y=gamma_dat_Y)
+    fitted = glm.fit(X=gamma_dat_X, y=gamma_dat_Y)
 
-    reg_coeffs = np.array([])
-    for val in [glm.alpha_, glm.beta_]:
-        reg_coeffs = np.append(reg_coeffs, val)
-
-    np.testing.assert_allclose(reg_coeffs, np.array([0.6, 0.2]), rtol=1e-1, atol=1e-1)
+    assert(fitted.fitted_samples_.summary()['5%']['alpha'] <= 0.6 <= fitted.fitted_samples_.summary()['95%']['alpha'])
+    assert(fitted.fitted_samples_.summary()['5%']['beta[1]'] <= 0.2 <= fitted.fitted_samples_.summary()['95%']['beta[1]'])
 
 
 @pytest.mark.parametrize("lotnumber", ["lot1", "lot2"])
@@ -150,10 +142,10 @@ def test_gamma_bloodclotting(lotnumber: str) -> None:
 
 @pytest.mark.parametrize("link", ["identity", "log", "inverse", "inverse-square"])
 def test_invgaussian_link_scipy_gen(link: str):
-    if link in ["identity", "inverse-square"]:
-        pytest.skip(
-            reason="InvGaussian + identity/inverse-square is known not to work with default priors"
-        )
+    #if link in ["identity", "inverse-square"]:
+    #    pytest.skip(
+    #        reason="InvGaussian + identity/inverse-square is known not to work with default priors"
+    #    )
 
     glm = GLM(family="inverse-gaussian", link=link, seed=1234)
 
@@ -266,13 +258,42 @@ if __name__ == "__main__":
     #            [3,       3]])
     #
     # y = [18, 17, 15, 20, 10, 20, 25, 13, 12]
+    from scipy import stats 
+    rng = np.random.default_rng(seed=1234)
+    glm = GLM(family="gamma", link="inverse", seed=1234)
+    beta = stats.norm.rvs(5, 1, size=1)
+    alpha = stats.norm.rvs(5, 1, size=1)
 
-    X, y = _gen_fam_dat_continuous(family="gamma", link="log")
-    glm_poisson = GLM(family="gamma", link="log", algorithm="MLE")
+    X = stats.norm.rvs(0, 1, size=(100,))
+    y = rng.gamma(1 / (0.6 + X * 0.2)) 
+    #_gen_fam_dat_continuous(family="gamma", link=link)
+    fit = glm.fit(X=X, y=y)
 
-    glm_poisson.fit(X=X, y=y)
+    print(fit.fitted_samples_.summary())
+    print(fit.fitted_samples_.summary()['5%']['alpha'], fit.fitted_samples_.summary()['95%']['alpha'])
+    print(glm.fitted_samples_.summary()['5%']['beta[1]'], glm.fitted_samples_.summary()['95%']['beta[1]'])
+    print(beta, alpha)
 
-    print(glm_poisson.alpha_, glm_poisson.beta_)
+    #for link in ["identity", "log", "inverse"]:
+    #    glm = GLM(family="gamma", link=link, seed=1234)
+#
+    #    gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(family="gamma", link=link)
+#
+    #    glm.fit(X=gamma_dat_X, y=gamma_dat_Y)
+#
+    #    reg_coeffs = np.array([])
+    #    for val in [glm.alpha_, glm.beta_]:
+    #        reg_coeffs = np.append(reg_coeffs, val)
+#
+    #    print(glm.fitted_samples_.summary()['5%']['alpha'], glm.fitted_samples_.summary()['95%']['alpha'])
+    #    print(glm.fitted_samples_.summary()['5%']['beta'][0], glm.fitted_samples_.summary()['95%']['beta'][0])
+#
+    #X, y = _gen_fam_dat_continuous(family="gamma", link="log")
+    #glm_poisson = GLM(family="gamma", link="log", algorithm="MLE")
+#
+    #glm_poisson.fit(X=X, y=y)
+#
+    #print(glm_poisson.alpha_, glm_poisson.beta_)
 
     # binom_data_X, binom_data_y = _gen_fam_dat_discrete(
     #    "binomial", "a", 0.7, np.array([0.4]), 20, 30

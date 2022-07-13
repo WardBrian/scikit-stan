@@ -25,16 +25,19 @@ transformed parameters {
     mu = alpha + X * beta; // linear predictor 
 }
 model {
+    alpha ~ normal(0, 1); 
+    beta ~ normal(0, 1); 
     // TODO: add error scales for alpha & beta?
     //alpha ~ normal(0., sigma); 
     //beta ~ normal(0., sigma);
 
     if (family == 3) { // Poisson  
-        if (link == 1) {
-            target += poisson_log_lpmf(y | mu);
-        } else {
-            target += poisson_lpmf(y | common_invert_link(mu, link)); 
-        }
+        y ~ poisson_log(common_invert_link(mu, link));
+        #if (link == 1) {
+        #    target += poisson_log_lpmf(y | mu);
+        #} else {
+        #    y ~ poisson_log(common_invert_link(mu, link)); 
+        #}
     }
     else if (family == 4) { // binomial
         target += binomial_llh(y, trials, mu, link); 
@@ -43,6 +46,7 @@ model {
 }
 generated quantities {
     real y_sim[predictor * N];
+
     if (predictor) { 
         vector[N] mu_unlinked = common_invert_link(mu, link); 
 
