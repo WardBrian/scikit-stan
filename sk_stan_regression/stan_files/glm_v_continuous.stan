@@ -19,35 +19,34 @@ parameters {
   real<lower=0> sigma;  // error scale OR variance of the error distribution
 }
 transformed parameters {
+  // default prior selection follows: 
+  // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+  real sdy = (family == 0) ? sd(y) : 1;
+  real sdx = (family == 0) ? sd(X) : 1;
+  real my = (family == 0) ? mean(y) : 0; 
+
   real s_log_y = sum(log(y)); 
   vector[rows(y)] sqrt_y = sqrt(y); 
 
   vector[N] mu; // expected values / linear predictor
   mu = alpha + X * beta; 
-}
-model {
   vector[N] mu_unlinked = common_invert_link(mu, link); 
-  
+}
+model {  
   if (family == 1) { // Gamma  
     target += gamma_llh(y, s_log_y, mu, sigma, link);
   } 
   else { 
+    beta ~ normal(0, 2.5 * sdy / sdx); 
+    alpha ~  normal(my, 2.5 * sdy); 
+
+    //sigma ~ exponential(1 / sdy); // std for Gaussian, shape for gamma
 
     if (family == 0) { // Gaussian
       //Increment target log probability density with
       // normal_lpdf( y | mu, sigma) dropping constant additive terms.
       y ~ normal(mu_unlinked, sigma); 
     } 
-    //else if (family == 1) { // Gamma
-    //  #alpha ~ cauchy(0,10); //prior for the intercept following Gelman 2008
-    //  #sigma ~ exponential(1); //prior for inverse dispersion parameter
-#/  /
-    //  ##if (size(beta) > 1) { 
-    //  #beta[1:] ~ cauchy(0,2.5); //prior for the slopes following Gelman 2008
-    //  #}
-//  
-    //  target += gamma_llh(y, s_log_y, mu, sigma);
-    //}
     else if (family == 2) { // inverse Gaussian
       target += inv_gaussian_llh(y, s_log_y, mu_unlinked, sigma, sqrt_y);
     }
@@ -56,8 +55,6 @@ model {
 generated quantities {
   real y_sim[predictor * N]; 
   if (predictor) { 
-      vector[N] mu_unlinked = common_invert_link(mu, link); 
-
       if (family == 0) { // Gaussian
         y_sim = normal_rng(mu_unlinked, sigma); 
       }

@@ -307,8 +307,6 @@ class GLM(CoreEstimator):
 
         return self.predict_distribution(  # type: ignore
             X_clean,
-            num_iterations,
-            num_chains,
             show_console=show_console,
         ).mean(axis=0, dtype=np.float64)
 

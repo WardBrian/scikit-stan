@@ -154,11 +154,6 @@ def test_gamma_bloodclotting(lotnumber: str) -> None:
 @pytest.mark.slow
 @pytest.mark.parametrize("link", ["identity", "log", "inverse", "inverse-square"])
 def test_invgaussian_link_scipy_gen(link: str):
-    if link == "identity":
-        pytest.skip(
-            reason="InvGaussian + identity is known not to work with default priors"
-        )
-
     glm = GLM(family="inverse-gaussian", link=link, seed=1234)
 
     invgaussian_dat_X, invgaussian_dat_Y = _gen_fam_dat_continuous(
@@ -166,10 +161,6 @@ def test_invgaussian_link_scipy_gen(link: str):
     )
 
     fitted = glm.fit(X=invgaussian_dat_X, y=invgaussian_dat_Y)
-
-    reg_coeffs = np.array([])
-    for val in [glm.alpha_, glm.beta_]:
-        reg_coeffs = np.append(reg_coeffs, val)
 
     assert (
         fitted.fitted_samples_.summary()["5%"]["alpha"]
@@ -183,7 +174,7 @@ def test_invgaussian_link_scipy_gen(link: str):
     )
 
 
-# @pytest.mark.skip(reason="Poisson fails on everything, close on canonical log though")
+# NOTE: for the identity link, the generated data may lead to a negative lambda
 @pytest.mark.parametrize("link", ["identity", "log", "sqrt"])
 def test_poisson_link_scipy_gen(link: str):
     if link == "identity":

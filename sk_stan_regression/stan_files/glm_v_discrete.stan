@@ -17,32 +17,26 @@ data {
 parameters {
   real alpha;           // intercept
   vector[K] beta;       // coefficients for predictors
-  //real<lower=0> sigma;  // error scale OR variance of the error distribution
 }
 transformed parameters {
-    vector[N] mu; 
+    // default prior selection follows: 
+    // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+    real sdy = (family == 0) ? sd(y) : 1;
+    real sdx = (family == 0) ? sd(X) : 1;
+    real my = (family == 0) ? mean(y) : 0; 
 
-    mu = alpha + X * beta; // linear predictor 
+    vector[N] mu = alpha + X * beta; // linear predictor 
 }
 model {
-    alpha ~ normal(0, 1); 
-    beta ~ normal(0, 1); 
-    // TODO: add error scales for alpha & beta?
-    //alpha ~ normal(0., sigma); 
-    //beta ~ normal(0., sigma);
+    beta ~ normal(0, 2.5 * sdy / sdx); 
+    alpha ~  normal(my, 2.5 * sdy); 
 
     if (family == 3) { // Poisson  
         y ~ poisson(common_invert_link(mu, link));
-        #if (link == 1) {
-        #    target += poisson_log_lpmf(y | mu);
-        #} else {
-        #    y ~ poisson_log(common_invert_link(mu, link)); 
-        #}
     }
     else if (family == 4) { // binomial
         target += binomial_llh(y, trials, mu, link); 
     }
-    
 }
 generated quantities {
     real y_sim[predictor * N];
@@ -57,5 +51,4 @@ generated quantities {
             y_sim = binomial_rng(trials, mu_unlinked); 
         }
     }
-
 }
