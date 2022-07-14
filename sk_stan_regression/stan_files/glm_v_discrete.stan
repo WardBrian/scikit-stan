@@ -21,9 +21,18 @@ parameters {
 transformed parameters {
     // default prior selection follows: 
     // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
-    real sdy = (family == 0) ? sd(y) : 1;
-    real sdx = (family == 0) ? sd(X) : 1;
-    real my = (family == 0) ? mean(y) : 0; 
+    real sdy; 
+    real my; 
+    // NOTE: if this is a prediction run, y is not specified! 
+    if (predictor == 1) { 
+        sdy = 1.;
+        my = 0.;  
+    }
+    else { 
+        sdy = (family == 0) ? sd(y) : 1.;
+        my = (family == 0) ? mean(y) : 0.;
+    }
+    real sdx = (family == 0) ? sd(X) : 1.;
 
     vector[N] mu = alpha + X * beta; // linear predictor 
 }
