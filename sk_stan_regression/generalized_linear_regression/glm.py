@@ -21,8 +21,8 @@ GLM_STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
 
 method_dict = {
     "HMC-NUTS": CmdStanModel.sample,
-    "MLE": CmdStanModel.optimize,
-    "Variational": CmdStanModel.variational,
+    "L-BFGS": CmdStanModel.optimize,
+    "ADVI": CmdStanModel.variational,
 }
 
 GLM_FAMILIES = {
@@ -107,8 +107,7 @@ class GLM(CoreEstimator):
             raise ValueError(
                 f"""Current Linear Regression created with algorithm 
                 {self.algorithm!r}, which is not one of the supported 
-                methods. Try with one of the following: (HMC-NUTS, MLE, 
-                Variational)."""
+                methods. Try with one of the following: (HMC-NUTS, L-BFGS, ADVI)."""
             )
 
         self.is_cont_dat_ = self.family in [
@@ -283,8 +282,6 @@ class GLM(CoreEstimator):
     def predict(
         self,
         X: ArrayLike,
-        num_iterations: int = 1000,
-        num_chains: int = 4,
         show_console: bool = False,
     ) -> NDArray[np.float64]:
         """
@@ -330,10 +327,3 @@ class GLM(CoreEstimator):
                 #  the package intends to give alternative default behavior in these scenarios!
             }
         }
-
-    @classmethod
-    def _seed(self) -> Optional[int]:
-        """
-        Get the seed used to generate the samples.
-        """
-        return self.seed_ if self.seed_ == self.seed else self.seed

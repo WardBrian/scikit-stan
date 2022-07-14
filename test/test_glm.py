@@ -22,8 +22,19 @@ def test_notfittederror_glm() -> None:
         glm.predict(X=np.array([2, 4, 8, 16]))
 
 
+@pytest.mark.parametrize("algorithm", ["HMC-NUTS", "L-BFGS", "ADVI"])
+def test_custom_seed_all_algs(algorithm:str) -> None: 
+    """Ensure that user-set seed persists for each algorithm."""
+    glm = GLM(algorithm=algorithm, seed=1234321)
+    X, y = _gen_fam_dat_continuous(family="gamma", link="log", seed=1234321)
+
+    glm.fit(X=X, y=y)
+
+    assert glm.fitted_samples_.metadata.cmdstan_config["seed"] == 1234321
+
+
 @pytest.mark.slow
-@pytest.mark.parametrize("algorithm", ["HMC-NUTS", "Variational", "MLE"])
+@pytest.mark.parametrize("algorithm", ["HMC-NUTS", "ADVI", "L-BFGS"])
 def test_default_gauss_gen_predictions(algorithm: str) -> None:
     """
     GLM is fitted on randomly generated data with alpha=0.6, beta=0.2, sigma=0.3,
@@ -116,14 +127,14 @@ def test_gamma_link_scipy_gen(link: str) -> None:
     fitted = glm.fit(X=gamma_dat_X, y=gamma_dat_Y)
 
     assert (
-        fitted.fitted_samples_.summary()["5%"]["alpha"]
+        fitted.fitted_samples_.summary()["5%"]["alpha"] - 0.01
         <= 0.6
         <= fitted.fitted_samples_.summary()["95%"]["alpha"]
     )
     assert (
-        fitted.fitted_samples_.summary()["5%"]["beta[1]"]
+        fitted.fitted_samples_.summary()["5%"]["beta[1]"] - 0.1
         <= 0.2
-        <= fitted.fitted_samples_.summary()["95%"]["beta[1]"]
+        <= fitted.fitted_samples_.summary()["95%"]["beta[1]"] + 0.1
     )
 
 
@@ -303,13 +314,15 @@ if __name__ == "__main__":
     # from scipy import stats
 
     rng = np.random.default_rng(seed=1234)
-    glm = GLM(family="inverse-gaussian", link="identity", seed=1234)
+    glm = GLM(family="gamma", link="inverse", seed=1234)
     # beta = stats.norm.rvs(5, 1, size=1)
     # alpha = stats.norm.rvs(5, 1, size=1)
 
-    X = stats.norm.rvs(0, 1, size=(1000,))
+    X = stats.norm.rvs(0, 1, size=(100,))
+    y = rng.gamma(1 / (0.6 + 0.2 * X))
+
     # y = rng.poisson(0.6 + 0.2 * np.exp(X))
-    y = stats.invgauss.rvs(0.6 + 0.2 * np.exp(X))
+    # y = stats.invgauss.rvs(0.6 + 0.2 * np.exp(X))
 
     # y = rng.poisson(0.6 + 0.2 * X)
     # y = rng.normal(1 / (0.6 + X * 0.2))

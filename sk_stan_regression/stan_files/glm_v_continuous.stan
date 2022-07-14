@@ -13,12 +13,7 @@ data {
   int<lower=0, upper=4> link; // link function of the model 
   // assume validation performed externally to Stan 
 }
-parameters {
-  real alpha;           // intercept
-  vector[K] beta;       // coefficients for predictors
-  real<lower=0> sigma;  // error scale OR variance of the error distribution
-}
-transformed parameters {
+transformed data {
   // default prior selection follows: 
   // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
   real sdy; 
@@ -30,7 +25,7 @@ transformed parameters {
   }
   else { 
       sdy = (family == 0) ? sd(y) : 1.;
-      // safeguard to ensure that scale parameter on scale for prior is positive
+      // safeguard to ensure that scale parameter for prior is positive
       if (sdy <= 0.) { 
         sdy = 1.;
       }
@@ -40,9 +35,14 @@ transformed parameters {
 
   real s_log_y = sum(log(y)); 
   vector[rows(y)] sqrt_y = sqrt(y); 
-
-  vector[N] mu; // expected values / linear predictor
-  mu = alpha + X * beta; 
+}
+parameters {
+  real alpha;           // intercept
+  vector[K] beta;       // coefficients for predictors
+  real<lower=0> sigma;  // error scale OR variance of the error distribution
+}
+transformed parameters {
+  vector[N] mu = alpha + X * beta; // expected values / linear predictor
   vector[N] mu_unlinked = common_invert_link(mu, link); 
 }
 model {  
@@ -53,7 +53,7 @@ model {
     beta ~ normal(0, 2.5 * sdy / sdx); 
     alpha ~  normal(my, 2.5 * sdy); 
 
-    //sigma ~ exponential(1 / sdy); // std for Gaussian, shape for gamma
+    sigma ~ exponential(1 / sdy); // std for Gaussian, shape for gamma
 
     if (family == 0) { // Gaussian
       //Increment target log probability density with

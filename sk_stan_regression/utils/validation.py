@@ -79,7 +79,7 @@ def validate_family(family: str, link: Optional[str]) -> None:
         )
 
 
-# adapted from sklearn's data validation scheme
+# adapted from sklearn's data validation scheme which is distributed under the 3-Clause BSD License.
 def check_array(
     X: ArrayLike,
     ensure_2d: bool = True,
@@ -162,7 +162,8 @@ def _check_y(
     return check_array(y, ensure_2d=False, dtype=dtype)
 
 
-# adapted from sklearn's check_X_y validation
+# adapted from sklearn's check_X_y validation scheme which 
+# is distributed under the 3-Clause BSD License.
 def check_X_y(
     X: ArrayLike,
     y: ArrayLike,
@@ -176,7 +177,8 @@ def check_X_y(
     return X_checked, y_checked
 
 
-# taken from official sklearn repo;
+# NOTE: This is derived from sk-learn's validation checks, which
+# are distributed under the 3-Clause BSD License.
 # TODO: simplify
 def check_is_fitted(
     estimator: Any,

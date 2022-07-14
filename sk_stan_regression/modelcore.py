@@ -1,4 +1,4 @@
-"""Abstract classes for different model types, conforming to sk-learn style."""
+"""Abstract classes for different model types that conform to sk-learn style."""
 
 from collections import defaultdict
 from inspect import signature
@@ -12,7 +12,8 @@ from sk_stan_regression.utils.validation import _check_y
 from .utils import check_array, check_X_y
 
 
-# NOTE: these are the same as sk-learn's three methods
+# NOTE: This estimator class derives class methods from scikit-learn, 
+# which is distributed under the 3-Clause BSD License.
 class CoreEstimator:
     """
     Abstract class for all estimator-type models in this package.
@@ -156,7 +157,6 @@ class CoreEstimator:
         Standard input checks are also applied to y, such as checking that y
         """
         no_X, no_y = X is None, y is None
-        # res_X, res_y = X, y
 
         if no_X and no_y:
             raise ValueError("""Validation should be done on X,y or both.""")

@@ -4,7 +4,6 @@ from scipy.special import expit
 
 
 # TODO: make multidimensional size input & output
-# TODO: generalize to include different link functions
 def _gen_fam_dat_continuous(
     family: str,
     link: str,
@@ -18,18 +17,19 @@ def _gen_fam_dat_continuous(
     """
     Generate data for a given family.
     """
-    rng = np.random.default_rng(seed=1234)
+    rng = np.random.default_rng(seed=seed)
 
-    X = stats.norm.rvs(0, 1, size=Nsize)
+    X = stats.norm.rvs(0, 1, size=Nsize, random_state=rng)
 
     if family == "gaussian":
         if link == "identity":
-            Y = stats.norm.rvs(alpha + beta * X, sigma)
+            Y = stats.norm.rvs(alpha + beta * X, sigma, random_state=rng)
         elif link == "log":
-            Y = stats.norm.rvs(np.exp(alpha + beta * X), sigma)
+            Y = stats.norm.rvs(np.exp(alpha + beta * X), sigma, random_state=seed)
         elif link == "inverse":
-            Y = stats.norm.rvs(1 / (alpha + beta * X), sigma)
+            Y = stats.norm.rvs(1 / (alpha + beta * X), sigma, random_state=rng)
     elif family == "gamma":
+        # NOTE: for the identity or inverse link, the generated data may lead to a negative lambda
         if link == "identity":
             Y = rng.gamma(alpha + beta * X)
         elif link == "log":
@@ -38,13 +38,13 @@ def _gen_fam_dat_continuous(
             Y = rng.gamma(1 / (alpha + beta * X))
     elif family == "inverse-gaussian":
         if link == "identity":
-            Y = stats.invgauss.rvs(alpha + beta * X, size=Nsize)
+            Y = stats.invgauss.rvs(alpha + beta * X, random_state=rng)
         elif link == "log":
-            Y = stats.invgauss.rvs(np.exp(alpha + beta * X), size=Nsize)
+            Y = stats.invgauss.rvs(np.exp(alpha + beta * X), random_state=rng)
         elif link == "inverse":
-            Y = stats.invgauss.rvs(1 / (alpha + beta * X), size=Nsize)
+            Y = stats.invgauss.rvs(1 / (alpha + beta * X), random_state=rng)
         elif link == "inverse-square":
-            Y = stats.invgauss.rvs(1 / (alpha + beta * X) ** 2, size=Nsize)
+            Y = stats.invgauss.rvs(1 / (alpha + beta * X) ** 2, random_state=rng)
     else:
         raise ValueError(f"Family {family} not supported.")
 
@@ -60,7 +60,6 @@ def _gen_fam_dat_discrete(
     alpha=0.6,
     beta=0.2,
     sample_size: int = 30,
-    # poisson_lambda: float,
     seed: int = 1234,
 ) -> np.ndarray:
     """
@@ -103,11 +102,3 @@ def _gen_fam_dat_discrete(
         raise ValueError(f"Family {family} not supported.")
 
     return X, y
-
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
-    X, y = _gen_fam_dat_discrete("binomial", "a", 0.7, np.array([0.4]), 20, 30)
-    plt.scatter(X, y, color="k")
-    plt.show()
