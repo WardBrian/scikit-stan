@@ -9,13 +9,16 @@ data {
   int<lower=0, upper=1> predictor; // 0: fitting run, 1: prediction run
   matrix[N, K] X;   // predictor matrix
   vector[(predictor > 0) ? 0 : N] y;      // outcome vector; change to N*(1-predictor)
-  int<lower=0, upper=2> family; // family of the model
-  int<lower=0, upper=4> link; // link function of the model 
   // assume validation performed externally to Stan 
+  int<lower=0, upper=2> family; // family of the model
+  int<lower=0, upper=4> link; // link function of the model
+
+  // set up for user-defineable priors 
+  int<lower=0> intercept_prior; 
+  int<lower=0> coeffs_priors;       // should be a vector of length K
   real sdy;                         // standard deviation sd(y) of the outcome 
   real sdx;                         // standard deviation sd(X) of the predictors
   real my;                          // mean of the outcome
-
 }
 transformed data {
   real s_log_y = sum(log(y)); 

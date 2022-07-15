@@ -16,6 +16,7 @@ from sk_stan_regression.utils.validation import (
     check_is_fitted,
     validate_family,
 )
+from sk_stan_regression.utils import map_priors
 
 GLM_STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
 
@@ -71,11 +72,13 @@ class GLM(CoreEstimator):
 
         self.seed = seed
 
+    # TODO: make intercept-less choice? 
     def fit(
         self,
         X: ArrayLike,
         y: ArrayLike,
         show_console: bool = False,
+        priors: Optional[Dict[str, str]] = None,
     ) -> "CoreEstimator":
         """
         Fits current vectorized BLR object to the given data,
@@ -90,8 +93,20 @@ class GLM(CoreEstimator):
             then X is automatically reshaped to being 2D; this raises a warning
         :param y: Nx1 outcome vector
         :param show_console: whether to show the Stan console output
+        :param priors: dictionary of priors to use for the model. The prior for the intercept is set via "intercept" and the prior for the non-intercept regression coefficients is set via "beta". If only one is specified, then the other is set to the default.
+        Currently supported priors are: "normal" (default) with parameters "location" and "scale", and "laplace" with parameters "location" and "scale". 
+        For the intercept prior, "location" and "scale" must be scalars. 
+        For the prior on the coefficients, "location" and "scale" must be either 
+            1) be vectors of length equal to the number of coefficients 
+          excluding the intercept or 
+          2) be scalars, in which case the same values will be 
+          repeated for each coefficient 
+          TODO: improve docs for this
 
-        :return: self, an object
+        NOTE: the usual prior-selection advice holds. See for example: 
+        http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf
+
+        :return: self, an object of type GLM 
         """
         if y is None:
             raise ValueError(
@@ -116,6 +131,13 @@ class GLM(CoreEstimator):
             "inverse-gaussian",
         ]
 
+        X_clean, y_clean = self._validate_data(
+            X=X,
+            y=y,
+            ensure_X_2d=True,
+            dtype=np.float64 if self.is_cont_dat_ else np.int64,
+        )
+
         self.link_ = self.link
         # set the canonical link function for each family if
         # user does not specify the link function
@@ -138,36 +160,16 @@ class GLM(CoreEstimator):
                 """
             )
 
+        validate_family(self.family, self.link_)
+
         if not self.is_cont_dat_ and self.link_ == "identity":
             self.link_ = "logit" if self.family == "bernoulli" else "log"
-
-        validate_family(self.family, self.link_)
 
         # link_ is already verified to not be None
         self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link_]  # type: ignore
         self.familyid_ = GLM_FAMILIES[self.family]
 
-        X_clean, y_clean = self._validate_data(
-            X=X,
-            y=y,
-            ensure_X_2d=True,
-            dtype=np.float64 if self.is_cont_dat_ else np.int64,
-        )
-
-        # default prior selection follows:
-        # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
-        if self.familyid_ == 0:  # gaussian
-            sdy = np.std(y_clean)
-            sdx = np.std(X_clean)
-            my = np.mean(y_clean)
-        else:
-            sdy = 1.0
-            sdx = 1.0
-            my = 0.0
-
-        if sdy == 0.0:
-            sdy = 1.0
-
+        # data common to all prior choices for intercept and coefficients
         dat = {
             "X": X_clean,
             "y": y_clean,
@@ -176,10 +178,23 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 0,
-            "sdy": sdy,
-            "sdx": sdx,
-            "my": my,
         }
+
+        self.priors_clean_ = map_priors(priors)
+
+        if self.priors_clean_ == "default": 
+            # default prior selection follows
+            # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+            if self.familyid_ == 0:  # gaussian
+                sdy, sdx, my = np.std(y_clean), np.std(X_clean), np.mean(y_clean)
+            else: sdy, sdx, my = 1.0, 1.0, 0.0
+
+            if sdy == 0.0: sdy = 1.0
+
+            dat["sdy"], dat["sdx"], dat["my"] = sdy, sdx, my
+            dat["intercept_prior"], dat["coeffs_priors"] = 0, 0 
+        #else: 
+            
 
         if self.is_cont_dat_:
             self.model_ = GLM_CONTINUOUS_STAN
@@ -290,6 +305,8 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 1,
+            "intercept_prior": 0,
+            "coeffs_priors": 0,
             "sdy": 1.0,
             "sdx": sdx,
             "my": 0.0,

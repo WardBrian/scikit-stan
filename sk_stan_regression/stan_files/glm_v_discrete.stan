@@ -10,13 +10,17 @@ data {
   int<lower=0, upper=1> predictor;  // 0: fitting run, 1: prediction run
   int<lower=0> y[(predictor > 0) ? 0 : N];   // outcome vector
   int<lower=0> trials[N];           // number of trials 
+
+  // assume validation performed externally 
   int<lower=3, upper=5> family;     // family of the model
   int<lower=0> link;                // link function of the model 
-  // assume validation performed externally 
-  real sdy;                         // standard deviation sd(y) of the outcome 
-  real sdx;                         // standard deviation sd(X) of the predictors
+
+  // set up for user-defineable priors pytes
+  int<lower=0> intercept_prior; 
+  int<lower=0> coeffs_priors;       // should be a vector of length K
+  real<lower=0> sdy;                // standard deviation sd(y) of the outcome 
+  real<lower=0> sdx;                // standard deviation sd(X) of the predictors
   real my;                          // mean of the outcome
-  
 }
 parameters {
   real alpha;           // intercept
@@ -26,10 +30,10 @@ transformed parameters {
     vector[N] mu = alpha + X * beta; // linear predictor 
 }
 model {
-    # default prior selection follows: 
-    # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+    // default prior selection follows: 
+    // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
     beta ~ normal(0, 2.5 * sdy / sdx); 
-    alpha ~  normal(my, 2.5 * sdy); 
+    alpha ~ normal(my, 2.5 * sdy); 
 
     if (family == 3) { // Poisson  
         y ~ poisson(common_invert_link(mu, link));
