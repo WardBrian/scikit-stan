@@ -12,7 +12,7 @@ from sk_stan_regression.utils.validation import _check_y
 from .utils import check_array, check_X_y
 
 
-# NOTE: This estimator class derives class methods from scikit-learn, 
+# NOTE: This estimator class derives class methods from scikit-learn,
 # which is distributed under the 3-Clause BSD License.
 class CoreEstimator:
     """

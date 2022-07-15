@@ -23,7 +23,7 @@ def test_notfittederror_glm() -> None:
 
 
 @pytest.mark.parametrize("algorithm", ["HMC-NUTS", "L-BFGS", "ADVI"])
-def test_custom_seed_all_algs(algorithm:str) -> None: 
+def test_custom_seed_all_algs(algorithm: str) -> None:
     """Ensure that user-set seed persists for each algorithm."""
     glm = GLM(algorithm=algorithm, seed=1234321)
     X, y = _gen_fam_dat_continuous(family="gamma", link="log", seed=1234321)
@@ -165,7 +165,7 @@ def test_gamma_bloodclotting(lotnumber: str) -> None:
 @pytest.mark.slow
 @pytest.mark.parametrize("link", ["identity", "log", "inverse", "inverse-square"])
 def test_invgaussian_link_scipy_gen(link: str):
-    if link in ["identity", "inverse"]:
+    if link == "identity":
         pytest.skip(reason="Inverse Gaussian needs special data generation")
 
     glm = GLM(family="inverse-gaussian", link=link, seed=1234)
@@ -314,12 +314,12 @@ if __name__ == "__main__":
     # from scipy import stats
 
     rng = np.random.default_rng(seed=1234)
-    glm = GLM(family="gamma", link="inverse", seed=1234)
+    glm = GLM(family="inverse-gaussian", link="identity", seed=1234)
     # beta = stats.norm.rvs(5, 1, size=1)
     # alpha = stats.norm.rvs(5, 1, size=1)
 
     X = stats.norm.rvs(0, 1, size=(100,))
-    y = rng.gamma(1 / (0.6 + 0.2 * X))
+    y = rng.wald(0.6 + 0.2 * X, 0.3)
 
     # y = rng.poisson(0.6 + 0.2 * np.exp(X))
     # y = stats.invgauss.rvs(0.6 + 0.2 * np.exp(X))

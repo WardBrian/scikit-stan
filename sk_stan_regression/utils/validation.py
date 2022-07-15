@@ -162,7 +162,7 @@ def _check_y(
     return check_array(y, ensure_2d=False, dtype=dtype)
 
 
-# adapted from sklearn's check_X_y validation scheme which 
+# adapted from sklearn's check_X_y validation scheme which
 # is distributed under the 3-Clause BSD License.
 def check_X_y(
     X: ArrayLike,

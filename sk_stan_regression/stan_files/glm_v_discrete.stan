@@ -13,27 +13,10 @@ data {
   int<lower=3, upper=5> family;     // family of the model
   int<lower=0> link;                // link function of the model 
   // assume validation performed externally 
-}
-transformed data {
-    // default prior selection follows: 
-    // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
-    real sdy; 
-    real my; 
-    // NOTE: if this is a prediction run, y is not specified! 
-    if (predictor == 1) { 
-        sdy = 1.;
-        my = 0.;  
-    }
-    else { 
-        sdy = (family == 0) ? sd(y) : 1.;
-        // safeguard to ensure that scale parameter for prior is positive    
-        if (sdy <= 0.) {
-            sdy = 1.; 
-        }
-
-        my = (family == 0) ? mean(y) : 0.;
-    }
-    real sdx = (family == 0) ? sd(X) : 1.;
+  real sdy;                         // standard deviation sd(y) of the outcome 
+  real sdx;                         // standard deviation sd(X) of the predictors
+  real my;                          // mean of the outcome
+  
 }
 parameters {
   real alpha;           // intercept
@@ -43,6 +26,8 @@ transformed parameters {
     vector[N] mu = alpha + X * beta; // linear predictor 
 }
 model {
+    # default prior selection follows: 
+    # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
     beta ~ normal(0, 2.5 * sdy / sdx); 
     alpha ~  normal(my, 2.5 * sdy); 
 

@@ -154,6 +154,20 @@ class GLM(CoreEstimator):
             dtype=np.float64 if self.is_cont_dat_ else np.int64,
         )
 
+        # default prior selection follows:
+        # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+        if self.familyid_ == 0:  # gaussian
+            sdy = np.std(y_clean)
+            sdx = np.std(X_clean)
+            my = np.mean(y_clean)
+        else:
+            sdy = 1.0
+            sdx = 1.0
+            my = 0.0
+
+        if sdy == 0.0:
+            sdy = 1.0
+
         dat = {
             "X": X_clean,
             "y": y_clean,
@@ -162,6 +176,9 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 0,
+            "sdy": sdy,
+            "sdx": sdx,
+            "my": my,
         }
 
         if self.is_cont_dat_:
@@ -257,6 +274,13 @@ class GLM(CoreEstimator):
                     random_state=self.seed_,
                 )
 
+        # default prior selection follows:
+        # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+        if self.familyid_ == 0:  # gaussian
+            sdx = np.std(X_clean)
+        else:
+            sdx = 1.0
+
         dat = {
             "N": X_clean.shape[0],
             "K": X_clean.shape[1],
@@ -266,6 +290,9 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 1,
+            "sdy": 1.0,
+            "sdx": sdx,
+            "my": 0.0,
         }
 
         # known that fitted with HMC-NUTS, so fitted_samples is not None
