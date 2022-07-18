@@ -14,11 +14,13 @@ data {
   int<lower=0, upper=4> link; // link function of the model
 
   // set up for user-defineable priors 
-  int<lower=0> intercept_prior; 
-  int<lower=0> coeffs_priors;       // should be a vector of length K
-  real sdy;                         // standard deviation sd(y) of the outcome 
-  real sdx;                         // standard deviation sd(X) of the predictors
-  real my;                          // mean of the outcome
+  int<lower=0> prior_intercept_dist;    // distribution for intercept  
+  real prior_intercept_mu;              // mean of the prior for intercept 
+  real prior_intercept_sigma;           // error scale of the prior for intercept
+  int<lower=0> prior_slope_dist;        // distribution for regression coefficients 
+  real prior_slope_mu;                  // mean of the prior for regression coefficients
+  real prior_slope_sigma;               // error scale of the prior for regression coefficients
+  real sdy;
 }
 transformed data {
   real s_log_y = sum(log(y)); 
@@ -36,16 +38,25 @@ transformed parameters {
 model {  
   # default prior selection follows: 
   # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
-  beta ~ normal(0, 2.5 * sdy / sdx); 
-  alpha ~  normal(my, 2.5 * sdy); 
+  if (prior_intercept_dist == 0) { // normal prior; has mu and sigma  
+      alpha ~ normal(prior_intercept_mu, prior_intercept_sigma); 
+  } 
+  else if (prior_intercept_dist == 1) { // laplace prior; has mu and sigma
+      alpha ~ double_exponential(prior_intercept_mu, prior_intercept_sigma);
+  }
+  
+  if (prior_slope_dist == 0) { // normal prior; has mu and sigma
+      beta ~ normal(prior_slope_mu, prior_slope_sigma);
+  }
+  else if (prior_slope_dist == 1) { // laplace prior; has mu and sigma
+      beta ~ double_exponential(prior_slope_mu, prior_slope_sigma);
+  }
   sigma ~ exponential(1 / sdy); // std for Gaussian, shape for gamma
 
   if (family == 1) { // Gamma  
     target += gamma_llh(y, s_log_y, mu, sigma, link);
   } 
   else { 
-   
-
     if (family == 0) { // Gaussian
       //Increment target log probability density with
       // normal_lpdf( y | mu, sigma) dropping constant additive terms.

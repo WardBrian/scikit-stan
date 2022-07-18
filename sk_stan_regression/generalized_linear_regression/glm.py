@@ -10,13 +10,13 @@ from cmdstanpy import CmdStanModel
 from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
+from sk_stan_regression.utils import map_priors
 from sk_stan_regression.utils.validation import (
     FAMILY_LINKS_MAP,
     check_array,
     check_is_fitted,
     validate_family,
 )
-from sk_stan_regression.utils import map_priors
 
 GLM_STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
 
@@ -93,8 +93,14 @@ class GLM(CoreEstimator):
             then X is automatically reshaped to being 2D; this raises a warning
         :param y: Nx1 outcome vector
         :param show_console: whether to show the Stan console output
-        :param priors: dictionary of priors to use for the model. The prior for the intercept is set via "intercept" and the prior for the non-intercept regression coefficients is set via "beta". If only one is specified, then the other is set to the default.
-        Currently supported priors are: "normal" (default) with parameters "location" and "scale", and "laplace" with parameters "location" and "scale". The error scale "sigma" for continuous models defaults to exponential(1/sy) where sy = sd(y) if the specified family is a Gaussian, and sy = 1 in all other cases. TODO: this should be user settable as well...
+        :param priors: dictionary of priors to use for the model.
+        The prior for the intercept is set via "intercept" and the prior for the non-intercept
+        regression coefficients is set via "beta".
+        If only one is specified, then the other is set to the default.
+        Currently supported priors are: "normal" (default) with parameters "location" and "scale",
+        and "laplace" with parameters "location" and "scale". The error scale "sigma" for
+        continuous models defaults to exponential(1/sy) where sy = sd(y) if the specified family is
+        a Gaussian, and sy = 1 in all other cases. TODO: this should be user settable as well...
         For the intercept prior, "location" and "scale" must be scalars.
         For the prior on the coefficients, "location" and "scale" must be either
             1) be vectors of length equal to the number of coefficients
@@ -181,10 +187,10 @@ class GLM(CoreEstimator):
             "predictor": 0,
         }
 
-        # set up common prior parameters; this computation is 
+        # set up common prior parameters; this computation is
         # unnecessary if the user supplies all prior parameters
-        # TODO: clean up so these computations are not performed in 
-        # that scenario 
+        # TODO: clean up so these computations are not performed in
+        # that scenario
         if self.familyid_ == 0:  # gaussian
             sdy, sdx, my = np.std(y_clean), np.std(X_clean), np.mean(y_clean)
         else:
@@ -193,40 +199,53 @@ class GLM(CoreEstimator):
         if sdy == 0.0:
             sdy = 1.0
 
-        #dat["sdy"], dat["sdx"], dat["my"] = sdy, sdx, my
+        # TODO: to be generalized to have custom priors on this...
+        dat["sdy"] = sdy
+        # dat["sdy"], dat["sdx"], dat["my"] = sdy, sdx, my
 
-        self.priors_ = map_priors(priors)
+        priors_ = map_priors(priors)
 
-        if self.priors_ == "default":
+        if len(priors_) == 0:
             # default prior selection follows
             # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
-            dat["prior_intercept_dist"], dat["prior_slope_sigma"] = 0, 0
-            dat["prior_intercept_mu"], dat["prior_intercept_sigma"] = my, 2.5 * sdy 
+            dat["prior_intercept_dist"], dat["prior_slope_dist"] = 0, 0
+            dat["prior_intercept_mu"], dat["prior_intercept_sigma"] = my, 2.5 * sdy
             dat["prior_slope_mu"], dat["prior_slope_sigma"] = 0.0, 2.5 * sdy / sdx
         else:
-            if self.priors_["prior_intercept_dist"] == "default":
+            if priors_["prior_intercept_dist"] == "default":
                 dat["prior_intercept_dist"] = 0
-                dat["prior_intercept_mu"], dat["prior_intercept_sigma"] = my, 2.5 * sdy 
-            else: 
-                dat["prior_intercept_dist"] = self.priors_["prior_intercept_dist"]
-                dat["prior_intercept_mu"] = self.priors_["prior_intercept_mu"]
-                dat["prior_intercept_sigma"] = self.priors_["prior_intercept_sigma"]
-            
-            if self.priors_["prior_slope_sigma"] == "default":
+                dat["prior_intercept_mu"], dat["prior_intercept_sigma"] = my, 2.5 * sdy
+            else:
+                dat["prior_intercept_dist"] = priors_["prior_intercept_dist"]
+                dat["prior_intercept_mu"] = priors_["prior_intercept_mu"]
+                dat["prior_intercept_sigma"] = priors_["prior_intercept_sigma"]
+
+            if priors_["prior_slope_sigma"] == "default":
                 dat["prior_slope_dist"] = 0
                 dat["prior_slope_mu"], dat["prior_slope_sigma"] = 0.0, 2.5 * sdy / sdx
-            else: 
-                dat["prior_slope_dist"] = self.priors_["prior_slope_dist"]
-                dat["prior_slope_mu"] = self.priors_["prior_slope_mu"]
-                dat["prior_slope_sigma"] = self.priors_["prior_slope_sigma"]
-                
-                if len(dat["prior_slope_sigma"]) != len(y_clean) or len(dat["prior_slope_mu"]) != len(y_clean):
+            else:
+                dat["prior_slope_dist"] = priors_["prior_slope_dist"]
+                dat["prior_slope_mu"] = priors_["prior_slope_mu"]
+                dat["prior_slope_sigma"] = priors_["prior_slope_sigma"]
+
+                if len(dat["prior_slope_sigma"]) != len(y_clean) or len(
+                    dat["prior_slope_mu"]
+                ) != len(y_clean):
                     raise ValueError(
                         """
-                        The number of specified prior error scales and prior slope parameters must be equal to the number of features in the response variable.
+                        The number of specified prior error scales and prior slope parameters
+                        must be equal to the number of features in the response variable.
                         """
                     )
-        
+        self.priors_ = {
+            "prior_intercept_dist": dat["prior_intercept_dist"],
+            "prior_intercept_mu": dat["prior_intercept_mu"],
+            "prior_intercept_sigma": dat["prior_intercept_sigma"],
+            "prior_slope_dist": dat["prior_slope_dist"],
+            "prior_slope_mu": dat["prior_slope_mu"],
+            "prior_slope_sigma": dat["prior_slope_sigma"],
+        }
+
         if self.is_cont_dat_:
             self.model_ = GLM_CONTINUOUS_STAN
         else:

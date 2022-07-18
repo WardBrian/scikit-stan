@@ -22,6 +22,119 @@ def test_notfittederror_glm() -> None:
         glm.predict(X=np.array([2, 4, 8, 16]))
 
 
+@pytest.mark.slow
+@pytest.mark.parametrize("prior_config", [None, {}])
+def test_prior_config_default_nongaussian(prior_config) -> None:
+    """Test that the default prior config is used if no prior config is provided."""
+    glm = GLM(family="gamma", link="log", seed=1234)
+    X, y = _gen_fam_dat_continuous(family="gamma", link="log", seed=1234321)
+
+    fitted = glm.fit(X=X, y=y, priors=prior_config)
+
+    assert fitted.priors_ == {
+        "prior_intercept_dist": 0,
+        "prior_intercept_mu": 0.0,
+        "prior_intercept_sigma": 2.5,
+        "prior_slope_dist": 0,
+        "prior_slope_mu": 0.0,
+        "prior_slope_sigma": 2.5,
+    }
+
+    assert (
+        fitted.fitted_samples_.summary()["5%"]["alpha"] - 0.01
+        <= 0.6
+        <= fitted.fitted_samples_.summary()["95%"]["alpha"]
+    )
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("prior_config", [None, {}])
+def test_prior_config_default_gaussian(prior_config) -> None:
+    """Test that the default prior config is used if no prior config is provided."""
+    glm = GLM(family="gaussian", link="log", seed=1234)
+    X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234321)
+
+    fitted = glm.fit(X=X, y=y, priors=prior_config)
+
+    assert fitted.priors_ == {
+        "prior_intercept_dist": 0,
+        "prior_intercept_mu": np.mean(y),
+        "prior_intercept_sigma": 2.5 * np.std(y),
+        "prior_slope_dist": 0,
+        "prior_slope_mu": 0.0,
+        "prior_slope_sigma": 2.5 * np.std(y) / np.std(X),
+    }
+
+    assert (
+        fitted.fitted_samples_.summary()["5%"]["alpha"] - 0.01
+        <= 0.6
+        <= fitted.fitted_samples_.summary()["95%"]["alpha"]
+    )
+
+
+@pytest.mark.parametrize(
+    "unsupported_prior",
+    [
+        " ",
+        "default",
+        dict(
+            prior_intercept_dist=" ", prior_intercept_mu=0.0, prior_intercept_sigma=2.5
+        ),
+    ],
+)
+def test_prior_erroneous(unsupported_prior):
+    """Confirm that error is raised on priors that are not supported."""
+    glm = GLM(family="gamma", link="log", seed=1234)
+
+    gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(
+        family="gamma", link="log", Nsize=100
+    )
+
+    with pytest.raises(Exception) as e_info:
+        fitted = glm.fit(X=gamma_dat_X, y=gamma_dat_Y, priors=unsupported_prior)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "prior_config",
+    [
+        {
+            "prior_intercept_dist": "normal",
+            "prior_intercept_mu": 0,
+            "prior_intercept_sigma": 1,
+            "prior_slope_dist": "normal",
+            "prior_slope_mu": 0,
+            "prior_slope_sigma": 1,
+        },
+        {
+            "prior_intercept_dist": "normal",
+            "prior_intercept_mu": 0,
+            "prior_intercept_sigma": 1,
+        },
+        {"prior_slope_dist": "normal", "prior_slope_mu": 0, "prior_slope_sigma": 1},
+    ],
+)
+def test_prior_config_custom_normal(prior_config) -> None:
+    """Test that partial & full set-up of priors with all-normal priors."""
+    glm = GLM(family="gamma", link="log", seed=1234)
+    X, y = _gen_fam_dat_continuous(family="gamma", link="log", seed=1234321)
+
+    fitted = glm.fit(X=X, y=y, priors=prior_config)
+
+    assert fitted.priors_["prior_intercept_dist"] == 0
+    assert fitted.priors_["prior_slope_dist"] == 0
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("prior_config", [])
+def test_prior_config_custom_consistent(prior_config):
+    """Test that partial & full set-up of priors is consistent."""
+    glm = GLM(family="gaussian", link="log", seed=1234)
+    X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234321)
+
+    fitted = glm.fit(X=X, y=y, priors=prior_config)
+
+
 @pytest.mark.parametrize("algorithm", ["HMC-NUTS", "L-BFGS", "ADVI"])
 def test_custom_seed_all_algs(algorithm: str) -> None:
     """Ensure that user-set seed persists for each algorithm."""
@@ -270,19 +383,6 @@ def test_poisson_rstanarm_data():
     glm_poisson.fit(X=X, y=y)
 
     assert True
-    # print(glm_poisson.alpha_, glm_poisson.beta_)
-
-
-def test_def_prior_config():
-    glm = GLM(family="gamma", link="log", seed=1234)
-
-    gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(
-        family="gamma", link="log", Nsize=100
-    )
-
-    fitted = glm.fit(X=gamma_dat_X, y=gamma_dat_Y)
-
-    assert fitted.priors_clean_ == "default"
 
 
 if __name__ == "__main__":
