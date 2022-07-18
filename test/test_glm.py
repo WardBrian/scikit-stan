@@ -273,7 +273,7 @@ def test_poisson_rstanarm_data():
     # print(glm_poisson.alpha_, glm_poisson.beta_)
 
 
-def test_def_prior_config(): 
+def test_def_prior_config():
     glm = GLM(family="gamma", link="log", seed=1234)
 
     gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(
@@ -282,7 +282,8 @@ def test_def_prior_config():
 
     fitted = glm.fit(X=gamma_dat_X, y=gamma_dat_Y)
 
-    assert(fitted.priors_clean_ == "default")
+    assert fitted.priors_clean_ == "default"
+
 
 if __name__ == "__main__":
     # from scipy.special import expit  # type: ignore

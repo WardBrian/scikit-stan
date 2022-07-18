@@ -15,7 +15,7 @@ data {
   int<lower=3, upper=5> family;     // family of the model
   int<lower=0> link;                // link function of the model 
 
-  // set up for user-defineable priors pytes
+  // set up for user-defineable priors 
   int<lower=0> intercept_prior; 
   int<lower=0> coeffs_priors;       // should be a vector of length K
   real<lower=0> sdy;                // standard deviation sd(y) of the outcome 
