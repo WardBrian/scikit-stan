@@ -438,6 +438,38 @@ class GLM(CoreEstimator):
             show_console=show_console,
         ).mean(axis=0, dtype=np.float64)
 
+    def score(
+        self,
+        X: ArrayLike,
+        y: ArrayLike,
+        show_console: bool = False,
+    ) -> float:
+        """
+        Computes the coefficient of determination R^2 of the prediction,
+        as do other sklearn estimators.
+
+        :param X: array-like of shape (n_samples, n_features) containing test samples
+        :param y: array-like of shape (n_samples,) containing test target values
+        :show_console: verbose display of CmdStanPy console output
+
+        :return: (float) R^2 of the prediction versus the given target values;
+                 this is the mean accuracy of self.predict(X) with respect to y
+        """
+        check_is_fitted(self)
+
+        # ensure that y vector works plays nicely with np
+        y_clean = check_array(
+            y, ensure_2d=False, dtype=np.float64 if self.is_cont_dat_ else np.int64
+        )
+
+        predictions = self.predict(X=X, show_console=show_console)
+
+        mean_obs = np.sum(y_clean) / len(y_clean)
+        ssreg: float = np.sum((predictions - mean_obs) ** 2)
+        sstot: float = np.sum((y_clean - mean_obs) ** 2)
+
+        return 1 - ssreg / sstot
+
     def _more_tags(self) -> Dict[str, Any]:
         """
         Sets tags for current model that exclude certain sk-learn estimator
