@@ -205,6 +205,7 @@ class GLM(CoreEstimator):
 
         priors_ = map_priors(priors)
 
+        # true default; none of the slope or intercept priors are specified
         if len(priors_) == 0:
             # default prior selection follows
             # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
@@ -212,31 +213,72 @@ class GLM(CoreEstimator):
             dat["prior_intercept_mu"], dat["prior_intercept_sigma"] = my, 2.5 * sdy
             dat["prior_slope_mu"], dat["prior_slope_sigma"] = 0.0, 2.5 * sdy / sdx
         else:
-            if priors_["prior_intercept_dist"] == "default":
-                dat["prior_intercept_dist"] = 0
-                dat["prior_intercept_mu"], dat["prior_intercept_sigma"] = my, 2.5 * sdy
-            else:
-                dat["prior_intercept_dist"] = priors_["prior_intercept_dist"]
-                dat["prior_intercept_mu"] = priors_["prior_intercept_mu"]
-                dat["prior_intercept_sigma"] = priors_["prior_intercept_sigma"]
+            dat["prior_intercept_dist"], dat["prior_slope_dist"] = (
+                priors_["prior_intercept_dist"],
+                priors_["prior_slope_dist"],
+            )
 
-            if priors_["prior_slope_sigma"] == "default":
-                dat["prior_slope_dist"] = 0
-                dat["prior_slope_mu"], dat["prior_slope_sigma"] = 0.0, 2.5 * sdy / sdx
-            else:
-                dat["prior_slope_dist"] = priors_["prior_slope_dist"]
-                dat["prior_slope_mu"] = priors_["prior_slope_mu"]
-                dat["prior_slope_sigma"] = priors_["prior_slope_sigma"]
+            if priors_["prior_intercept_dist"] == 0:  # gaussian
+                dat["prior_intercept_mu"] = (
+                    my
+                    if priors_["prior_intercept_mu"] == "default"
+                    else priors_["prior_intercept_mu"]
+                )
 
-                if len(dat["prior_slope_sigma"]) != len(y_clean) or len(
-                    dat["prior_slope_mu"]
-                ) != len(y_clean):
-                    raise ValueError(
-                        """
-                        The number of specified prior error scales and prior slope parameters
-                        must be equal to the number of features in the response variable.
-                        """
-                    )
+                dat["prior_intercept_sigma"] = (
+                    2.5 * sdy
+                    if priors_["prior_intercept_sigma"] == "default"
+                    else priors_["prior_intercept_sigma"]
+                )
+            elif priors_["prior_intercept_dist"] == 1:  # laplace
+                dat["prior_intercept_mu"] = (
+                    0.0
+                    if priors_["prior_intercept_mu"] == "default"
+                    else priors_["prior_intercept_mu"]
+                )
+
+                dat["prior_intercept_sigma"] = (
+                    2.5
+                    if priors_["prior_intercept_sigma"] == "default"
+                    else priors_["prior_intercept_sigma"]
+                )
+
+            if priors_["prior_slope_dist"] == 0:  # gaussian
+                dat["prior_slope_mu"] = (
+                    0.0
+                    if priors_["prior_slope_mu"] == "default"
+                    else priors_["prior_slope_mu"]
+                )
+
+                dat["prior_slope_sigma"] = (
+                    2.5 * sdy / sdx
+                    if priors_["prior_slope_sigma"] == "default"
+                    else priors_["prior_slope_sigma"]
+                )
+            elif priors_["prior_slope_dist"] == 1:  # laplace
+                dat["prior_slope_mu"] = (
+                    0.0
+                    if priors_["prior_slope_mu"] == "default"
+                    else priors_["prior_slope_mu"]
+                )
+
+                dat["prior_slope_sigma"] = (
+                    2.5
+                    if priors_["prior_slope_sigma"] == "default"
+                    else priors_["prior_slope_sigma"]
+                )
+
+        # TODO: specifying a prior on each individual feature...?
+        # if len(dat["prior_slope_sigma"]) != len(y_clean) or len(
+        #    dat["prior_slope_mu"]
+        # ) != len(y_clean):
+        #    raise ValueError(
+        #        """
+        #        The number of specified prior error scales and prior slope parameters
+        #        must be equal to the number of features in the response variable.
+        #        """
+        #    )
+
         self.priors_ = {
             "prior_intercept_dist": dat["prior_intercept_dist"],
             "prior_intercept_mu": dat["prior_intercept_mu"],

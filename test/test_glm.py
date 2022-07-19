@@ -72,6 +72,15 @@ def test_prior_config_default_gaussian(prior_config) -> None:
     )
 
 
+def test_laplace_default_setup() -> None:
+    glm = GLM(family="gaussian", link="log", seed=1234)
+    X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234321)
+
+    fitted = glm.fit(X=X, y=y, priors={"prior_intercept_dist": "laplace"})
+
+    assert fitted.priors_["prior_intercept_dist"] == 1
+
+
 @pytest.mark.parametrize(
     "unsupported_prior",
     [
