@@ -5,7 +5,7 @@ functions {
 }
 data {
   int<lower=0> N;   // number of data items
-  int<lower=0> K;   // number of predictors
+  int<lower=0> K;   // number of predictors/features
   int<lower=0, upper=1> predictor; // 0: fitting run, 1: prediction run
   matrix[N, K] X;   // predictor matrix
   vector[(predictor > 0) ? 0 : N] y;      // outcome vector; change to N*(1-predictor)
@@ -17,9 +17,9 @@ data {
   int<lower=0> prior_intercept_dist;    // distribution for intercept  
   real prior_intercept_mu;              // mean of the prior for intercept 
   real prior_intercept_sigma;           // error scale of the prior for intercept
-  int<lower=0> prior_slope_dist;        // distribution for regression coefficients 
-  real prior_slope_mu;                  // mean of the prior for regression coefficients
-  real prior_slope_sigma;               // error scale of the prior for regression coefficients
+  int<lower=0> prior_slope_dist[K];        // distribution for regression coefficients 
+  vector[K] prior_slope_mu;                  // mean of the prior for regression coefficients
+  vector[K] prior_slope_sigma;               // error scale of the prior for regression coefficients
   real sdy;
 }
 transformed data {
@@ -36,8 +36,8 @@ transformed parameters {
   vector[N] mu_unlinked = common_invert_link(mu, link); 
 }
 model {  
-  # default prior selection follows: 
-  # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+  // default prior selection follows: 
+  // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
   if (prior_intercept_dist == 0) { // normal prior; has mu and sigma  
       alpha ~ normal(prior_intercept_mu, prior_intercept_sigma); 
   } 
@@ -45,12 +45,15 @@ model {
       alpha ~ double_exponential(prior_intercept_mu, prior_intercept_sigma);
   }
   
-  if (prior_slope_dist == 0) { // normal prior; has mu and sigma
-      beta ~ normal(prior_slope_mu, prior_slope_sigma);
+  for (idx in 1:K) { 
+    if (prior_slope_dist[idx] == 0) { // normal prior; has mu and sigma  
+      beta[idx] ~ normal(prior_slope_mu[idx], prior_slope_sigma[idx]); 
+    } 
+    else if (prior_slope_dist[idx] == 1) { // laplace prior; has mu and sigma
+      beta[idx] ~ double_exponential(prior_slope_mu[idx], prior_slope_sigma[idx]);
+    }
   }
-  else if (prior_slope_dist == 1) { // laplace prior; has mu and sigma
-      beta ~ double_exponential(prior_slope_mu, prior_slope_sigma);
-  }
+
   sigma ~ exponential(1 / sdy); // std for Gaussian, shape for gamma
 
   if (family == 1) { // Gamma  

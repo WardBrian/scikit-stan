@@ -2,7 +2,7 @@
 
 import warnings
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import scipy.stats as stats  # type: ignore
@@ -16,6 +16,7 @@ from sk_stan_regression.utils.validation import (
     check_array,
     check_is_fitted,
     validate_family,
+    validate_prior
 )
 
 GLM_STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
@@ -56,6 +57,27 @@ class GLM(CoreEstimator):
     :param family: GLM family function; all R Families are supported
     :param link: GLM link function; all R Families links are supported in admissible combinations
     :param seed: random seed used for probabilistic operations; chosen randomly if not specified
+    :param priors: Dictionary of priors to use for the model.
+    By default, all regression coefficient priors are set to 
+        beta ~ normal(0, 2.5 * sd(y) / sd(X)) if Gaussian else normal(0, 2.5)
+
+    The number of specified priors cannot exceed the number of features in the data.
+    Each prior is specified as a dictionary with the following keys:
+        "prior_slope_dist": distribution of the prior on this coefficient
+        "prior_slope_mu": location parameter of the prior on this coefficient
+        "prior_slope_sigma": scale parameter of the prior on this coefficient
+    The main passed dictionary indexes the priors by the row index of the feature starting at 0. 
+    Thus, to specify a prior on the first feature, the dictionary should be passed as {0: {"prior_slope_dist": "normal", "prior_slope_mu": 0, "prior_slope_sigma": 1}}.
+    Any unspecified priors will be set to the default. 
+
+    :param prior_intercept: Prior for the intercept alpha parameter for GLM. 
+    If this is not specified, the default is 
+        alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)
+
+    To set this prior explicitly, pass a dictionary with the following keys:
+        "prior_intercept_dist": str, distribution of the prior from the list of supported prior distributions: "normal", "laplace"
+        "prior_intercept_mu": float, location parameter of the prior distribution
+        "prior_intercept_sigma": float, error scale parameter of the prior distribution
     """
 
     def __init__(
@@ -64,11 +86,16 @@ class GLM(CoreEstimator):
         family: str = "gaussian",
         link: Optional[str] = None,
         seed: Optional[int] = None,
+        priors: Optional[Dict[int, Dict[str, Any]]] = None,
+        prior_intercept: Optional[Dict[str, Any]] = None,
     ):
         self.algorithm = algorithm
 
         self.family = family
         self.link = link
+
+        self.priors = priors
+        self.prior_intercept = prior_intercept
 
         self.seed = seed
 
@@ -78,7 +105,6 @@ class GLM(CoreEstimator):
         X: ArrayLike,
         y: ArrayLike,
         show_console: bool = False,
-        priors: Optional[Dict[str, str]] = None,
     ) -> "CoreEstimator":
         """
         Fits current vectorized BLR object to the given data,
@@ -176,15 +202,23 @@ class GLM(CoreEstimator):
         self.linkid_ = FAMILY_LINKS_MAP[self.family][self.link_]  # type: ignore
         self.familyid_ = GLM_FAMILIES[self.family]
 
+        K = X_clean.shape[1]
+
         # data common to all prior choices for intercept and coefficients
         dat = {
             "X": X_clean,
             "y": y_clean,
             "N": X_clean.shape[0],
-            "K": X_clean.shape[1],
+            "K": K,
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 0,
+            "prior_intercept_dist": None,
+            "prior_intercept_mu": None,
+            "prior_intercept_sigma": None,
+            "prior_slope_dist": [None] * K,
+            "prior_slope_mu": [None] * K,
+            "prior_slope_sigma": [None] * K,
         }
 
         # set up common prior parameters; this computation is
@@ -199,94 +233,60 @@ class GLM(CoreEstimator):
         if sdy == 0.0:
             sdy = 1.0
 
-        # TODO: to be generalized to have custom priors on this...
         dat["sdy"] = sdy
-        # dat["sdy"], dat["sdx"], dat["my"] = sdy, sdx, my
 
-        priors_ = map_priors(priors)
+        # likely to be reused across multiple features       
+        # default prior selection follows: 
+        # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+        DEFAULT_SLOPE_PRIOR = {
+                    "prior_slope_dist": 0, 
+                    "prior_slope_mu": 0.0, 
+                    "prior_slope_sigma": 2.5 * sdy / sdx
+                } if self.family == "gaussian" else {
+                    "prior_slope_dist": 0,
+                    "prior_slope_mu": 0.0,
+                    "prior_slope_sigma": 2.5
+                }
 
-        # true default; none of the slope or intercept priors are specified
-        if len(priors_) == 0:
-            # default prior selection follows
-            # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
-            dat["prior_intercept_dist"], dat["prior_slope_dist"] = 0, 0
-            dat["prior_intercept_mu"], dat["prior_intercept_sigma"] = my, 2.5 * sdy
-            dat["prior_slope_mu"], dat["prior_slope_sigma"] = 0.0, 2.5 * sdy / sdx
-        else:
-            dat["prior_intercept_dist"], dat["prior_slope_dist"] = (
-                priors_["prior_intercept_dist"],
-                priors_["prior_slope_dist"],
-            )
+        priors_ = {}
 
-            if priors_["prior_intercept_dist"] == 0:  # gaussian
-                dat["prior_intercept_mu"] = (
-                    my
-                    if priors_["prior_intercept_mu"] == "default"
-                    else priors_["prior_intercept_mu"]
-                )
+        # user did not specify any priors 
+        if self.priors is None or len(self.priors) == 0: 
+            priors_ = {
+                idx: DEFAULT_SLOPE_PRIOR
+                for idx in np.arange(K)
+            }
+        else: 
+            for idx in np.arange(K):
+                if idx in self.priors: 
+                    priors_[idx] = validate_prior(self.priors[idx], "slope")
+                else:
+                    priors_[idx] = DEFAULT_SLOPE_PRIOR
 
-                dat["prior_intercept_sigma"] = (
-                    2.5 * sdy
-                    if priors_["prior_intercept_sigma"] == "default"
-                    else priors_["prior_intercept_sigma"]
-                )
-            elif priors_["prior_intercept_dist"] == 1:  # laplace
-                dat["prior_intercept_mu"] = (
-                    0.0
-                    if priors_["prior_intercept_mu"] == "default"
-                    else priors_["prior_intercept_mu"]
-                )
+        self.priors_ = priors_
 
-                dat["prior_intercept_sigma"] = (
-                    2.5
-                    if priors_["prior_intercept_sigma"] == "default"
-                    else priors_["prior_intercept_sigma"]
-                )
+        # TODO: add functionality for GLM to not have an intercept at all 
+        # set up default prior for intercept if not user-specified  
+        if self.prior_intercept is None or len(self.prior_intercept) == 0:
+            warnings.warn("""Prior on intercept not specified. Using default prior.
+                alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)""")
+            self.prior_intercept_ = {
+                "prior_intercept_dist": 0, # normal
+                "prior_intercept_mu": my,
+                "prior_intercept_sigma": 2.5 * sdy,
+            }
+        else: 
+            self.prior_intercept_ = validate_prior(self.prior_intercept, "intercept")
 
-            if priors_["prior_slope_dist"] == 0:  # gaussian
-                dat["prior_slope_mu"] = (
-                    0.0
-                    if priors_["prior_slope_mu"] == "default"
-                    else priors_["prior_slope_mu"]
-                )
+        dat["prior_intercept_dist"] = self.prior_intercept_["prior_intercept_dist"]
+        dat["prior_intercept_mu"] = self.prior_intercept_["prior_intercept_mu"]
+        dat["prior_intercept_sigma"] = self.prior_intercept_["prior_intercept_sigma"]
 
-                dat["prior_slope_sigma"] = (
-                    2.5 * sdy / sdx
-                    if priors_["prior_slope_sigma"] == "default"
-                    else priors_["prior_slope_sigma"]
-                )
-            elif priors_["prior_slope_dist"] == 1:  # laplace
-                dat["prior_slope_mu"] = (
-                    0.0
-                    if priors_["prior_slope_mu"] == "default"
-                    else priors_["prior_slope_mu"]
-                )
-
-                dat["prior_slope_sigma"] = (
-                    2.5
-                    if priors_["prior_slope_sigma"] == "default"
-                    else priors_["prior_slope_sigma"]
-                )
-
-        # TODO: specifying a prior on each individual feature...?
-        # if len(dat["prior_slope_sigma"]) != len(y_clean) or len(
-        #    dat["prior_slope_mu"]
-        # ) != len(y_clean):
-        #    raise ValueError(
-        #        """
-        #        The number of specified prior error scales and prior slope parameters
-        #        must be equal to the number of features in the response variable.
-        #        """
-        #    )
-
-        self.priors_ = {
-            "prior_intercept_dist": dat["prior_intercept_dist"],
-            "prior_intercept_mu": dat["prior_intercept_mu"],
-            "prior_intercept_sigma": dat["prior_intercept_sigma"],
-            "prior_slope_dist": dat["prior_slope_dist"],
-            "prior_slope_mu": dat["prior_slope_mu"],
-            "prior_slope_sigma": dat["prior_slope_sigma"],
-        }
+        # set up of vectors for intercept and coefficients for Stan data
+        for idx in np.arange(K):
+            dat["prior_slope_dist"][idx] = self.priors_[idx]["prior_slope_dist"]
+            dat["prior_slope_mu"][idx] = self.priors_[idx]["prior_slope_mu"]
+            dat["prior_slope_sigma"][idx] = self.priors_[idx]["prior_slope_sigma"]
 
         if self.is_cont_dat_:
             self.model_ = GLM_CONTINUOUS_STAN

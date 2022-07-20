@@ -1,7 +1,7 @@
 import numbers
 import warnings
 from inspect import isclass
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp  # type: ignore
@@ -51,6 +51,28 @@ FAMILY_LINKS_MAP = {
     "poisson": POISSON_LINKS,
     "inverse-gaussian": INVERSE_GAUSSIAN_LINKS,
     # "binomial" : BINOMIAL_LINKS
+}
+
+SLOPE_PRIOR_DEFAULTS_INFO = {
+    "normal": "normal(0, 2.5 * sd(y) / sd(X)) if Gaussian else normal(0, 2.5)",
+    # NOTE: the laplace distribution is translation invariant
+    "laplace": "laplace(0, 2.5)",
+}
+
+INTERCEPT_PRIOR_DEFAULTS_INFO = {
+    "normal": "normal(mu(y), 2.5 * sd(y)) if Gaussian else normal(0, 2.5)",
+    # NOTE: the laplace distribution is translation invariant
+    "laplace": "double_exponential(0, 2.5)",
+}
+
+PRIORS_MAP = {
+    "normal": 0,  # normal distribution, requires location (mu) and scale (sigma)
+    # or else defaults to rstanarm's default:
+    # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+    "laplace": 1,  # laplace distribution, requires location (mu) and scale (sigma)
+    # or else defaults to double_exponential(0, 1)
+    # for suggestions on this prior, refer to:
+    #  https://www.jstor.org/stable/1403571#metadata_info_tab_contents
 }
 
 
@@ -295,3 +317,33 @@ def _num_samples(x: Any) -> Union[int, numbers.Integral]:
         return len(x)
     except TypeError as type_error:
         raise TypeError(message) from type_error
+
+
+def validate_prior(prior_spec: Dict[str, Any], coeff_type: str) -> Dict[str, Any]:
+    """
+    Perform validation on given prior dictionary. This is only called 
+    when there is a prior to check. 
+    """
+    config_keys = prior_spec.keys() 
+
+    if "prior_"+coeff_type+"_dist" not in config_keys:
+        raise ValueError(
+            f"""prior_{coeff_type}_dist must be specified in prior given by {prior_spec}."""
+        )    
+
+    dist_key = prior_spec["prior_"+coeff_type+"_dist"]
+
+    if dist_key not in PRIORS_MAP.keys(): 
+        raise ValueError(f"Prior {dist_key} in prior specification {prior_spec} not supported.")
+
+    if "prior_"+coeff_type+"_mu" not in config_keys:
+        raise ValueError(f"""prior_{coeff_type}_mu must be specified in prior given by {prior_spec}.""")
+
+    if "prior_"+coeff_type+"_sigma" not in config_keys:
+        raise ValueError(f"""prior_{coeff_type}_sigma must be specified in prior given by {prior_spec}.""")
+
+    return {
+        "prior_"+coeff_type+"_dist": PRIORS_MAP[dist_key],
+        "prior_"+coeff_type+"_mu": prior_spec["prior_"+coeff_type+"_mu"],
+        "prior_"+coeff_type+"_sigma": prior_spec["prior_"+coeff_type+"_sigma"],
+    }
