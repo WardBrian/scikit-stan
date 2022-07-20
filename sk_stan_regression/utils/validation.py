@@ -321,29 +321,35 @@ def _num_samples(x: Any) -> Union[int, numbers.Integral]:
 
 def validate_prior(prior_spec: Dict[str, Any], coeff_type: str) -> Dict[str, Any]:
     """
-    Perform validation on given prior dictionary. This is only called 
-    when there is a prior to check. 
+    Perform validation on given prior dictionary. This is only called
+    when there is a prior to check.
     """
-    config_keys = prior_spec.keys() 
+    config_keys = prior_spec.keys()
 
-    if "prior_"+coeff_type+"_dist" not in config_keys:
+    if "prior_" + coeff_type + "_dist" not in config_keys:
         raise ValueError(
             f"""prior_{coeff_type}_dist must be specified in prior given by {prior_spec}."""
-        )    
+        )
 
-    dist_key = prior_spec["prior_"+coeff_type+"_dist"]
+    dist_key = prior_spec["prior_" + coeff_type + "_dist"]
 
-    if dist_key not in PRIORS_MAP.keys(): 
-        raise ValueError(f"Prior {dist_key} in prior specification {prior_spec} not supported.")
+    if dist_key not in PRIORS_MAP.keys():
+        raise ValueError(
+            f"Prior {dist_key} in prior specification {prior_spec} not supported."
+        )
 
-    if "prior_"+coeff_type+"_mu" not in config_keys:
-        raise ValueError(f"""prior_{coeff_type}_mu must be specified in prior given by {prior_spec}.""")
+    if "prior_" + coeff_type + "_mu" not in config_keys:
+        raise ValueError(
+            f"""prior_{coeff_type}_mu must be specified in prior given by {prior_spec}."""
+        )
 
-    if "prior_"+coeff_type+"_sigma" not in config_keys:
-        raise ValueError(f"""prior_{coeff_type}_sigma must be specified in prior given by {prior_spec}.""")
+    if "prior_" + coeff_type + "_sigma" not in config_keys:
+        raise ValueError(
+            f"""prior_{coeff_type}_sigma must be specified in prior given by {prior_spec}."""
+        )
 
     return {
-        "prior_"+coeff_type+"_dist": PRIORS_MAP[dist_key],
-        "prior_"+coeff_type+"_mu": prior_spec["prior_"+coeff_type+"_mu"],
-        "prior_"+coeff_type+"_sigma": prior_spec["prior_"+coeff_type+"_sigma"],
+        "prior_" + coeff_type + "_dist": PRIORS_MAP[dist_key],
+        "prior_" + coeff_type + "_mu": prior_spec["prior_" + coeff_type + "_mu"],
+        "prior_" + coeff_type + "_sigma": prior_spec["prior_" + coeff_type + "_sigma"],
     }

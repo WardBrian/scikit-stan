@@ -27,18 +27,23 @@ def test_notfittederror_glm() -> None:
 @pytest.mark.parametrize("prior_config", [None, {}])
 def test_prior_config_default_nongaussian(prior_config) -> None:
     """Test that the default prior config is used if no prior config is provided."""
-    glm = GLM(family="gamma", link="log", seed=1234)
+    glm = GLM(family="gamma", link="log", seed=1234, priors=prior_config)
     X, y = _gen_fam_dat_continuous(family="gamma", link="log", seed=1234321)
 
-    fitted = glm.fit(X=X, y=y, priors=prior_config)
+    fitted = glm.fit(X=X, y=y)
 
     assert fitted.priors_ == {
+        0: {
+            "prior_slope_dist": 0,
+            "prior_slope_mu": 0.0,
+            "prior_slope_sigma": 2.5,
+        }
+    }
+
+    assert fitted.prior_intercept_ == {
         "prior_intercept_dist": 0,
         "prior_intercept_mu": 0.0,
         "prior_intercept_sigma": 2.5,
-        "prior_slope_dist": 0,
-        "prior_slope_mu": 0.0,
-        "prior_slope_sigma": 2.5,
     }
 
     assert (
@@ -47,23 +52,29 @@ def test_prior_config_default_nongaussian(prior_config) -> None:
         <= fitted.fitted_samples_.summary()["95%"]["alpha"]
     )
 
-# TODO: change this test 
+
+# TODO: change this test
 @pytest.mark.slow
 @pytest.mark.parametrize("prior_config", [None, {}])
 def test_prior_config_default_gaussian(prior_config) -> None:
     """Test that the default prior config is used if no prior config is provided."""
-    glm = GLM(family="gaussian", link="log", seed=1234)
+    glm = GLM(family="gaussian", link="log", seed=1234, priors=prior_config)
     X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234321)
 
-    fitted = glm.fit(X=X, y=y, priors=prior_config)
+    fitted = glm.fit(X=X, y=y)
 
     assert fitted.priors_ == {
+        0: {
+            "prior_slope_dist": 0,
+            "prior_slope_mu": 0.0,
+            "prior_slope_sigma": 2.5 * np.std(y) / np.std(X),
+        }
+    }
+
+    assert fitted.prior_intercept_ == {
         "prior_intercept_dist": 0,
         "prior_intercept_mu": np.mean(y),
         "prior_intercept_sigma": 2.5 * np.std(y),
-        "prior_slope_dist": 0,
-        "prior_slope_mu": 0.0,
-        "prior_slope_sigma": 2.5 * np.std(y) / np.std(X),
     }
 
     assert (
@@ -74,14 +85,24 @@ def test_prior_config_default_gaussian(prior_config) -> None:
 
 
 def test_laplace_default_setup() -> None:
-    glm = GLM(family="gaussian", link="log", seed=1234, priors={0: {
-        "prior_slope_dist": "laplace", 
-        "prior_slope_mu": 0.0,
-        "prior_slope_sigma": 2.5,
-    }})
+    glm = GLM(
+        family="gaussian",
+        link="log",
+        seed=1234,
+        priors={
+            0: {
+                "prior_slope_dist": "laplace",
+                "prior_slope_mu": 0.0,
+                "prior_slope_sigma": 2.5,
+            }
+        },
+    )
     X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234321)
 
-    fitted = glm.fit(X=X, y=y, )
+    fitted = glm.fit(
+        X=X,
+        y=y,
+    )
 
     assert fitted.priors_[0]["prior_slope_dist"] == 1
     assert fitted.prior_intercept_["prior_intercept_dist"] == 0
@@ -114,7 +135,7 @@ def test_prior_intercept_erroneous(unsupported_prior):
     [
         " ",
         "default",
-        {0: dict( prior_slope_dist=" ", prior_slope_mu=0.0, prior_slope_sigma=2.5) }
+        {0: dict(prior_slope_dist=" ", prior_slope_mu=0.0, prior_slope_sigma=2.5)},
     ],
 )
 def test_priors_erroneous(unsupported_prior):
@@ -138,17 +159,20 @@ def test_priors_erroneous(unsupported_prior):
                 "prior_intercept_dist": "normal",
                 "prior_intercept_mu": 0,
                 "prior_intercept_sigma": 1,
-            }
+            },
         ),
-        (
-            {},
-            {}
-        )
+        ({}, {}),
     ],
 )
 def test_prior_config_custom_normal(prior_slope_config, prior_intercept_config) -> None:
     """Test that partial & full set-up of priors with all-normal priors."""
-    glm = GLM(family="gamma", link="log", seed=1234, prior_intercept=prior_intercept_config, priors=prior_slope_config)
+    glm = GLM(
+        family="gamma",
+        link="log",
+        seed=1234,
+        prior_intercept=prior_intercept_config,
+        priors=prior_slope_config,
+    )
     X, y = _gen_fam_dat_continuous(family="gamma", link="log", seed=1234321)
 
     fitted = glm.fit(X=X, y=y)
@@ -157,10 +181,24 @@ def test_prior_config_custom_normal(prior_slope_config, prior_intercept_config) 
     assert fitted.priors_[0]["prior_slope_dist"] == 0
 
 
-def test_prior_setup_full() -> None: 
-    glm = GLM(family="gamma", link="log", seed=1234, 
-    prior_intercept={"prior_intercept_dist": "normal", "prior_intercept_mu": 0, "prior_intercept_sigma": 1}, 
-    priors={"0": {"prior_slope_dist": "normal", "prior_slope_mu": 0, "prior_slope_sigma": 1}})
+def test_prior_setup_full() -> None:
+    glm = GLM(
+        family="gamma",
+        link="log",
+        seed=1234,
+        prior_intercept={
+            "prior_intercept_dist": "normal",
+            "prior_intercept_mu": 0,
+            "prior_intercept_sigma": 1,
+        },
+        priors={
+            "0": {
+                "prior_slope_dist": "normal",
+                "prior_slope_mu": 0,
+                "prior_slope_sigma": 1,
+            }
+        },
+    )
 
     X, y = _gen_fam_dat_continuous(family="gamma", link="log", seed=1234321)
 
@@ -170,19 +208,28 @@ def test_prior_setup_full() -> None:
     assert fitted.priors_[0]["prior_slope_dist"] == 0
 
 
-def test_prior_setup_half() -> None: 
-    glm = GLM(family="gamma", link="log", seed=1234,
-            priors={0: {"prior_slope_dist": "normal", "prior_slope_mu": 0, "prior_slope_sigma": 1}},
-            prior_intercept={})
+def test_prior_setup_half() -> None:
+    glm = GLM(
+        family="gamma",
+        link="log",
+        seed=1234,
+        priors={
+            0: {
+                "prior_slope_dist": "normal",
+                "prior_slope_mu": 0,
+                "prior_slope_sigma": 1,
+            }
+        },
+        prior_intercept={},
+    )
 
-    
     X, y = _gen_fam_dat_continuous(family="gamma", link="log", seed=1234321)
 
     fitted = glm.fit(X=X, y=y)
 
     assert fitted.prior_intercept_["prior_intercept_dist"] == 0
     assert fitted.priors_[0]["prior_slope_dist"] == 0
-        
+
 
 @pytest.mark.parametrize("algorithm", ["HMC-NUTS", "L-BFGS", "ADVI"])
 def test_custom_seed_all_algs(algorithm: str) -> None:

@@ -2,7 +2,7 @@
 
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import numpy as np
 import scipy.stats as stats  # type: ignore
@@ -10,13 +10,12 @@ from cmdstanpy import CmdStanModel
 from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
-from sk_stan_regression.utils import map_priors
 from sk_stan_regression.utils.validation import (
     FAMILY_LINKS_MAP,
     check_array,
     check_is_fitted,
     validate_family,
-    validate_prior
+    validate_prior,
 )
 
 GLM_STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
@@ -58,7 +57,7 @@ class GLM(CoreEstimator):
     :param link: GLM link function; all R Families links are supported in admissible combinations
     :param seed: random seed used for probabilistic operations; chosen randomly if not specified
     :param priors: Dictionary of priors to use for the model.
-    By default, all regression coefficient priors are set to 
+    By default, all regression coefficient priors are set to
         beta ~ normal(0, 2.5 * sd(y) / sd(X)) if Gaussian else normal(0, 2.5)
 
     The number of specified priors cannot exceed the number of features in the data.
@@ -66,16 +65,18 @@ class GLM(CoreEstimator):
         "prior_slope_dist": distribution of the prior on this coefficient
         "prior_slope_mu": location parameter of the prior on this coefficient
         "prior_slope_sigma": scale parameter of the prior on this coefficient
-    The main passed dictionary indexes the priors by the row index of the feature starting at 0. 
-    Thus, to specify a prior on the first feature, the dictionary should be passed as {0: {"prior_slope_dist": "normal", "prior_slope_mu": 0, "prior_slope_sigma": 1}}.
-    Any unspecified priors will be set to the default. 
+    The main passed dictionary indexes the priors by the row index of the feature starting at 0.
+    Thus, to specify a prior on the first feature, the dictionary should be passed as
+     {0: {"prior_slope_dist": "normal", "prior_slope_mu": 0, "prior_slope_sigma": 1}}.
+    Any unspecified priors will be set to the default.
 
-    :param prior_intercept: Prior for the intercept alpha parameter for GLM. 
-    If this is not specified, the default is 
+    :param prior_intercept: Prior for the intercept alpha parameter for GLM.
+    If this is not specified, the default is
         alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)
 
     To set this prior explicitly, pass a dictionary with the following keys:
-        "prior_intercept_dist": str, distribution of the prior from the list of supported prior distributions: "normal", "laplace"
+        "prior_intercept_dist": str, distribution of the prior from the list
+         of supported prior distributions: "normal", "laplace"
         "prior_intercept_mu": float, location parameter of the prior distribution
         "prior_intercept_sigma": float, error scale parameter of the prior distribution
     """
@@ -235,47 +236,50 @@ class GLM(CoreEstimator):
 
         dat["sdy"] = sdy
 
-        # likely to be reused across multiple features       
-        # default prior selection follows: 
+        # likely to be reused across multiple features
+        # default prior selection follows:
         # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
-        DEFAULT_SLOPE_PRIOR = {
-                    "prior_slope_dist": 0, 
-                    "prior_slope_mu": 0.0, 
-                    "prior_slope_sigma": 2.5 * sdy / sdx
-                } if self.family == "gaussian" else {
-                    "prior_slope_dist": 0,
-                    "prior_slope_mu": 0.0,
-                    "prior_slope_sigma": 2.5
-                }
+        DEFAULT_SLOPE_PRIOR = (
+            {
+                "prior_slope_dist": 0,
+                "prior_slope_mu": 0.0,
+                "prior_slope_sigma": 2.5 * sdy / sdx,
+            }
+            if self.family == "gaussian"
+            else {
+                "prior_slope_dist": 0,
+                "prior_slope_mu": 0.0,
+                "prior_slope_sigma": 2.5,
+            }
+        )
 
         priors_ = {}
 
-        # user did not specify any priors 
-        if self.priors is None or len(self.priors) == 0: 
-            priors_ = {
-                idx: DEFAULT_SLOPE_PRIOR
-                for idx in np.arange(K)
-            }
-        else: 
+        # user did not specify any priors
+        if self.priors is None or len(self.priors) == 0:
+            priors_ = {idx: DEFAULT_SLOPE_PRIOR for idx in np.arange(K)}
+        else:
             for idx in np.arange(K):
-                if idx in self.priors: 
+                if idx in self.priors:
                     priors_[idx] = validate_prior(self.priors[idx], "slope")
                 else:
                     priors_[idx] = DEFAULT_SLOPE_PRIOR
 
         self.priors_ = priors_
 
-        # TODO: add functionality for GLM to not have an intercept at all 
-        # set up default prior for intercept if not user-specified  
+        # TODO: add functionality for GLM to not have an intercept at all
+        # set up default prior for intercept if not user-specified
         if self.prior_intercept is None or len(self.prior_intercept) == 0:
-            warnings.warn("""Prior on intercept not specified. Using default prior.
-                alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)""")
+            warnings.warn(
+                """Prior on intercept not specified. Using default prior.
+                alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)"""
+            )
             self.prior_intercept_ = {
-                "prior_intercept_dist": 0, # normal
+                "prior_intercept_dist": 0,  # normal
                 "prior_intercept_mu": my,
                 "prior_intercept_sigma": 2.5 * sdy,
             }
-        else: 
+        else:
             self.prior_intercept_ = validate_prior(self.prior_intercept, "intercept")
 
         dat["prior_intercept_dist"] = self.prior_intercept_["prior_intercept_dist"]
@@ -390,12 +394,12 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 1,
-            "prior_intercept_dist": self.priors_["prior_intercept_dist"],
-            "prior_intercept_mu": self.priors_["prior_intercept_mu"],
-            "prior_intercept_sigma": self.priors_["prior_intercept_sigma"],
-            "prior_slope_dist": self.priors_["prior_slope_dist"],
-            "prior_slope_mu": self.priors_["prior_slope_mu"],
-            "prior_slope_sigma": self.priors_["prior_slope_sigma"],
+            "prior_intercept_dist": 0,
+            "prior_intercept_mu": 1.0,
+            "prior_intercept_sigma": 2.5,
+            "prior_slope_dist": [0] * X_clean.shape[1],
+            "prior_slope_mu": [0.0] * X_clean.shape[1],
+            "prior_slope_sigma": [0.0] * X_clean.shape[1],
             "sdy": 1.0,
         }
 

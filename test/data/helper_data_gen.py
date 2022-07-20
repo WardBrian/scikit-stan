@@ -7,7 +7,7 @@ from scipy.special import expit
 def _gen_fam_dat_continuous(
     family: str,
     link: str,
-    Nsize=1000,
+    Nsize=100,
     alpha=0.6,
     beta=0.2,
     sigma=0.3,
