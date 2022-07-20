@@ -20,7 +20,9 @@ data {
   int<lower=0> prior_slope_dist[K];     // distribution for regression coefficients 
   vector[K] prior_slope_mu;             // mean of the prior for regression coefficients
   vector[K] prior_slope_sigma;          // error scale of the prior for regression coefficients
-  
+  int<lower=0> prior_aux_dist;          // distribution for auxiliary parameter (sigma): 0 is exponential, 1 is chi2
+  # TODO: this should be generalized to being a vector of parameters for multi-parameter distribtions
+  real<lower=0> prior_aux_param;      // distribution parameter for the prior for sigma
   real sdy;
 }
 transformed data {
@@ -55,7 +57,12 @@ model {
     }
   }
 
-  sigma ~ exponential(1 / sdy); // std for Gaussian, shape for gamma
+  if (prior_aux_dist == 0) { // exponential  
+    sigma ~ exponential(prior_aux_param);
+  }
+  else if (prior_aux_dist == 1) { // chi2  
+    sigma ~ chi_square(prior_aux_param);
+  }
 
   if (family == 1) { // Gamma  
     target += gamma_llh(y, s_log_y, mu, sigma, link);

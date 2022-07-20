@@ -14,6 +14,7 @@ from sk_stan_regression.utils.validation import (
     FAMILY_LINKS_MAP,
     check_array,
     check_is_fitted,
+    validate_aux_prior,
     validate_family,
     validate_prior,
 )
@@ -58,10 +59,11 @@ class GLM(CoreEstimator):
     :param seed: random seed used for probabilistic operations; chosen randomly if not specified
     :param priors: Dictionary of priors to use for the model.
     By default, all regression coefficient priors are set to
-        beta ~ normal(0, 2.5 * sd(y) / sd(X)) if Gaussian else normal(0, 2.5)
-
+        beta ~ normal(0, 2.5 * sd(y) / sd(X)) if Gaussian else normal(0, 2.5 / sd(X))
+    if auto_scale is True, otherwise
+        beta ~ normal(0, 2.5 * sd(y)) if Gaussian else normal(0, 2.5)
     The number of specified priors cannot exceed the number of features in the data.
-    Each prior is specified as a dictionary with the following keys:
+    Each individual prior is specified as a dictionary with the following keys:
         "prior_slope_dist": distribution of the prior on this coefficient
         "prior_slope_mu": location parameter of the prior on this coefficient
         "prior_slope_sigma": scale parameter of the prior on this coefficient
@@ -79,6 +81,28 @@ class GLM(CoreEstimator):
          of supported prior distributions: "normal", "laplace"
         "prior_intercept_mu": float, location parameter of the prior distribution
         "prior_intercept_sigma": float, error scale parameter of the prior distribution
+
+    :param prior_aux: prior on the auxiliary parameter for the family used in
+    the regression: for example, the std for Gaussian, shape for gamma, etc...
+    Currently supported priors are: "exponential" and "chi2", which are
+    both parameterized by a single scalar.
+    This is a dictionary with the following keys
+    (which (TODO!) will differ based on the prior: "beta" for exponential, "nu" for chi2, etc...):
+        "prior_aux_dist": distribution of the prior on this parameter
+        "prior_aux_param": parameter of the prior on this parameter
+        ... distribution-specific parameters ... TODO
+
+    For example, to specify a chi2 prior with nu=2.5, pass
+        {"prior_aux_dist": "chi2", "prior_aux_param": 2.5}
+
+    The default un-scaled prior is exponential(1), the default scaled prior is
+    exponential(1/sy) where sy = sd(y) - if the specified family is a Gaussian,
+    and sy = 1 in all other cases. Setting auto_scale=True results in division by
+    sy.
+
+    :param autoscale: boolean, if True, all prior parameters will be scaled:
+
+    By default, priors are not automatically scaled.
     """
 
     # TODO: add prior setting for prior on auxiliary parameters (exp(1/sdy), etc.)))
@@ -90,7 +114,7 @@ class GLM(CoreEstimator):
         seed: Optional[int] = None,
         priors: Optional[Dict[int, Dict[str, Any]]] = None,
         prior_intercept: Optional[Dict[str, Any]] = None,
-        # prior_aux: Optional[Dict[str, Any]] = None,
+        prior_aux: Optional[Dict[str, Any]] = None,
         autoscale: bool = False,
     ):
         self.algorithm = algorithm
@@ -100,7 +124,7 @@ class GLM(CoreEstimator):
 
         self.priors = priors
         self.prior_intercept = prior_intercept
-        # self.prior_aux = prior_aux
+        self.prior_aux = prior_aux
         self.autoscale = autoscale
 
         self.seed = seed
@@ -125,22 +149,7 @@ class GLM(CoreEstimator):
             then X is automatically reshaped to being 2D; this raises a warning
         :param y: Nx1 outcome vector
         :param show_console: whether to show the Stan console output
-        :param priors: dictionary of priors to use for the model.
-        The prior for the intercept is set via "intercept" and the prior for the non-intercept
-        regression coefficients is set via "beta".
-        If only one is specified, then the other is set to the default.
-        Currently supported priors are: "normal" (default) with parameters "location" and "scale",
-        and "laplace" with parameters "location" and "scale". The error scale "sigma" for
-        continuous models defaults to exponential(1/sy) where sy = sd(y) if the specified family is
-        a Gaussian, and sy = 1 in all other cases. TODO: this should be user settable as well...
-        For the intercept prior, "location" and "scale" must be scalars.
-        For the prior on the coefficients, "location" and "scale" must be either
-            1) be vectors of length equal to the number of coefficients
-          excluding the intercept (the number of features in your dataset) or
-            2) be scalars, in which case the same values will be
-          repeated for each coefficient
-          TODO: improve docs for this... should the parameters for each individual
-          prior for each coefficient be customizable?
+
 
         NOTE: the usual prior-selection advice holds. See for example:
         http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf
@@ -301,6 +310,32 @@ class GLM(CoreEstimator):
         else:
             self.prior_intercept_ = validate_prior(self.prior_intercept, "intercept")
 
+        self.prior_aux_: Dict[str, Any] = {}
+
+        # validate auxiliary parameter prior
+        if self.prior_aux is None or len(self.prior_aux) == 0:
+            self.prior_aux_ = {
+                "prior_aux_dist": 0,  # exponential
+            }
+
+            if self.autoscale:
+                warnings.warn(
+                    """Prior on auxiliary parameter not specified. Using default prior
+                        sigma ~ exponential(1 / sd(y))
+                    """
+                )
+                self.prior_aux_["prior_aux_param"] = 1.0 / sdy
+            else:
+                warnings.warn(
+                    """Prior on auxiliary parameter not specified. Using default prior
+                        sigma ~ exponential(1 / sd(y))
+                    """
+                )
+
+                self.prior_aux_["prior_aux_param"] = 1.0
+        else:
+            self.prior_aux_ = validate_aux_prior(self.prior_aux)
+
         dat["prior_intercept_dist"] = self.prior_intercept_["prior_intercept_dist"]
         dat["prior_intercept_mu"] = self.prior_intercept_["prior_intercept_mu"]
         dat["prior_intercept_sigma"] = self.prior_intercept_["prior_intercept_sigma"]
@@ -310,6 +345,9 @@ class GLM(CoreEstimator):
             dat["prior_slope_dist"][idx] = self.priors_[idx]["prior_slope_dist"]
             dat["prior_slope_mu"][idx] = self.priors_[idx]["prior_slope_mu"]
             dat["prior_slope_sigma"][idx] = self.priors_[idx]["prior_slope_sigma"]
+
+        dat["prior_aux_dist"] = self.prior_aux_["prior_aux_dist"]
+        dat["prior_aux_param"] = self.prior_aux_["prior_aux_param"]
 
         if self.is_cont_dat_:
             self.model_ = GLM_CONTINUOUS_STAN
@@ -419,8 +457,9 @@ class GLM(CoreEstimator):
             "prior_slope_dist": [0] * X_clean.shape[1],
             "prior_slope_mu": [0.0] * X_clean.shape[1],
             "prior_slope_sigma": [0.0] * X_clean.shape[1],
+            "prior_aux_dist": 0,  # these don't affect anything when generating predictions
+            "prior_aux_param": 1.0,  # these don't affect anything when generating predictions
             "sdy": 1.0,
-            "autoscale": int(self.autoscale),
         }
 
         # known that fitted with HMC-NUTS, so fitted_samples is not None

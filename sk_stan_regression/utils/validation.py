@@ -358,3 +358,48 @@ def validate_prior(prior_spec: Dict[str, Any], coeff_type: str) -> Dict[str, Any
         "prior_" + coeff_type + "_mu": prior_spec["prior_" + coeff_type + "_mu"],
         "prior_" + coeff_type + "_sigma": prior_spec["prior_" + coeff_type + "_sigma"],
     }
+
+
+# TODO: to generalize to multi-parameter priors here, additional validation checks are
+# necessary, and on the Stan side, priors to the log-likelihood should be set
+# via a vector rather than just a single vague parameter.
+def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
+    """Validates passed in auxiliary prior specification."""
+    config_keys = aux_prior_spec.keys()
+
+    if "prior_aux_dist" not in config_keys:
+        raise ValueError(
+            f"""aux_prior_dist must be specified in auxiliary prior given by {aux_prior_spec}."""
+        )
+
+    dist_key = aux_prior_spec["prior_aux_dist"]
+
+    if dist_key not in PRIORS_AUX_MAP.keys():
+        raise ValueError(
+            f"Prior {dist_key} in auxiliary prior specification {aux_prior_spec} not supported."
+        )
+
+    prior_aux_clean = {
+        "aux_prior_dist": PRIORS_AUX_MAP[dist_key],
+    }
+
+    # NOTE: this section has placeholder values, see the TODO above for generalization
+    # add validation for additional priors on auxiliary variable(s) here
+    if dist_key == "exponential":
+        if "prior_aux_param" not in config_keys:
+            raise ValueError(
+                f"""prior_aux_param must be specified in 
+                exponential auxiliary prior given by {aux_prior_spec}."""
+            )
+
+        prior_aux_clean["prior_aux_param"] = aux_prior_spec["prior_aux_param"]
+    elif dist_key == "chi2":
+        if "prior_aux_param" not in config_keys:
+            raise ValueError(
+                f"""prior_aux_param must be specified in 
+                chi2 auxiliary prior given by {aux_prior_spec}."""
+            )
+
+        prior_aux_clean["prior_aux_param"] = aux_prior_spec["prior_aux_param"]
+
+    return prior_aux_clean
