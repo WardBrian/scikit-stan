@@ -53,7 +53,6 @@ def test_prior_config_default_nongaussian(prior_config) -> None:
     )
 
 
-# TODO: change this test
 @pytest.mark.slow
 @pytest.mark.parametrize("prior_config", [None, {}])
 def test_prior_config_default_gaussian(prior_config) -> None:

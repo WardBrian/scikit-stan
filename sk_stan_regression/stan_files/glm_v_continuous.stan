@@ -17,9 +17,10 @@ data {
   int<lower=0> prior_intercept_dist;    // distribution for intercept  
   real prior_intercept_mu;              // mean of the prior for intercept 
   real prior_intercept_sigma;           // error scale of the prior for intercept
-  int<lower=0> prior_slope_dist[K];        // distribution for regression coefficients 
-  vector[K] prior_slope_mu;                  // mean of the prior for regression coefficients
-  vector[K] prior_slope_sigma;               // error scale of the prior for regression coefficients
+  int<lower=0> prior_slope_dist[K];     // distribution for regression coefficients 
+  vector[K] prior_slope_mu;             // mean of the prior for regression coefficients
+  vector[K] prior_slope_sigma;          // error scale of the prior for regression coefficients
+  
   real sdy;
 }
 transformed data {

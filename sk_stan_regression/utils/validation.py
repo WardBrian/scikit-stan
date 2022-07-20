@@ -75,6 +75,11 @@ PRIORS_MAP = {
     #  https://www.jstor.org/stable/1403571#metadata_info_tab_contents
 }
 
+PRIORS_AUX_MAP = {
+    "exponential": 0,  # exponential distribution, requires only beta parameter
+    "chi2": 1,  # chi-squared distribution, requires only nu parameter
+}
+
 
 # NOTE: family and link combinations match R families package
 # package: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/family

@@ -81,6 +81,7 @@ class GLM(CoreEstimator):
         "prior_intercept_sigma": float, error scale parameter of the prior distribution
     """
 
+    # TODO: add prior setting for prior on auxiliary parameters (exp(1/sdy), etc.)))
     def __init__(
         self,
         algorithm: str = "HMC-NUTS",
@@ -89,6 +90,8 @@ class GLM(CoreEstimator):
         seed: Optional[int] = None,
         priors: Optional[Dict[int, Dict[str, Any]]] = None,
         prior_intercept: Optional[Dict[str, Any]] = None,
+        # prior_aux: Optional[Dict[str, Any]] = None,
+        autoscale: bool = False,
     ):
         self.algorithm = algorithm
 
@@ -97,6 +100,8 @@ class GLM(CoreEstimator):
 
         self.priors = priors
         self.prior_intercept = prior_intercept
+        # self.prior_aux = prior_aux
+        self.autoscale = autoscale
 
         self.seed = seed
 
@@ -239,23 +244,29 @@ class GLM(CoreEstimator):
         # likely to be reused across multiple features
         # default prior selection follows:
         # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
-        DEFAULT_SLOPE_PRIOR = (
-            {
+        if self.family == "gaussian" and self.autoscale:
+            DEFAULT_SLOPE_PRIOR = {
                 "prior_slope_dist": 0,
                 "prior_slope_mu": 0.0,
                 "prior_slope_sigma": 2.5 * sdy / sdx,
             }
-            if self.family == "gaussian"
-            else {
-                "prior_slope_dist": 0,
-                "prior_slope_mu": 0.0,
-                "prior_slope_sigma": 2.5,
-            }
-        )
+        else:
+            if self.autoscale:
+                DEFAULT_SLOPE_PRIOR = {
+                    "prior_slope_dist": 0,
+                    "prior_slope_mu": 0.0,
+                    "prior_slope_sigma": 2.5 / sdx,
+                }
+            else:
+                DEFAULT_SLOPE_PRIOR = {
+                    "prior_slope_dist": 0,
+                    "prior_slope_mu": 0.0,
+                    "prior_slope_sigma": 2.5,
+                }
 
         priors_ = {}
 
-        # user did not specify any priors
+        # user did not specify any regression coefficient priors
         if self.priors is None or len(self.priors) == 0:
             priors_ = {idx: DEFAULT_SLOPE_PRIOR for idx in np.arange(K)}
         else:
@@ -272,13 +283,21 @@ class GLM(CoreEstimator):
         if self.prior_intercept is None or len(self.prior_intercept) == 0:
             warnings.warn(
                 """Prior on intercept not specified. Using default prior.
-                alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)"""
+                alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(mu(y), 2.5)"""
             )
-            self.prior_intercept_ = {
-                "prior_intercept_dist": 0,  # normal
-                "prior_intercept_mu": my,
-                "prior_intercept_sigma": 2.5 * sdy,
-            }
+
+            if self.autoscale:
+                self.prior_intercept_ = {
+                    "prior_intercept_dist": 0,  # normal
+                    "prior_intercept_mu": my,
+                    "prior_intercept_sigma": 2.5 * sdy,
+                }
+            else:
+                self.prior_intercept_ = {
+                    "prior_intercept_dist": 0,  # normal
+                    "prior_intercept_mu": my,
+                    "prior_intercept_sigma": 2.5,
+                }
         else:
             self.prior_intercept_ = validate_prior(self.prior_intercept, "intercept")
 
@@ -401,6 +420,7 @@ class GLM(CoreEstimator):
             "prior_slope_mu": [0.0] * X_clean.shape[1],
             "prior_slope_sigma": [0.0] * X_clean.shape[1],
             "sdy": 1.0,
+            "autoscale": int(self.autoscale),
         }
 
         # known that fitted with HMC-NUTS, so fitted_samples is not None
