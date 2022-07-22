@@ -369,7 +369,7 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
 
     if "prior_aux_dist" not in config_keys:
         raise ValueError(
-            f"""aux_prior_dist must be specified in auxiliary prior given by {aux_prior_spec}."""
+            f"""prior_aux_dist must be specified in auxiliary prior given by {aux_prior_spec}."""
         )
 
     dist_key = aux_prior_spec["prior_aux_dist"]
@@ -380,7 +380,7 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
         )
 
     prior_aux_clean = {
-        "aux_prior_dist": PRIORS_AUX_MAP[dist_key],
+        "prior_aux_dist": PRIORS_AUX_MAP[dist_key],
     }
 
     # NOTE: this section has placeholder values, see the TODO above for generalization

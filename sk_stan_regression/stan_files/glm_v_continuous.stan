@@ -47,7 +47,9 @@ model {
   else if (prior_intercept_dist == 1) { // laplace prior; has mu and sigma
       alpha ~ double_exponential(prior_intercept_mu, prior_intercept_sigma);
   }
-  
+
+  // NOTE: this cannot be vectorized as a conditional operation 
+  // must be performed on each element of the priors list   
   for (idx in 1:K) { 
     if (prior_slope_dist[idx] == 0) { // normal prior; has mu and sigma  
       beta[idx] ~ normal(prior_slope_mu[idx], prior_slope_sigma[idx]); 
@@ -57,6 +59,8 @@ model {
     }
   }
 
+  // NOTE: prior_aux_param is a placeholder value and this 
+  // should be a loop once more general prior distributions are supported
   if (prior_aux_dist == 0) { // exponential  
     sigma ~ exponential(prior_aux_param);
   }
@@ -64,19 +68,19 @@ model {
     sigma ~ chi_square(prior_aux_param);
   }
 
-  if (family == 1) { // Gamma  
+  if (family == 0) { // Gaussian 
+    //Increment target log probability density with
+    // normal_lpdf( y | mu, sigma) dropping constant additive terms.
+    y ~ normal(mu_unlinked, sigma); 
+  }
+  else if (family == 1) { // Gamma  
     target += gamma_llh(y, s_log_y, mu, sigma, link);
   } 
-  else { 
-    if (family == 0) { // Gaussian
-      //Increment target log probability density with
-      // normal_lpdf( y | mu, sigma) dropping constant additive terms.
-      y ~ normal(mu_unlinked, sigma); 
-    } 
-    else if (family == 2) { // inverse Gaussian
+  else if (family == 2)
+   { 
       target += inv_gaussian_llh(y, s_log_y, mu_unlinked, sigma, sqrt_y);
-    }
   }
+  // add additional families here 
 }
 generated quantities {
   real y_sim[predictor * N]; 

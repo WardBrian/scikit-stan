@@ -48,6 +48,122 @@ GLM_DISCRETE_STAN = CmdStanModel(
 
 
 class GLM(CoreEstimator):
+    """A generalized linear model estimator with several options for families, links,
+    and priors on regression coefficients, the intercept, and error scale,
+    done in an sk-learn style.
+    This class also provides an autoscaling feature of the priors.
+    For deterministic behavior from this model, the class's seed can be set and is then
+    passed to Stan computations.
+
+    Parameters
+    ----------
+    algorithm : str, optional
+        Algorithm to be used by the Stan model. The following are supported:
+            * HMC-NUTS - runs the HMC-NUTS sampler,
+            * L-BFGS - produces a likelihood estimate of model parameters,
+            * ADVI - runs Stan's variational inference algorithm to compute the posterior.
+    family : str, optional
+        Distribution family used for linear regression. All R Families package are supported:
+            * "gaussian" - Gaussian distribution,
+            * "gamma" - Gamma distribution,
+            * "inverse-gaussian" - Inverse Gaussian distribution,
+            * "poisson" - Poisson distribution,
+            * "binomial" - Binomial distribution,
+    link : Optional[str], optional
+        Distribution link function used for linear regression,
+        following R's family-link combinations.
+        These are family-specific:
+            * "gaussian":
+                * "identity" - Identity link function,
+                * "log" - Log link function,
+                * "inverse" - Inverse link function,
+            * "gamma":
+                * "identity" - Identity link function,
+                * "log" - Log link function,
+                * "inverse" - Inverse link function,
+            * "inverse-gaussian":
+                * "identity" - Identity link function,
+                * "log" - Log link function,
+                * "inverse" - Inverse link function,
+                * "inverse-square" - Inverse square link function,
+            * "poisson":
+                * "identity" - Identity link function,
+                * "log" - Log link function,
+                * "sqrt" - Square root link function,
+            * "binomial":
+                * "log" - Log link function,
+                * "logit" - Logit link function,
+                * "probit" - Probit link function,
+                * "cloglog" - Complementary log-log link function,
+                * "cauchit" - Cauchit link function,
+        If an invalid combination of family and link is passed, a ValueError is raised.
+    seed : Optional[int], optional
+        Seed for random number generator. Must be an integer between 0 an 2^32-1.
+        If this is left unspecified, then a random seed will be used for all chains
+        via numpy.random.RandomState().
+        Specifying this field will yield the same result for multiple uses if
+        all other parameters are held the same.
+    priors : Optional[Dict[int, Dict[str, Any]]], optional
+        Dictionary of priors to use for the model.
+        By default, all regression coefficient priors are set to
+            beta ~ normal(0, 2.5 * sd(y) / sd(X)) if Gaussian else normal(0, 2.5 / sd(X))
+        if auto_scale is True, otherwise
+            beta ~ normal(0, 2.5 * sd(y)) if Gaussian else normal(0, 2.5)
+        The number of specified priors cannot exceed the number of features in the data.
+        Each individual prior is specified as a dictionary with the following keys:
+            "prior_slope_dist": distribution of the prior on this coefficient
+            "prior_slope_mu": location parameter of the prior on this coefficient
+            "prior_slope_sigma": scale parameter of the prior on this coefficient
+        The main passed dictionary indexes the priors by the row index of the feature starting at 0.
+        Thus, to specify a prior on the first feature, the dictionary should be passed as
+            {0: {"prior_slope_dist": "normal", "prior_slope_mu": 0, "prior_slope_sigma": 1}}.
+        Any unspecified priors will be set to the default.
+    prior_intercept : Optional[Dict[str, Any]], optional
+        Prior for the intercept alpha parameter for GLM.
+        If this is not specified, the default is
+            alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)
+
+        To set this prior explicitly, pass a dictionary with the following keys:
+            "prior_intercept_dist": str, distribution of the prior from the list
+             of supported prior distributions: "normal", "laplace"
+            "prior_intercept_mu": float, location parameter of the prior distribution
+            "prior_intercept_sigma": float, error scale parameter of the prior distribution
+
+        Thus, for example, passing
+            {"prior_intercept_dist": "normal", "prior_intercept_mu": 0, "prior_intercept_sigma": 1}
+        results in
+            alpha ~ normal(0, 1)
+        by default (without autoscaling, see below).
+
+    prior_aux : Optional[Dict[str, Any]], optional
+        Prior on the auxiliary parameter for the family used in
+        the regression: for example, the std for Gaussian, shape for gamma, etc...
+        Currently supported priors are: "exponential" and "chi2", which are
+        both parameterized by a single scalar.
+        Priors here with more parameters are a future feature.
+        For single-parameter priors, this field is a dictionary with the following keys
+            "prior_aux_dist": distribution of the prior on this parameter
+            "prior_aux_param": parameter of the prior on this parameter
+
+        For example, to specify a chi2 prior with nu=2.5, pass
+            {"prior_aux_dist": "chi2", "prior_aux_param": 2.5}
+
+        The default un-scaled prior is exponential(1), the default scaled prior is
+        exponential(1/sy) where sy = sd(y) - if the specified family is a Gaussian,
+        and sy = 1 in all other cases. Setting auto_scale=True results in division by
+        sy.
+
+    NOTE: the usual prior-selection advice holds. See these discussions about prior selection:
+        * https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations
+        * http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf
+
+    autoscale : bool, optional
+        Enable automatic scaling of priors. Autoscaling is performed the same as in rstanarm:
+            https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+
+        This procedure does not happen by default.
+    """
+
     """
     Vectorized, multidimensional version of the BLR Estimator above.
     Note that the intercept alpha and error scale sigma remain as scalar values
@@ -136,25 +252,39 @@ class GLM(CoreEstimator):
         y: ArrayLike,
         show_console: bool = False,
     ) -> "CoreEstimator":
-        """
-        Fits current vectorized BLR object to the given data,
+        """Fits current vectorized BLR object to the given data,
         with a default set of data.
         This model is considered fit once its alpha, beta,
         and sigma parameters are determined via a regression.
 
-        Where N is the number of data items (rows) and
-        K is the number of predictors (columns) in x:
+        Parameters
+        ----------
+        X : ArrayLike
+            NxK matrix of predictors, where K >= 0. If K = 1,
+            then X is automatically reshaped to being 2D and raises a warning.
+        y : ArrayLike
+            Nx1 outcome vector where each row is a response corresponding to
+            the same row of features in X.
+        show_console : bool, optional
+            Printing output of default CmdStanPy console during Stan operations.
 
-        :param X: NxK predictor matrix, where K >= 0; if K = 1,
-            then X is automatically reshaped to being 2D; this raises a warning
-        :param y: Nx1 outcome vector
-        :param show_console: whether to show the Stan console output
+        Returns
+        -------
+        CoreEstimator
+            Abstract class for all estimator-type models in this package.
+            The GLM class is a subclass of CoreEstimator.
 
+        Raises
+        ------
+        ValueError
+            X is required to have at least 2 columns and have the same number of rows as y.
+        ValueError
+            y is required to have exactly 1 column and the same number of rows as X.
+        ValueError
+            Algorithm choice in model set-up is not supported.
 
-        NOTE: the usual prior-selection advice holds. See for example:
-        http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf
-
-        :return: self, an object of type GLM
+        Other ValueErrors may be raised by additional validation checks.
+        These include invalid prior set-up or invalid data.
         """
         if y is None:
             raise ValueError(
@@ -240,38 +370,33 @@ class GLM(CoreEstimator):
         # unnecessary if the user supplies all prior parameters
         # TODO: clean up so these computations are not performed in
         # that scenario
+        sdx = np.std(X_clean)
         if self.familyid_ == 0:  # gaussian
-            sdy, sdx, my = np.std(y_clean), np.std(X_clean), np.mean(y_clean)
+            my = np.mean(y_clean) if self.linkid_ == 0 else 0.0
+            sdy = np.std(y_clean)
         else:
-            sdy, sdx, my = 1.0, 1.0, 0.0
+            my = 0.0
+            sdy = 1.0
 
         if sdy == 0.0:
             sdy = 1.0
 
         dat["sdy"] = sdy
 
+        DEFAULT_SLOPE_PRIOR = {
+            "prior_slope_dist": 0,
+            "prior_slope_mu": 0.0,
+        }
         # likely to be reused across multiple features
         # default prior selection follows:
         # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
         if self.family == "gaussian" and self.autoscale:
-            DEFAULT_SLOPE_PRIOR = {
-                "prior_slope_dist": 0,
-                "prior_slope_mu": 0.0,
-                "prior_slope_sigma": 2.5 * sdy / sdx,
-            }
+            DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = 2.5 * sdy / sdx
         else:
             if self.autoscale:
-                DEFAULT_SLOPE_PRIOR = {
-                    "prior_slope_dist": 0,
-                    "prior_slope_mu": 0.0,
-                    "prior_slope_sigma": 2.5 / sdx,
-                }
+                DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = 2.5 / sdx
             else:
-                DEFAULT_SLOPE_PRIOR = {
-                    "prior_slope_dist": 0,
-                    "prior_slope_mu": 0.0,
-                    "prior_slope_sigma": 2.5,
-                }
+                DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = 2.5
 
         priors_ = {}
 
@@ -292,21 +417,19 @@ class GLM(CoreEstimator):
         if self.prior_intercept is None or len(self.prior_intercept) == 0:
             warnings.warn(
                 """Prior on intercept not specified. Using default prior.
-                alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(mu(y), 2.5)"""
+                alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)"""
             )
 
-            if self.autoscale:
-                self.prior_intercept_ = {
-                    "prior_intercept_dist": 0,  # normal
-                    "prior_intercept_mu": my,
-                    "prior_intercept_sigma": 2.5 * sdy,
-                }
-            else:
-                self.prior_intercept_ = {
-                    "prior_intercept_dist": 0,  # normal
-                    "prior_intercept_mu": my,
-                    "prior_intercept_sigma": 2.5,
-                }
+            self.prior_intercept_ = {
+                "prior_intercept_dist": 0,  # normal
+                "prior_intercept_mu": my
+                if self.family == "gaussian" and self.link == "identity"
+                else 0.0,
+            }
+
+            self.prior_intercept_["prior_intercept_sigma"] = (
+                2.5 * sdy if self.autoscale else 2.5
+            )
         else:
             self.prior_intercept_ = validate_prior(self.prior_intercept, "intercept")
 
@@ -320,15 +443,15 @@ class GLM(CoreEstimator):
 
             if self.autoscale:
                 warnings.warn(
-                    """Prior on auxiliary parameter not specified. Using default prior
+                    """Prior on auxiliary parameter not specified. Using default scaled prior
                         sigma ~ exponential(1 / sd(y))
                     """
                 )
                 self.prior_aux_["prior_aux_param"] = 1.0 / sdy
             else:
                 warnings.warn(
-                    """Prior on auxiliary parameter not specified. Using default prior
-                        sigma ~ exponential(1 / sd(y))
+                    """Prior on auxiliary parameter not specified. Using default unscaled prior
+                        sigma ~ exponential(1)
                     """
                 )
 
@@ -398,13 +521,26 @@ class GLM(CoreEstimator):
         X: NDArray[Union[np.float64, np.int64]],
         show_console: bool = False,
     ) -> NDArray[Union[np.float64, np.int64]]:
-        """
-        Predicts the distribution of the response variable after model has been fit.
-        This is distinct from predict(), which returns the mean of distribution predictions.
+        """Predicts the distribution of the response variable after model has been fit.
+        This is distinct from predict(), which returns the mean of distribution
+        predictions generated by this method.
 
-        :param X: predictor matrix or array to use as basis for prediction
+        Parameters
+        ----------
+        X : NDArray[Union[np.float64, np.int64]]
+            Predictor matrix or array of data to use for prediction.
+        show_console : bool, optional
+            Printing output of default CmdStanPy console during Stan operations.
 
-        :return: predictions made by fitted model an NDArray of shape (n_samples, 1)
+        Returns
+        -------
+        NDArray[Union[np.float64, np.int64]]
+            Set of draws generated by Stan generate quantities method.
+
+        Raises
+        ------
+        ValueError
+            Method requires data X to be supplied.
         """
         check_is_fitted(self)
 
@@ -471,20 +607,33 @@ class GLM(CoreEstimator):
             show_console=show_console,
         )
 
-        return predicGQ.stan_variable("y_sim")
+        return predicGQ.y_sim
 
     def predict(
         self,
         X: ArrayLike,
         show_console: bool = False,
     ) -> NDArray[np.float64]:
-        """
-        Predict using a fitted model after fit() has been applied.
-        Computes the mean of the predicted distribution, given by y_sim.
+        """Compute predictions from supplied data using a fitted model.
+            This computes the mean of the predicted distribution,
+            given by y_sim in predict_distribution().
 
-        :param X: predictor matrix or array to use as basis for prediction
+        A key issue is that predict() will not utilize Stan's generate quantities method
+        if the model as not fit with HMC-NUTS. Instead, a Python-based rng is used with
+        coefficients and intercept derived from the fitted model. This will change in a
+        future Stan release.
 
-        :return: an NDArray of shape (n_samples, 1)
+        Parameters
+        ----------
+        X : ArrayLike
+            Predictor matrix or array of data to use for prediction.
+        show_console : bool, optional
+            Printing output of default CmdStanPy console during Stan operations.
+
+        Returns
+        -------
+        NDArray[np.float64]
+            Array of predictions of shape (n_samples, 1) made by fitted model.
         """
         check_is_fitted(self)
 
@@ -507,16 +656,25 @@ class GLM(CoreEstimator):
         y: ArrayLike,
         show_console: bool = False,
     ) -> float:
-        """
-        Computes the coefficient of determination R^2 of the prediction,
-        as do other sklearn estimators.
+        """Computes the coefficient of determination R2 of the prediction,
+        like other sklearn estimators.
 
-        :param X: array-like of shape (n_samples, n_features) containing test samples
-        :param y: array-like of shape (n_samples,) containing test target values
-        :show_console: verbose display of CmdStanPy console output
+        Parameters
+        ----------
+        X : ArrayLike
+            Matrix or array of predictors having shape (n_samples, n_features)
+            that consists of test data.
+        y : ArrayLike
+            Array of shape (n_samples,) containing the target values
+            corresponding to given test dat X.
+        show_console : bool, optional
+            Printing output of default CmdStanPy console during Stan operations.
 
-        :return: (float) R^2 of the prediction versus the given target values;
-                 this is the mean accuracy of self.predict(X) with respect to y
+        Returns
+        -------
+        float
+            R2 of the prediction versus the given target values.
+                This is the mean accuracy of self.predict(X) with respect to y
         """
         check_is_fitted(self)
 
