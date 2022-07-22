@@ -49,11 +49,13 @@ class CoreEstimator:
     def get_params(self, deep: bool = True) -> Dict[str, Any]:
         """
         Get parameters for this estimator.
+
         Parameters
         ----------
         deep : bool, default=True
             If True, will return the parameters for this estimator and
             contained subobjects that are estimators.
+
         Returns
         -------
         params : dict

@@ -14,7 +14,7 @@ from ..exceptions import NotFittedError
      log - 1
      inverse - 2
      sqrt - 3
-     1/mu^2 - 4
+     inverse-square - 4
      logit - 5
      probit - 6
      cloglog - 7
@@ -84,12 +84,50 @@ PRIORS_AUX_MAP = {
 # NOTE: family and link combinations match R families package
 # package: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/family
 def validate_family(family: str, link: Optional[str]) -> None:
-    """
-    Validation function for family and link.
+    """Validate family and link combination choice.
 
-    :param family: str, family name
-    :param link: str, link name, which can be optional and is set in fit() for a GLM
+    Parameters
+    ----------
+    family : str
+        Name of chosen family. Only the following families are supported:
+            "gaussian", "binomial", "gamma", "poisson", "inverse-gaussian".
+    link : Optional[str]
+        Name of chosen link function. Only the following combinations are supported,
+        following the R families package:
+            * "gaussian":
+                * "identity" - Identity link function,
+                * "log" - Log link function,
+                * "inverse" - Inverse link function,
+            * "gamma":
+                * "identity" - Identity link function,
+                * "log" - Log link function,
+                * "inverse" - Inverse link function,
+            * "inverse-gaussian":
+                * "identity" - Identity link function,
+                * "log" - Log link function,
+                * "inverse" - Inverse link function,
+                * "inverse-square" - Inverse square link function,
+            * "poisson":
+                * "identity" - Identity link function,
+                * "log" - Log link function,
+                * "sqrt" - Square root link function,
+            * "binomial":
+                * "log" - Log link function,
+                * "logit" - Logit link function,
+                * "probit" - Probit link function,
+                * "cloglog" - Complementary log-log link function,
+                * "cauchit" - Cauchit link function,
+        If an invalid combination of family and link is passed, a ValueError is raised.
+
+    Raises
+    ------
+    ValueError
+        Passed family is not supported.
+    ValueError
+        Passed link is not supported or is not valid for the chosen family.
+
     """
+
     if not link:
         raise ValueError(f"Link function must be specified for family {family!r}")
 
@@ -113,18 +151,37 @@ def check_array(
     allow_nd: bool = False,
     dtype: type = np.float64,
 ) -> NDArray[Union[np.float64, np.int64]]:
-    """
-    Input validation on an array, list, sparse matrix or similar.
+    """Input validation on an array, list, sparse matrix or similar.
     By default, the input is checked to be a non-empty 2D array containing
     only finite values.
 
-    :param X: array-like, list, sparse matrix, or similar of data to be checked
-    :param ensure_2d: bool, whether to ensure that the array is 2D
-    :param allow_nd: bool, whether to allow the array to be an n-dimensional matrix where n > 2
-    :param dtype: type, dtype of the array; regressions only supported on
-    float64 or int64 arrays
+    Parameters
+    ----------
+    X : ArrayLike
+        Array-like, list, sparse matrix, or similar of data to be checked.
+    ensure_2d : bool, optional
+        Whether to ensure that the array is 2D
+    allow_nd : bool, optional
+        Whether to allow the array to be an n-dimensional matrix where n > 2
+    dtype : type, optional
+        Dtype of the data; regressions only supported on
+        float64 or int64 arrays
+
+    Returns
+    -------
+    NDArray[Union[np.float64, np.int64]]
+        Verified set of data that can be used for regression.
+
+    Raises
+    ------
+    ValueError
+        Sparse, complex, or otherwise invalid data type passed for X.
+    ValueError
+        Invalid number of dimensions in data passed for X, or otherwise data that
+        cannot be recast to satisfy dimension requirements
+
     """
-    # TODO PANDAS -> np support?
+    # NOTE: cmdstanpy automatically deals with Pandas dataframes
     if sp.issparse(X):
         raise ValueError(
             """Estimator does not currently support sparse data
@@ -326,9 +383,37 @@ def _num_samples(x: Any) -> Union[int, numbers.Integral]:
 
 def validate_prior(prior_spec: Dict[str, Any], coeff_type: str) -> Dict[str, Any]:
     """
-    Perform validation on given prior dictionary. This is only called
-    when there is a prior to check.
+    Perform validation on given prior dictionary for prior on either slope or intercept.
+    This is only called when there is a prior to check.
+
+    Parameters
+    ----------
+    prior_spec : Dict[str, Any]
+        Proposed prior dictionary, can be either for slope or intercept.
+    coeff_type : str
+        Specify whether the prior is for slope or intercept - should only be
+        'slope' or 'intercept'.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Validated dictionary of parameters for the given prior.
+
+    Raises
+    ------
+    ValueError
+        Validating a non-(slope or intercept) prior type.
+    ValueError
+        Prior distribution is not specified.
+    ValueError
+        Not all parameters for prior set-up are specified.
     """
+    if coeff_type not in ["slope", "intercept"]:
+        raise ValueError(
+            "coeff_type should be either 'slope' or 'intercept', "
+            "got {}".format(coeff_type)
+        )
+
     config_keys = prior_spec.keys()
 
     if "prior_" + coeff_type + "_dist" not in config_keys:
@@ -364,7 +449,37 @@ def validate_prior(prior_spec: Dict[str, Any], coeff_type: str) -> Dict[str, Any
 # necessary, and on the Stan side, priors to the log-likelihood should be set
 # via a vector rather than just a single vague parameter.
 def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
-    """Validates passed in auxiliary prior specification."""
+    """Validates passed configuration for prior on auxiliary parameters.
+    This does not perform parameter autoscaling.
+
+    Parameters
+    ----------
+    aux_prior_spec : Dict[str, Any]
+        Dictionary containing configuration for prior on auxiliary parameters.
+        Currently supported priors are: "exponential" and "chi2", which are
+        both parameterized by a single scalar.
+        Priors here with more parameters are a future feature.
+        For single-parameter priors, this field is a dictionary with the following keys
+            "prior_aux_dist": distribution of the prior on this parameter
+            "prior_aux_param": parameter of the prior on this parameter
+
+        For example, to specify a chi2 prior with nu=2.5, pass
+            {"prior_aux_dist": "chi2", "prior_aux_param": 2.5}
+
+    Returns
+    -------
+    Dict[str, Any]
+        Dictionary containing validated configuration for prior on auxiliary parameters.
+
+    Raises
+    ------
+    ValueError
+        Prior's distribution is not specified.
+    ValueError
+        Unsupported prior distribution for auxiliary parameter.
+    ValueError
+        Prior distribution parameters are not specified.
+    """
     config_keys = aux_prior_spec.keys()
 
     if "prior_aux_dist" not in config_keys:

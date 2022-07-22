@@ -17,7 +17,7 @@ vector inv_cauchit(vector mu) {
      log - 1
      inverse - 2
      sqrt - 3
-     1/mu^2 - 4
+     inverse-square - 4
      logit - 5
      probit - 6
      cloglog - 7
@@ -51,7 +51,7 @@ vector common_invert_link(vector mu, int link) {
     else if (link == 3) { // sqrt link  
         return square(mu); 
     }
-    else if (link == 4) {  // 1/mu^2 link
+    else if (link == 4) {  // inverse-square link
         return inv_sqrt(mu);
     } 
     else if (link == 5) { // logit link

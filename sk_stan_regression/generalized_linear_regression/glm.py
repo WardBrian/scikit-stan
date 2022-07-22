@@ -48,7 +48,7 @@ GLM_DISCRETE_STAN = CmdStanModel(
 
 
 class GLM(CoreEstimator):
-    """A generalized linear model estimator with several options for families, links,
+    r"""A generalized linear model estimator with several options for families, links,
     and priors on regression coefficients, the intercept, and error scale,
     done in an sk-learn style.
     This class also provides an autoscaling feature of the priors.
@@ -97,6 +97,13 @@ class GLM(CoreEstimator):
                 * "cloglog" - Complementary log-log link function,
                 * "cauchit" - Cauchit link function,
         If an invalid combination of family and link is passed, a ValueError is raised.
+
+        When no link is specified, these are family-specific defaults for the link function:
+            * "gaussian": "identity",
+            * "gamma": "inverse",
+            * "inverse-gaussian": "inverse",
+            * "poisson": "identity",
+            * "binomial": "logit",
     seed : Optional[int], optional
         Seed for random number generator. Must be an integer between 0 an 2^32-1.
         If this is left unspecified, then a random seed will be used for all chains
@@ -106,33 +113,71 @@ class GLM(CoreEstimator):
     priors : Optional[Dict[int, Dict[str, Any]]], optional
         Dictionary of priors to use for the model.
         By default, all regression coefficient priors are set to
-            beta ~ normal(0, 2.5 * sd(y) / sd(X)) if Gaussian else normal(0, 2.5 / sd(X))
+
+        .. math:: \beta \sim \text{normal}(0, 2.5 \cdot \text{sd}(y) / \text{sd}(X))
+
+        if Gaussian, else
+
+        .. math:: \beta \sim \text{normal}(0, 2.5 / \text{sd}(X))
+
         if auto_scale is True, otherwise
-            beta ~ normal(0, 2.5 * sd(y)) if Gaussian else normal(0, 2.5)
+
+        .. math:: \beta \sim \text{normal}(0, 2.5 \cdot \text{sd}(y))
+
+        if Gaussian else
+
+        .. math:: \beta \sim \text{normal}(0, 2.5)
+
         The number of specified priors cannot exceed the number of features in the data.
         Each individual prior is specified as a dictionary with the following keys:
-            "prior_slope_dist": distribution of the prior on this coefficient
-            "prior_slope_mu": location parameter of the prior on this coefficient
-            "prior_slope_sigma": scale parameter of the prior on this coefficient
+            + "prior_slope_dist": distribution of the prior on this coefficient
+
+            + "prior_slope_mu": location parameter of the prior on this coefficient
+
+            + "prior_slope_sigma": scale parameter of the prior on this coefficient
         The main passed dictionary indexes the priors by the row index of the feature starting at 0.
         Thus, to specify a prior on the first feature, the dictionary should be passed as
-            {0: {"prior_slope_dist": "normal", "prior_slope_mu": 0, "prior_slope_sigma": 1}}.
-        Any unspecified priors will be set to the default.
+
+        { 0:
+            {
+                "prior_slope_dist": "normal",
+
+                "prior_slope_mu": 0,
+
+                "prior_slope_sigma": 1
+            }
+        }
+
+        Any unspecified priors will be set to the default, as discussed above.
     prior_intercept : Optional[Dict[str, Any]], optional
         Prior for the intercept alpha parameter for GLM.
         If this is not specified, the default is
-            alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)
+
+        .. math:: \alpha \sim \text{normal}(\text{mu}(y), 2.5 \cdot \text{sd}(y))
+
+        if Gaussian family else
+
+        .. math:: \alpha \sim \text{normal}(0, 2.5)
 
         To set this prior explicitly, pass a dictionary with the following keys:
-            "prior_intercept_dist": str, distribution of the prior from the list
-             of supported prior distributions: "normal", "laplace"
-            "prior_intercept_mu": float, location parameter of the prior distribution
-            "prior_intercept_sigma": float, error scale parameter of the prior distribution
+            + "prior_intercept_dist": str, distribution of the prior from the list
+            of supported prior distributions: "normal", "laplace"
+
+            + "prior_intercept_mu": float, location parameter of the prior distribution
+
+            + "prior_intercept_sigma": float, error scale parameter of the prior distribution
 
         Thus, for example, passing
-            {"prior_intercept_dist": "normal", "prior_intercept_mu": 0, "prior_intercept_sigma": 1}
+            {
+                "prior_intercept_dist": "normal",
+                "prior_intercept_mu": 0,
+                "prior_intercept_sigma": 1
+            }
+
         results in
-            alpha ~ normal(0, 1)
+
+        .. math:: \alpha \sim \text{normal}(0, 1)
+
         by default (without autoscaling, see below).
 
     prior_aux : Optional[Dict[str, Any]], optional
@@ -162,63 +207,6 @@ class GLM(CoreEstimator):
             https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
 
         This procedure does not happen by default.
-    """
-
-    """
-    Vectorized, multidimensional version of the BLR Estimator above.
-    Note that the intercept alpha and error scale sigma remain as scalar values
-    while beta becomes a vector.
-
-    :param algorithm: algorithm that performs an operation on the posterior
-    :param family: GLM family function; all R Families are supported
-    :param link: GLM link function; all R Families links are supported in admissible combinations
-    :param seed: random seed used for probabilistic operations; chosen randomly if not specified
-    :param priors: Dictionary of priors to use for the model.
-    By default, all regression coefficient priors are set to
-        beta ~ normal(0, 2.5 * sd(y) / sd(X)) if Gaussian else normal(0, 2.5 / sd(X))
-    if auto_scale is True, otherwise
-        beta ~ normal(0, 2.5 * sd(y)) if Gaussian else normal(0, 2.5)
-    The number of specified priors cannot exceed the number of features in the data.
-    Each individual prior is specified as a dictionary with the following keys:
-        "prior_slope_dist": distribution of the prior on this coefficient
-        "prior_slope_mu": location parameter of the prior on this coefficient
-        "prior_slope_sigma": scale parameter of the prior on this coefficient
-    The main passed dictionary indexes the priors by the row index of the feature starting at 0.
-    Thus, to specify a prior on the first feature, the dictionary should be passed as
-     {0: {"prior_slope_dist": "normal", "prior_slope_mu": 0, "prior_slope_sigma": 1}}.
-    Any unspecified priors will be set to the default.
-
-    :param prior_intercept: Prior for the intercept alpha parameter for GLM.
-    If this is not specified, the default is
-        alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)
-
-    To set this prior explicitly, pass a dictionary with the following keys:
-        "prior_intercept_dist": str, distribution of the prior from the list
-         of supported prior distributions: "normal", "laplace"
-        "prior_intercept_mu": float, location parameter of the prior distribution
-        "prior_intercept_sigma": float, error scale parameter of the prior distribution
-
-    :param prior_aux: prior on the auxiliary parameter for the family used in
-    the regression: for example, the std for Gaussian, shape for gamma, etc...
-    Currently supported priors are: "exponential" and "chi2", which are
-    both parameterized by a single scalar.
-    This is a dictionary with the following keys
-    (which (TODO!) will differ based on the prior: "beta" for exponential, "nu" for chi2, etc...):
-        "prior_aux_dist": distribution of the prior on this parameter
-        "prior_aux_param": parameter of the prior on this parameter
-        ... distribution-specific parameters ... TODO
-
-    For example, to specify a chi2 prior with nu=2.5, pass
-        {"prior_aux_dist": "chi2", "prior_aux_param": 2.5}
-
-    The default un-scaled prior is exponential(1), the default scaled prior is
-    exponential(1/sy) where sy = sd(y) - if the specified family is a Gaussian,
-    and sy = 1 in all other cases. Setting auto_scale=True results in division by
-    sy.
-
-    :param autoscale: boolean, if True, all prior parameters will be scaled:
-
-    By default, priors are not automatically scaled.
     """
 
     # TODO: add prior setting for prior on auxiliary parameters (exp(1/sdy), etc.)))
