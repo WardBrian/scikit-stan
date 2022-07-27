@@ -30,7 +30,7 @@ jobs:
           CIBW_ARCHS: native
           CIBW_BUILD_FRONTEND: build
           CIBW_TEST_REQUIRES: pytest scikit-learn
-          CIBW_TEST_COMMAND: pytest -v sk_stan_regression/test
+          CIBW_TEST_COMMAND: "pytest {project}/test"
 
       - name: "Upload wheel as artifact"
         uses: actions/upload-artifact@v3
