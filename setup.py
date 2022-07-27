@@ -7,10 +7,12 @@ import os
 import platform
 from pathlib import Path
 from shutil import copy, copytree, rmtree
+from typing import Tuple
 
 import cmdstanpy
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
+from wheel.bdist_wheel import bdist_wheel
 
 MODEL_DIR = "sk_stan_regression/stan_files"
 MODELS = ["glm_v_continuous", "glm_v_discrete"]
@@ -120,9 +122,17 @@ class BuildModels(build_ext):
         # don't call build_ext.run, since we're not really building c files
 
 
+class WheelABINone(bdist_wheel):
+    def finalize_options(self) -> None:
+        bdist_wheel.finalize_options(self)
+        self.root_is_pure = False
+
+    def get_tag(self) -> Tuple[str, str, str]:
+        _, _, plat = bdist_wheel.get_tag(self)
+        return "py3", "none", plat
+
+
 setup(
     ext_modules=[Extension("sk_stan_regression.stan_files", [])],
-    cmdclass={
-        "build_ext": BuildModels,
-    },
+    cmdclass={"build_ext": BuildModels, "bdist_wheel": WheelABINone},
 )

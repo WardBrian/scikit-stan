@@ -1,4 +1,4 @@
-name: "Build python wheels for major platforms"
+name: "Build python wheels"
 
 on:
   workflow_dispatch: {}
@@ -25,7 +25,6 @@ jobs:
           CIBW_ENVIRONMENT: >
             SKSTAN_REPACKAGE_CMDSTAN=TRUE
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_BUILD: cp37-* cp38-* cp39-* cp310-*
           CIBW_SKIP: "*musllinux*"
           CIBW_ARCHS: native
           CIBW_BUILD_FRONTEND: build
