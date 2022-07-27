@@ -1,5 +1,6 @@
 """Vectorized BLR model with sk-learn type API"""
 
+import warnings
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
@@ -56,7 +57,6 @@ try:
     )
 except ValueError:
     import shutil
-    import warnings
 
     warnings.warn("Failed to load pre-built models, compiling")
     GLM_CONTINUOUS_STAN = CmdStanModel(
