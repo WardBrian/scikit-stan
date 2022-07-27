@@ -12,7 +12,6 @@ import cmdstanpy
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
-
 MODEL_DIR = "sk_stan_regression/stan_files"
 MODELS = ["glm_v_continuous", "glm_v_discrete"]
 
@@ -38,6 +37,7 @@ def prune_cmdstan(cmdstan_dir: os.PathLike) -> None:
 
     print("Copying ", original_dir, " to ", temp_dir, " for pruning")
     copytree(original_dir / BINARIES_DIR, temp_dir / BINARIES_DIR)
+    copy(original_dir / "makefile", temp_dir / "makefile")
     for f in (temp_dir / BINARIES_DIR).iterdir():
         if f.is_dir():
             rmtree(f)
