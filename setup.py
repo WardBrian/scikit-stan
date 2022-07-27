@@ -12,6 +12,7 @@ import cmdstanpy
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
+
 MODEL_DIR = "sk_stan_regression/stan_files"
 MODELS = ["glm_v_continuous", "glm_v_discrete"]
 
@@ -23,7 +24,7 @@ MATH_LIB = "stan/lib/stan_math/lib"
 TBB_DIRS = ["tbb", "tbb_2020.3"]
 
 
-def prune_cmdstan(cmdstan_dir: os.PathLike[str]) -> None:
+def prune_cmdstan(cmdstan_dir: os.PathLike) -> None:
     """
     Keep only the cmdstan executables and tbb files
     (minimum required to run a cmdstanpy commands on a pre-compiled model).
