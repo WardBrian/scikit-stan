@@ -4,12 +4,12 @@ from inspect import isclass
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
-import scipy.sparse as sp  # type: ignore
+import scipy.sparse as sp
 from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
 
-""" GENERAL LINK MAP 
+""" GENERAL LINK MAP
      identity - 0
      log - 1
      inverse - 2
@@ -101,7 +101,7 @@ def validate_family(family: str, link: Optional[str]) -> None:
 
     if link not in FAMILY_LINKS_MAP[family].keys():
         raise ValueError(
-            f"""Link {link} not supported for family {family}. 
+            f"""Link {link} not supported for family {family}.
             These links are supported for {family}: {FAMILY_LINKS_MAP[family].keys()}."""
         )
 
@@ -161,8 +161,8 @@ def check_array(
         if array_res.ndim == 0:
             raise ValueError(
                 f"""Expected 2D array, got scalar array instead:\narray={X!r}.\n
-                    Reshape your data either using array.reshape(-1, 1) if 
-                    your data has a single feature or array.reshape(1, -1) 
+                    Reshape your data either using array.reshape(-1, 1) if
+                    your data has a single feature or array.reshape(1, -1)
                     if it contains a single sample."""
             )
         if array_res.ndim == 1:
@@ -175,7 +175,7 @@ def check_array(
     if not allow_nd and array_res.ndim > 2:
         raise ValueError(
             f"""
-            Passed array with {array_res.ndim!r} dimensions. Estimator expected <= 2. 
+            Passed array with {array_res.ndim!r} dimensions. Estimator expected <= 2.
             """
         )
 
@@ -261,7 +261,7 @@ def check_is_fitted(
 
     if attributes is not None:
         if not isinstance(attributes, (list, tuple)):
-            attributes = [attributes]
+            attributes = [attributes]  # type: ignore
         fitted = all_or_any([hasattr(estimator, attr) for attr in attributes])
     else:
         if hasattr(estimator, "is_fitted_"):
@@ -388,7 +388,7 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
     if dist_key == "exponential":
         if "prior_aux_param" not in config_keys:
             raise ValueError(
-                f"""prior_aux_param must be specified in 
+                f"""prior_aux_param must be specified in
                 exponential auxiliary prior given by {aux_prior_spec}."""
             )
 
@@ -396,7 +396,7 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
     elif dist_key == "chi2":
         if "prior_aux_param" not in config_keys:
             raise ValueError(
-                f"""prior_aux_param must be specified in 
+                f"""prior_aux_param must be specified in
                 chi2 auxiliary prior given by {aux_prior_spec}."""
             )
 

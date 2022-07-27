@@ -1,12 +1,11 @@
 """Vectorized BLR model with sk-learn type API"""
 
-import warnings
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import numpy as np
-import scipy.stats as stats  # type: ignore
-from cmdstanpy import CmdStanModel
+import scipy.stats as stats
+from cmdstanpy import CmdStanModel, set_cmdstan_path
 from numpy.typing import ArrayLike, NDArray
 
 from sk_stan_regression.modelcore import CoreEstimator
@@ -19,7 +18,8 @@ from sk_stan_regression.utils.validation import (
     validate_prior,
 )
 
-GLM_STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
+STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
+CMDSTAN_VERSION = "2.30.1"
 
 method_dict = {
     "HMC-NUTS": CmdStanModel.sample,
@@ -36,15 +36,41 @@ GLM_FAMILIES = {
     "negative-binomial": 5,
 }
 
-# pre-compile continuous & discrete models
-# so they aren't compiled every time fit() is called
-GLM_CONTINUOUS_STAN = CmdStanModel(
-    stan_file=GLM_STAN_FILES_FOLDER / "glm_v_continuous.stan"
-)
+# handle pre-compiled models and possibly repackaged cmdstan
 
-GLM_DISCRETE_STAN = CmdStanModel(
-    stan_file=GLM_STAN_FILES_FOLDER / "glm_v_discrete.stan"
-)
+local_cmdstan = STAN_FILES_FOLDER / f"cmdstan-{CMDSTAN_VERSION}"
+if local_cmdstan.exists():
+    set_cmdstan_path(local_cmdstan)
+
+try:
+    GLM_CONTINUOUS_STAN = CmdStanModel(
+        exe_file=STAN_FILES_FOLDER / "glm_v_continuous.exe",
+        stan_file=STAN_FILES_FOLDER / "glm_v_continuous.stan",
+        compile=False,
+    )
+
+    GLM_DISCRETE_STAN = CmdStanModel(
+        exe_file=STAN_FILES_FOLDER / "glm_v_discrete.exe",
+        stan_file=STAN_FILES_FOLDER / "glm_v_discrete.stan",
+        compile=False,
+    )
+except ValueError:
+    import shutil
+    import warnings
+
+    warnings.warn("Failed to load pre-built models, compiling")
+    GLM_CONTINUOUS_STAN = CmdStanModel(
+        stan_file=STAN_FILES_FOLDER / "glm_v_continuous.stan",
+        stanc_options={"O1": True},
+    )
+    GLM_DISCRETE_STAN = CmdStanModel(
+        stan_file=STAN_FILES_FOLDER / "glm_v_discrete.stan",
+        stanc_options={"O1": True},
+    )
+    shutil.copy(
+        GLM_CONTINUOUS_STAN.exe_file, STAN_FILES_FOLDER / "glm_v_continuous.exe"
+    )
+    shutil.copy(GLM_DISCRETE_STAN.exe_file, STAN_FILES_FOLDER / "glm_v_discrete.exe")
 
 
 class GLM(CoreEstimator):
@@ -298,8 +324,8 @@ class GLM(CoreEstimator):
 
         if self.algorithm not in method_dict.keys():
             raise ValueError(
-                f"""Current Linear Regression created with algorithm 
-                {self.algorithm!r}, which is not one of the supported 
+                f"""Current Linear Regression created with algorithm
+                {self.algorithm!r}, which is not one of the supported
                 methods. Try with one of the following: (HMC-NUTS, L-BFGS, ADVI)."""
             )
 
@@ -481,7 +507,7 @@ class GLM(CoreEstimator):
 
         self.seed_ = self.seed
 
-        self.fitted_samples_ = method_dict[self.algorithm](  # type: ignore
+        self.fitted_samples_ = method_dict[self.algorithm](
             self.model_,
             data=dat,
             show_console=show_console,
@@ -607,7 +633,7 @@ class GLM(CoreEstimator):
             show_console=show_console,
         )
 
-        return predicGQ.y_sim
+        return predicGQ.y_sim  # type: ignore
 
     def predict(
         self,
@@ -700,7 +726,7 @@ class GLM(CoreEstimator):
             "_xfail_checks": {
                 "check_methods_sample_order_invariance": "check is not applicable.",
                 "check_methods_subset_invariance": "check is not applicable.",
-                "check_fit_idempotent": """model is idempotent, but not to the required degree of accuracy as this is a 
+                "check_fit_idempotent": """model is idempotent, but not to the required degree of accuracy as this is a
                     probabilistic setting.""",
                 "check_fit1d": """provided automatic cast from 1d to 2d in data validation.""",
                 # NOTE: the expected behavior here is to raise a ValueError, the package intends
