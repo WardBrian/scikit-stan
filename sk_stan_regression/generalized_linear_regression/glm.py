@@ -40,7 +40,7 @@ GLM_FAMILIES = {
 
 local_cmdstan = STAN_FILES_FOLDER / f"cmdstan-{CMDSTAN_VERSION}"
 if local_cmdstan.exists():
-    set_cmdstan_path(local_cmdstan)
+    set_cmdstan_path(str(local_cmdstan.resolve()))
 
 try:
     GLM_CONTINUOUS_STAN = CmdStanModel(
@@ -68,9 +68,13 @@ except ValueError:
         stanc_options={"O1": True},
     )
     shutil.copy(
-        GLM_CONTINUOUS_STAN.exe_file, STAN_FILES_FOLDER / "glm_v_continuous.exe"
+        GLM_CONTINUOUS_STAN.exe_file,  # type: ignore
+        STAN_FILES_FOLDER / "glm_v_continuous.exe",
     )
-    shutil.copy(GLM_DISCRETE_STAN.exe_file, STAN_FILES_FOLDER / "glm_v_discrete.exe")
+    shutil.copy(
+        GLM_DISCRETE_STAN.exe_file,  # type: ignore
+        STAN_FILES_FOLDER / "glm_v_discrete.exe",
+    )
 
 
 class GLM(CoreEstimator):
@@ -507,7 +511,7 @@ class GLM(CoreEstimator):
 
         self.seed_ = self.seed
 
-        self.fitted_samples_ = method_dict[self.algorithm](
+        self.fitted_samples_ = method_dict[self.algorithm](  # type:ignore
             self.model_,
             data=dat,
             show_console=show_console,
@@ -633,7 +637,7 @@ class GLM(CoreEstimator):
             show_console=show_console,
         )
 
-        return predicGQ.y_sim  # type: ignore
+        return predicGQ.y_sim
 
     def predict(
         self,

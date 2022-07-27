@@ -261,7 +261,7 @@ def check_is_fitted(
 
     if attributes is not None:
         if not isinstance(attributes, (list, tuple)):
-            attributes = [attributes]  # type: ignore
+            attributes = [attributes]
         fitted = all_or_any([hasattr(estimator, attr) for attr in attributes])
     else:
         if hasattr(estimator, "is_fitted_"):

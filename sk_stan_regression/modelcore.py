@@ -170,7 +170,7 @@ class CoreEstimator:
             res_y = None
         elif no_X and not no_y:
             res_y = _check_y(y, dtype=dtype)  # type:ignore
-            res_X = None  # type: ignore
+            res_X = None
         else:
             # TODO: add separate validation of X and y? !!!!!
             res_X, res_y = check_X_y(X, y, dtype=dtype)  # type:ignore
