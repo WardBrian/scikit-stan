@@ -170,7 +170,9 @@ class GLM(CoreEstimator):
         Thus, for example, passing
             {
                 "prior_intercept_dist": "normal",
+
                 "prior_intercept_mu": 0,
+                
                 "prior_intercept_sigma": 1
             }
 
@@ -191,7 +193,11 @@ class GLM(CoreEstimator):
             "prior_aux_param": parameter of the prior on this parameter
 
         For example, to specify a chi2 prior with nu=2.5, pass
-            {"prior_aux_dist": "chi2", "prior_aux_param": 2.5}
+            {
+                "prior_aux_dist": "chi2", 
+
+                "prior_aux_param": 2.5
+            }
 
         The default un-scaled prior is exponential(1), the default scaled prior is
         exponential(1/sy) where sy = sd(y) - if the specified family is a Gaussian,
@@ -209,7 +215,6 @@ class GLM(CoreEstimator):
         This procedure does not happen by default.
     """
 
-    # TODO: add prior setting for prior on auxiliary parameters (exp(1/sdy), etc.)))
     def __init__(
         self,
         algorithm: str = "HMC-NUTS",

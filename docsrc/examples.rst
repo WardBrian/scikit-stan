@@ -3,3 +3,8 @@
 Examples
 ========
 
+.. toctree::
+    :titlesonly:
+    
+    examples/Gamma Bloodclotting.ipynb
+ 
