@@ -17,11 +17,11 @@ data {
   int<lower=0> prior_intercept_dist;    // distribution for intercept
   real prior_intercept_mu;              // mean of the prior for intercept
   real prior_intercept_sigma;           // error scale of the prior for intercept
-  array[K] int<lower=0> prior_slope_dist;     // distribution for regression coefficients
-  vector[K] prior_slope_mu;             // mean of the prior for regression coefficients
-  vector[K] prior_slope_sigma;          // error scale of the prior for regression coefficients
+  int<lower=0> prior_slope_dist;        // distribution for regression coefficients
+  vector[K] prior_slope_mu;             // mean of the prior for each regression coefficient
+  vector[K] prior_slope_sigma;          // error scale of the prior for each  regression coefficient
   int<lower=0> prior_aux_dist;          // distribution for auxiliary parameter (sigma): 0 is exponential, 1 is chi2
-  // TODO: this should be generalized to being a vector of parameters for multi-parameter distribtions
+  // TODO: this should be generalized to being a vector of parameters for multi-parameter distributions 
   real<lower=0> prior_aux_param;      // distribution parameter for the prior for sigma
   real sdy;
 }
@@ -48,15 +48,12 @@ model {
       alpha ~ double_exponential(prior_intercept_mu, prior_intercept_sigma);
   }
 
-  // NOTE: this cannot be vectorized as a conditional operation
-  // must be performed on each element of the priors list
-  for (idx in 1:K) {
-    if (prior_slope_dist[idx] == 0) { // normal prior; has mu and sigma
-      beta[idx] ~ normal(prior_slope_mu[idx], prior_slope_sigma[idx]);
-    }
-    else if (prior_slope_dist[idx] == 1) { // laplace prior; has mu and sigma
-      beta[idx] ~ double_exponential(prior_slope_mu[idx], prior_slope_sigma[idx]);
-    }
+  // NOTE: these operations are vectorized 
+  if (prior_slope_dist == 0) { // normal prior, has mu and sigma vectors 
+    beta ~ normal(prior_slope_mu, prior_slope_sigma);
+  }
+  else if (prior_slope_dist == 1) { // laplace prior, has mu and sigma vectors 
+    beta ~ double_exponential(prior_slope_mu, prior_slope_sigma); 
   }
 
   // NOTE: prior_aux_param is a placeholder value and this
@@ -78,7 +75,7 @@ model {
   }
   else if (family == 2)
    {
-      target += inv_gaussian_llh(y, s_log_y, mu_unlinked, sigma, sqrt_y);
+    target += inv_gaussian_llh(y, s_log_y, mu_unlinked, sigma, sqrt_y);
   }
   // add additional families here
 }
@@ -91,7 +88,7 @@ generated quantities {
       else if (family == 1) { // Gamma
         y_sim = gamma_rng(sigma, sigma ./ mu_unlinked);
       }
-      else { // inverse Gaussian
+      else { // inverse Gaussian; in the future this should be changed to a vectorized library function 
         for (n in 1:N) {
           y_sim[n] = inv_gaussian_rng(mu_unlinked[n], sigma);
         }

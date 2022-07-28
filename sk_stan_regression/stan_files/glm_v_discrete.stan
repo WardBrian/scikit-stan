@@ -20,9 +20,9 @@ data {
   int<lower=0> prior_intercept_dist;    // distribution for intercept
   real prior_intercept_mu;              // mean of the prior for intercept
   real prior_intercept_sigma;           // error scale of the prior for intercept
-  array[K] int<lower=0> prior_slope_dist;        // distribution for regression coefficients
-  vector[K] prior_slope_mu;                  // mean of the prior for regression coefficients
-  vector[K] prior_slope_sigma;               // error regression coefficients
+  int<lower=0> prior_slope_dist;        // distribution for regression coefficients
+  vector[K] prior_slope_mu;             // mean of the prior for regression coefficients
+  vector[K] prior_slope_sigma;          // error regression coefficients
   real sdy;
 }
 parameters {
@@ -42,13 +42,12 @@ model {
         alpha ~ double_exponential(prior_intercept_mu, prior_intercept_sigma);
     }
 
-    for (idx in 1:K) {
-        if (prior_slope_dist[idx] == 0) { // normal prior; has mu and sigma
-          beta[idx] ~ normal(prior_slope_mu[idx], prior_slope_sigma[idx]);
-        }
-        else if (prior_slope_dist[idx] == 1) { // laplace prior; has mu and sigma
-          beta[idx] ~ double_exponential(prior_slope_mu[idx], prior_slope_sigma[idx]);
-        }
+    // NOTE these are vectorized operations 
+    if (prior_slope_dist == 0) { // normal prior
+        beta ~ normal(prior_slope_mu, prior_slope_sigma);
+    }
+    else if (prior_slope_dist == 1) { // laplace prior 
+        beta ~ double_exponential(prior_slope_mu, prior_slope_sigma);
     }
 
     if (family == 3) { // Poisson

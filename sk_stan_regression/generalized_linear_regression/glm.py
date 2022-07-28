@@ -2,7 +2,7 @@
 
 import warnings
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import scipy.stats as stats
@@ -140,8 +140,8 @@ class GLM(CoreEstimator):
         via numpy.random.RandomState().
         Specifying this field will yield the same result for multiple uses if
         all other parameters are held the same.
-    priors : Optional[Dict[int, Dict[str, Any]]], optional
-        Dictionary of priors to use for the model.
+    priors : Optional[Dict[str, Union[int, float, List]]], optional
+        Dictionary for configuring prior distribution on coefficients.
         By default, all regression coefficient priors are set to
 
         .. math:: \beta \sim \text{normal}(0, 2.5 \cdot \text{sd}(y) / \text{sd}(X))
@@ -158,27 +158,23 @@ class GLM(CoreEstimator):
 
         .. math:: \beta \sim \text{normal}(0, 2.5)
 
-        The number of specified priors cannot exceed the number of features in the data.
-        Each individual prior is specified as a dictionary with the following keys:
-            + "prior_slope_dist": distribution of the prior on this coefficient
+        The number of specified prior parameters cannot exceed the number of predictors in the data as each parameter is associated with a single coefficient. 
+        If the number of specified priors is less than the number of predictors, the remaining coefficients are set to the default prior.
+        The prior on all regression coefficients is set with the following keys:
+            + "prior_slope_dist": distribution of the prior for each coefficient
 
-            + "prior_slope_mu": location parameter of the prior on this coefficient
+            + "prior_slope_mu": location parameters of the prior for each coefficient
 
-            + "prior_slope_sigma": scale parameter of the prior on this coefficient
-        The main passed dictionary indexes the priors by the row index of the feature starting at 0.
-        Thus, to specify a prior on the first feature, the dictionary should be passed as
+            + "prior_slope_sigma": scale parameters of the prior for each coefficient
+        Thus, to specify a standard normal prior on the first feature, the dictionary should be passed as
 
-        { 0:
-            {
-                "prior_slope_dist": "normal",
-
-                "prior_slope_mu": 0,
-
-                "prior_slope_sigma": 1
-            }
+        {
+            "prior_slope_dist": "normal",
+            "prior_slope_mu": [0.],
+            "prior_slope_sigma": [1.]
         }
 
-        Any unspecified priors will be set to the default, as discussed above.
+        Any unspecified priors will be set to the default.
     prior_intercept : Optional[Dict[str, Any]], optional
         Prior for the intercept alpha parameter for GLM.
         If this is not specified, the default is
@@ -251,7 +247,7 @@ class GLM(CoreEstimator):
         family: str = "gaussian",
         link: Optional[str] = None,
         seed: Optional[int] = None,
-        priors: Optional[Dict[int, Dict[str, Any]]] = None,
+        priors: Optional[Dict[str, Union[int, float, List]]] = None,
         prior_intercept: Optional[Dict[str, Any]] = None,
         prior_aux: Optional[Dict[str, Any]] = None,
         autoscale: bool = False,
@@ -287,7 +283,7 @@ class GLM(CoreEstimator):
             then X is automatically reshaped to being 2D and raises a warning.
         y : ArrayLike
             Nx1 outcome vector where each row is a response corresponding to
-            the same row of features in X.
+            the same row of predictors in X.
         show_console : bool, optional
             Printing output of default CmdStanPy console during Stan operations.
 
@@ -389,10 +385,6 @@ class GLM(CoreEstimator):
             "prior_slope_sigma": [None] * K,
         }
 
-        # set up common prior parameters; this computation is
-        # unnecessary if the user supplies all prior parameters
-        # TODO: clean up so these computations are not performed in
-        # that scenario
         sdx = np.std(X_clean)
         if self.familyid_ == 0:  # gaussian
             my = np.mean(y_clean) if self.linkid_ == 0 else 0.0
@@ -408,30 +400,26 @@ class GLM(CoreEstimator):
 
         DEFAULT_SLOPE_PRIOR = {
             "prior_slope_dist": 0,
-            "prior_slope_mu": 0.0,
+            "prior_slope_mu": [0.0] * K,
         }
         # likely to be reused across multiple features
         # default prior selection follows:
         # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
         if self.family == "gaussian" and self.autoscale:
-            DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = 2.5 * sdy / sdx
+            DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = [2.5 * sdy / sdx] * K 
         else:
             if self.autoscale:
-                DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = 2.5 / sdx
+                DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = [2.5 / sdx] * K 
             else:
-                DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = 2.5
+                DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = [2.5] * K 
 
         priors_ = {}
 
         # user did not specify any regression coefficient priors
         if self.priors is None or len(self.priors) == 0:
-            priors_ = {idx: DEFAULT_SLOPE_PRIOR for idx in np.arange(K)}
+            priors_ = DEFAULT_SLOPE_PRIOR
         else:
-            for idx in np.arange(K):
-                if idx in self.priors:
-                    priors_[idx] = validate_prior(self.priors[idx], "slope")
-                else:
-                    priors_[idx] = DEFAULT_SLOPE_PRIOR
+            priors_ = validate_prior(self.priors, "slope")
 
         self.priors_ = priors_
 
@@ -487,10 +475,9 @@ class GLM(CoreEstimator):
         dat["prior_intercept_sigma"] = self.prior_intercept_["prior_intercept_sigma"]
 
         # set up of vectors for intercept and coefficients for Stan data
-        for idx in np.arange(K):
-            dat["prior_slope_dist"][idx] = self.priors_[idx]["prior_slope_dist"]
-            dat["prior_slope_mu"][idx] = self.priors_[idx]["prior_slope_mu"]
-            dat["prior_slope_sigma"][idx] = self.priors_[idx]["prior_slope_sigma"]
+        dat["prior_slope_dist"] = self.priors_["prior_slope_dist"]
+        dat["prior_slope_mu"] = self.priors_["prior_slope_mu"]
+        dat["prior_slope_sigma"] = self.priors_["prior_slope_sigma"]
 
         dat["prior_aux_dist"] = self.prior_aux_["prior_aux_dist"]
         dat["prior_aux_param"] = self.prior_aux_["prior_aux_param"]
@@ -503,6 +490,8 @@ class GLM(CoreEstimator):
             dat["trials"] = np.repeat(y_clean.shape[0], X_clean.shape[0])
 
         self.seed_ = self.seed
+
+        print(dat)
 
         self.fitted_samples_ = method_dict[self.algorithm](  # type:ignore
             self.model_,
@@ -613,7 +602,7 @@ class GLM(CoreEstimator):
             "prior_intercept_dist": 0,
             "prior_intercept_mu": 1.0,
             "prior_intercept_sigma": 2.5,
-            "prior_slope_dist": [0] * X_clean.shape[1],
+            "prior_slope_dist": 0,
             "prior_slope_mu": [0.0] * X_clean.shape[1],
             "prior_slope_sigma": [0.0] * X_clean.shape[1],
             "prior_aux_dist": 0,  # these don't affect anything when generating predictions
@@ -685,7 +674,7 @@ class GLM(CoreEstimator):
         Parameters
         ----------
         X : ArrayLike
-            Matrix or array of predictors having shape (n_samples, n_features)
+            Matrix or array of predictors having shape (n_samples, n_predictors)
             that consists of test data.
         y : ArrayLike
             Array of shape (n_samples,) containing the target values

@@ -407,6 +407,8 @@ def validate_prior(prior_spec: Dict[str, Any], coeff_type: str) -> Dict[str, Any
         Prior distribution is not specified.
     ValueError
         Not all parameters for prior set-up are specified.
+    ValueError 
+        Prior sigma is negative. 
     """
     if coeff_type not in ["slope", "intercept"]:
         raise ValueError(
@@ -437,6 +439,19 @@ def validate_prior(prior_spec: Dict[str, Any], coeff_type: str) -> Dict[str, Any
         raise ValueError(
             f"""prior_{coeff_type}_sigma must be specified in prior given by {prior_spec}."""
         )
+
+    sigmas = prior_spec["prior_" + coeff_type + "_sigma"]
+
+    if type(sigmas) == list: 
+        if any(x < 0 for x in sigmas):
+            raise ValueError(
+                f"""prior_{coeff_type}_sigma must be positive in prior given by {prior_spec}."""
+            )
+    else: 
+        if sigmas < 0: 
+            raise ValueError(
+                f"""prior_{coeff_type}_sigma must be positive in prior given by {prior_spec}."""
+            )
 
     return {
         "prior_" + coeff_type + "_dist": PRIORS_MAP[dist_key],
