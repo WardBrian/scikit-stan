@@ -1,0 +1,9 @@
+cmdstanpy>=1.0.4
+numpy>=1.21.0
+flake8
+pytest
+pytest-cov
+pytest-order
+mypy
+black==22.3.0
+scikit-learn
