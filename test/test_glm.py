@@ -32,10 +32,10 @@ def test_prior_config_default_nongaussian(prior_config) -> None:
 
     fitted = glm.fit(X=X, y=y)
 
-    assert fitted.priors_ == { 
-            "prior_slope_dist": 0,
-            "prior_slope_mu": [0.0],
-            "prior_slope_sigma": [2.5],
+    assert fitted.priors_ == {
+        "prior_slope_dist": 0,
+        "prior_slope_mu": [0.0],
+        "prior_slope_sigma": [2.5],
     }
 
     assert fitted.prior_intercept_ == {
@@ -62,9 +62,9 @@ def test_prior_config_default_gaussian(prior_config) -> None:
     fitted = glm.fit(X=X, y=y)
 
     assert fitted.priors_ == {
-            "prior_slope_dist": 0,
-            "prior_slope_mu": [0.0],
-            "prior_slope_sigma": [2.5 * np.std(y) / np.std(X)],
+        "prior_slope_dist": 0,
+        "prior_slope_mu": [0.0],
+        "prior_slope_sigma": [2.5 * np.std(y) / np.std(X)],
     }
 
     assert fitted.prior_intercept_ == {
@@ -86,9 +86,9 @@ def test_laplace_default_setup() -> None:
         link="log",
         seed=1234,
         priors={
-                "prior_slope_dist": "laplace",
-                "prior_slope_mu": [0.0],
-                "prior_slope_sigma": [2.5],
+            "prior_slope_dist": "laplace",
+            "prior_slope_mu": [0.0],
+            "prior_slope_sigma": [2.5],
         },
     )
     X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234321)
@@ -108,7 +108,9 @@ def test_laplace_default_setup() -> None:
         " ",
         "default",
         dict(
-            prior_intercept_dist=" ", prior_intercept_mu=[0.0], prior_intercept_sigma=[2.5]
+            prior_intercept_dist=" ",
+            prior_intercept_mu=[0.0],
+            prior_intercept_sigma=[2.5],
         ),
     ],
 )
@@ -151,8 +153,8 @@ def test_priors_erroneous(unsupported_prior):
             {},
             {
                 "prior_intercept_dist": "normal",
-                "prior_intercept_mu": [0.],
-                "prior_intercept_sigma": [1.],
+                "prior_intercept_mu": [0.0],
+                "prior_intercept_sigma": [1.0],
             },
         ),
         ({}, {}),
@@ -160,10 +162,12 @@ def test_priors_erroneous(unsupported_prior):
 )
 def test_prior_config_custom_normal(prior_slope_config, prior_intercept_config) -> None:
     """Test that partial & full set-up of priors with all-normal priors."""
-    if prior_slope_config == {'prior_intercept_dist': 'normal', 'prior_intercept_mu': [0.0], 'prior_intercept_sigma': [1.0]}:
-        pytest.skip(
-            reason="pytest misconfiguration "
-        )
+    if prior_slope_config == {
+        "prior_intercept_dist": "normal",
+        "prior_intercept_mu": [0.0],
+        "prior_intercept_sigma": [1.0],
+    }:
+        pytest.skip(reason="pytest misconfiguration ")
     glm = GLM(
         family="gamma",
         link="log",
@@ -190,9 +194,9 @@ def test_prior_setup_full() -> None:
             "prior_intercept_sigma": 1,
         },
         priors={
-                "prior_slope_dist": "normal",
-                "prior_slope_mu": [0.0],
-                "prior_slope_sigma": [1.0],
+            "prior_slope_dist": "normal",
+            "prior_slope_mu": [0.0],
+            "prior_slope_sigma": [1.0],
         },
     )
 
@@ -210,10 +214,9 @@ def test_prior_setup_half() -> None:
         link="log",
         seed=1234,
         priors={
-                "prior_slope_dist": "normal",
-                "prior_slope_mu": [0.],
-                "prior_slope_sigma": [1.],
-            
+            "prior_slope_dist": "normal",
+            "prior_slope_mu": [0.0],
+            "prior_slope_sigma": [1.0],
         },
         prior_intercept={},
     )

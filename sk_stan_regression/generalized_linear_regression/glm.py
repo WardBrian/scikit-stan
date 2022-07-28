@@ -158,15 +158,18 @@ class GLM(CoreEstimator):
 
         .. math:: \beta \sim \text{normal}(0, 2.5)
 
-        The number of specified prior parameters cannot exceed the number of predictors in the data as each parameter is associated with a single coefficient. 
-        If the number of specified priors is less than the number of predictors, the remaining coefficients are set to the default prior.
+        The number of specified prior parameters cannot exceed the number of predictors in
+        the data as each parameter is associated with a single coefficient.
+        If the number of specified priors is less than the number of predictors,
+        the remaining coefficients are set to the default prior.
         The prior on all regression coefficients is set with the following keys:
             + "prior_slope_dist": distribution of the prior for each coefficient
 
             + "prior_slope_mu": location parameters of the prior for each coefficient
 
             + "prior_slope_sigma": scale parameters of the prior for each coefficient
-        Thus, to specify a standard normal prior on the first feature, the dictionary should be passed as
+        Thus, to specify a standard normal prior on the first feature,
+        the dictionary should be passed as
 
         {
             "prior_slope_dist": "normal",
@@ -198,7 +201,7 @@ class GLM(CoreEstimator):
                 "prior_intercept_dist": "normal",
 
                 "prior_intercept_mu": 0,
-                
+
                 "prior_intercept_sigma": 1
             }
 
@@ -220,7 +223,7 @@ class GLM(CoreEstimator):
 
         For example, to specify a chi2 prior with nu=2.5, pass
             {
-                "prior_aux_dist": "chi2", 
+                "prior_aux_dist": "chi2",
 
                 "prior_aux_param": 2.5
             }
@@ -247,7 +250,7 @@ class GLM(CoreEstimator):
         family: str = "gaussian",
         link: Optional[str] = None,
         seed: Optional[int] = None,
-        priors: Optional[Dict[str, Union[int, float, List]]] = None,
+        priors: Optional[Dict[str, Union[int, float, List[float, int]]]] = None,
         prior_intercept: Optional[Dict[str, Any]] = None,
         prior_aux: Optional[Dict[str, Any]] = None,
         autoscale: bool = False,
@@ -406,12 +409,12 @@ class GLM(CoreEstimator):
         # default prior selection follows:
         # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
         if self.family == "gaussian" and self.autoscale:
-            DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = [2.5 * sdy / sdx] * K 
+            DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = [2.5 * sdy / sdx] * K
         else:
             if self.autoscale:
-                DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = [2.5 / sdx] * K 
+                DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = [2.5 / sdx] * K
             else:
-                DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = [2.5] * K 
+                DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = [2.5] * K
 
         priors_ = {}
 

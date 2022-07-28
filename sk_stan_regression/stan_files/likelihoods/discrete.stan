@@ -1,12 +1,9 @@
 #include "./common.stan"
 /* Log-likelihood functions for different discrete families. */
 
-// TODO: the following implementations are clunky, clean them up.
-
 real bernoulli_llh(vector y, real p) {
     return log(p) * sum(y) + log(1 - p) * (rows(y) - sum(y));
 }
-
 
 /* Log-likelihood for binomial distribution.
 
@@ -33,23 +30,35 @@ real binomial_llh(array[] int y, array[] int trial_results, vector mu, int link)
     }
     else if (link == 1) { // log
         real L;
-        for (n in 1:num_elements(y)) {
-            L += y[n] * mu[n];
-            L += (trial_results[n] - y[n]) * log1m_exp(mu[n]);
-            L += lchoose(trial_results[n], y[n]);
-        }
-        return L;
+        //for (n in 1:num_elements(y)) {
+        //    L += y[n] * mu[n];
+        //    L += (trial_results[n] - y[n]) * log1m_exp(mu[n]);
+        //    L += lchoose(trial_results[n], y[n]);
+        //}
+
+        // NOTE: the following is equivalent to the above, but is vectorized and is more efficient in memory  
+        vector[num_elements(y)] y_v = to_vector(y); 
+        vector[num_elements(y)] trial_results_v = to_vector(trial_results);
+        
+        L = sum(y_v .* mu) + sum((trial_results_v - y_v) .* log1m_exp(mu)) + sum(lchoose(trial_results_v, y_v));    
+        
+        return L; 
     }
     else { // cloglog
         vector[num_elements(y)] neg_exp_mu = - exp(mu);
         real L;
-        for (n in 1:num_elements(y)) {
-            L += y[n] * log1m_exp(neg_exp_mu[n]);
-            L += (trial_results[n] - y[n]) * neg_exp_mu[n];
-            L += lchoose(trial_results[n], y[n]);
-        }
-        return L;
+        //for (n in 1:num_elements(y)) {
+        //    L += y[n] * log1m_exp(neg_exp_mu[n]);
+        //    L += (trial_results[n] - y[n]) * neg_exp_mu[n];
+        //    L += lchoose(trial_results[n], y[n]);
+        //}
+
+        # NOTE: the following is equivalent to the above, but is vectorized and is more efficient in memory  
+        vector[num_elements(y)] y_v = to_vector(y); 
+        vector[num_elements(y)] trial_results_v = to_vector(trial_results);
+
+        L = sum(y_v .* log1m_exp(neg_exp_mu)) + sum((trial_results_v - y_v) .* neg_exp_mu) + sum(lchoose(trial_results_v, y_v));
+
+        return L; 
     }
 }
-
-//real poisson_llh(vector y, real theta)
