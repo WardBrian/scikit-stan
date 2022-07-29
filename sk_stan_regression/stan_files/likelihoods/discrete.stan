@@ -36,13 +36,13 @@ real binomial_llh(array[] int y, array[] int trial_results, vector mu, int link)
         //    L += lchoose(trial_results[n], y[n]);
         //}
 
-        // NOTE: the following is equivalent to the above, but is vectorized and is more efficient in memory  
-        vector[num_elements(y)] y_v = to_vector(y); 
+        // NOTE: the following is equivalent to the above, but is vectorized and is more efficient in memory
+        vector[num_elements(y)] y_v = to_vector(y);
         vector[num_elements(y)] trial_results_v = to_vector(trial_results);
-        
-        L = sum(y_v .* mu) + sum((trial_results_v - y_v) .* log1m_exp(mu)) + sum(lchoose(trial_results_v, y_v));    
-        
-        return L; 
+
+        L = sum(y_v .* mu) + sum((trial_results_v - y_v) .* log1m_exp(mu)) + sum(lchoose(trial_results_v, y_v));
+
+        return L;
     }
     else { // cloglog
         vector[num_elements(y)] neg_exp_mu = - exp(mu);
@@ -53,12 +53,12 @@ real binomial_llh(array[] int y, array[] int trial_results, vector mu, int link)
         //    L += lchoose(trial_results[n], y[n]);
         //}
 
-        # NOTE: the following is equivalent to the above, but is vectorized and is more efficient in memory  
-        vector[num_elements(y)] y_v = to_vector(y); 
+        // NOTE: the following is equivalent to the above, but is vectorized and is more efficient in memory
+        vector[num_elements(y)] y_v = to_vector(y);
         vector[num_elements(y)] trial_results_v = to_vector(trial_results);
 
         L = sum(y_v .* log1m_exp(neg_exp_mu)) + sum((trial_results_v - y_v) .* neg_exp_mu) + sum(lchoose(trial_results_v, y_v));
 
-        return L; 
+        return L;
     }
 }
