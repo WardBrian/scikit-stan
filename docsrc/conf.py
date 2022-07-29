@@ -33,6 +33,8 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.autodoc",
+    "sphinx.ext.githubpages",
+    "nbsphinx",
 ]
 
 
@@ -66,3 +68,14 @@ html_theme = "pydata_sphinx_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+
+intersphinx_mapping = {
+    "python": (
+        "https://docs.python.org/3/",
+        None,
+    ),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "cmdstanpy": ("https://mc-stan.org/cmdstanpy/", None),
+    "sklearn": ("https://scikit-learn.org/stable/", None),
+}
