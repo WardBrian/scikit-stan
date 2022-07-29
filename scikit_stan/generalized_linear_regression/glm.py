@@ -9,8 +9,8 @@ import scipy.stats as stats
 from cmdstanpy import CmdStanModel, set_cmdstan_path
 from numpy.typing import ArrayLike, NDArray
 
-from sk_stan_regression.modelcore import CoreEstimator
-from sk_stan_regression.utils.validation import (
+from scikit_stan.modelcore import CoreEstimator
+from scikit_stan.utils.validation import (
     FAMILY_LINKS_MAP,
     check_array,
     check_is_fitted,
@@ -250,7 +250,7 @@ class GLM(CoreEstimator):
         family: str = "gaussian",
         link: Optional[str] = None,
         seed: Optional[int] = None,
-        priors: Optional[Dict[str, Union[int, float, List[float, int]]]] = None,
+        priors: Optional[Dict[str, Union[int, float, List[Union[float, int]]]]] = None,
         prior_intercept: Optional[Dict[str, Any]] = None,
         prior_aux: Optional[Dict[str, Any]] = None,
         autoscale: bool = False,

@@ -14,7 +14,7 @@ from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 from wheel.bdist_wheel import bdist_wheel
 
-MODEL_DIR = "sk_stan_regression/stan_files"
+MODEL_DIR = "scikit_stan/stan_files"
 MODELS = ["glm_v_continuous", "glm_v_discrete"]
 
 
@@ -133,6 +133,6 @@ class WheelABINone(bdist_wheel):
 
 
 setup(
-    ext_modules=[Extension("sk_stan_regression.stan_files", [])],
+    ext_modules=[Extension("scikit-stan.stan_files", [])],
     cmdclass={"build_ext": BuildModels, "bdist_wheel": WheelABINone},
 )

@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = "SciKit Stan Regression"
+project = "SciKit Stan"
 copyright = "2022, Alexey Izmailov, Brian Ward"
 author = "Alexey Izmailov, Brian Ward"
 

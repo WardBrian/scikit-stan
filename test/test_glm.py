@@ -6,8 +6,8 @@ import scipy.stats as stats  # type: ignore
 from data import _gen_fam_dat_continuous, _gen_fam_dat_discrete, bcdata_dict
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
-from sk_stan_regression.generalized_linear_regression import GLM
-from sk_stan_regression.modelcore import CoreEstimator
+from scikit_stan.generalized_linear_regression import GLM
+from scikit_stan.modelcore import CoreEstimator
 
 
 @pytest.mark.slow

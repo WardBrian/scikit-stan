@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, overload
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from sk_stan_regression.utils.validation import _check_y
+from scikit_stan.utils.validation import _check_y
 
 from .utils import check_array, check_X_y
 

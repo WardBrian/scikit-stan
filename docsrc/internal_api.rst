@@ -1,40 +1,40 @@
-.. py:currentmodule:: sk_stan_regression
+.. py:currentmodule:: scikit_stan
 
-Internal API Reference 
+Internal API Reference
 ======================
 
-Here is a documentation of methods internal to the package, which are subject to considerable change between releases. No promises of backwards compatibility are made with these methods. 
+Here is a documentation of methods internal to the package, which are subject to considerable change between releases. No promises of backwards compatibility are made with these methods.
 
-The package consists of a single general class for estimators, which is modelled after 
-sk-learn's Estimator class. 
+The package consists of a single general class for estimators, which is modelled after
+sk-learn's Estimator class.
 
 *******
 Classes
 *******
 
-CoreEstimator 
+CoreEstimator
 --------------
 
-.. autoclass:: sk_stan_regression.modelcore.CoreEstimator
-    :members: 
+.. autoclass:: scikit_stan.modelcore.CoreEstimator
+    :members:
 
 
 ******************
 Validation Methods
 ******************
 
-.. currentmodule:: sk_stan_regression.utils.validation 
+.. currentmodule:: scikit_stan.utils.validation
 
-Validating Family-Link Choice 
+Validating Family-Link Choice
 -----------------------------
 
 .. autofunction:: validate_family
 
 
-Note that the package has a consistent internal numbering scheme for families and links alike. Specifically, since Stan does not support strings, families, links, and priors 
-have internal numeric representations. 
+Note that the package has a consistent internal numbering scheme for families and links alike. Specifically, since Stan does not support strings, families, links, and priors
+have internal numeric representations.
 
-Families are mapped as follows:  
+Families are mapped as follows:
     * "gaussian": 0,
     * "gamma": 1,
     * "inverse-gaussian": 2,
@@ -42,7 +42,7 @@ Families are mapped as follows:
     * "binomial": 4,
     * "negative-binomial": 5,
 
-Link functions are mapped as follows: 
+Link functions are mapped as follows:
     * identity - 0
     * log - 1
     * inverse - 2
@@ -53,10 +53,10 @@ Link functions are mapped as follows:
     * cloglog - 7
     * cauchit - 8
 
-Validating Input Data 
+Validating Input Data
 ----------------------
 
-.. autofunction:: check_array 
+.. autofunction:: check_array
 
 .. autofunction:: check_is_fitted
 

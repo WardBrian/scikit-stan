@@ -4,7 +4,7 @@ from typing import Generator, Tuple
 
 import pytest
 
-from sk_stan_regression.utils.validation import FAMILY_LINKS_MAP, validate_family
+from scikit_stan.utils.validation import FAMILY_LINKS_MAP, validate_family
 
 
 # -> Generator[Tuple[str, str], None, None]

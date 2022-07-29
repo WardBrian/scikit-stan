@@ -1,10 +1,9 @@
-.. py:currentmodule:: sk_stan_regression
+.. py:currentmodule:: scikit_stan
 
 Examples
 ========
 
 .. toctree::
     :titlesonly:
-    
+
     examples/Gamma Bloodclotting.ipynb
- 
