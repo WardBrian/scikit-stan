@@ -239,7 +239,6 @@ def check_array(
     return array_res
 
 
-# TODO: add additional arguments
 def _check_y(
     y: ArrayLike, dtype: type = np.float64
 ) -> NDArray[Union[np.float64, np.int64]]:
@@ -263,7 +262,6 @@ def check_X_y(
 
 # NOTE: This is derived from sk-learn's validation checks, which
 # are distributed under the 3-Clause BSD License.
-# TODO: simplify
 def check_is_fitted(
     estimator: Any,
     attributes: Optional[List[str]] = None,
@@ -460,9 +458,6 @@ def validate_prior(prior_spec: Dict[str, Any], coeff_type: str) -> Dict[str, Any
     }
 
 
-# TODO: to generalize to multi-parameter priors here, additional validation checks are
-# necessary, and on the Stan side, priors to the log-likelihood should be set
-# via a vector rather than just a single vague parameter.
 def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
     """Validates passed configuration for prior on auxiliary parameters.
     This does not perform parameter autoscaling.
@@ -514,8 +509,6 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
         "prior_aux_dist": PRIORS_AUX_MAP[dist_key],
     }
 
-    # NOTE: this section has placeholder values, see the TODO above for generalization
-    # add validation for additional priors on auxiliary variable(s) here
     if dist_key == "exponential":
         if "prior_aux_param" not in config_keys:
             raise ValueError(

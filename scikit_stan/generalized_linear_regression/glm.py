@@ -267,7 +267,6 @@ class GLM(CoreEstimator):
 
         self.seed = seed
 
-    # TODO: make intercept-less choice?
     def fit(
         self,
         X: ArrayLike,
@@ -432,7 +431,6 @@ class GLM(CoreEstimator):
 
         self.priors_ = priors_
 
-        # TODO: add functionality for GLM to not have an intercept at all
         # set up default prior for intercept if not user-specified
         if self.prior_intercept is None or len(self.prior_intercept) == 0:
             warnings.warn(
@@ -495,12 +493,9 @@ class GLM(CoreEstimator):
             self.model_ = GLM_CONTINUOUS_STAN
         else:
             self.model_ = GLM_DISCRETE_STAN
-            # TODO: this shouldn't be a repeat, this should be different for every component?
             dat["trials"] = np.repeat(y_clean.shape[0], X_clean.shape[0])
 
         self.seed_ = self.seed
-
-        print(dat)
 
         self.fitted_samples_ = method_dict[self.algorithm](  # type:ignore
             self.model_,
@@ -575,8 +570,6 @@ class GLM(CoreEstimator):
             X=X, ensure_2d=True, dtype=np.float64 if self.is_cont_dat_ else np.int64
         )
 
-        # TODO: link functions???
-        # TODO: discrete families
         # NOTE: in a future Stan release, generate quantities() will not be restricted
         # to requiring an MCMC sample, so the following will be obsolete
         if self.algorithm != "HMC-NUTS":

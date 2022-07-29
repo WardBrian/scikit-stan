@@ -22,7 +22,6 @@ def test_notfittederror_glm() -> None:
         glm.predict(X=np.array([2, 4, 8, 16]))
 
 
-# TODO: change this test
 @pytest.mark.slow
 @pytest.mark.parametrize("prior_config", [None, {}])
 def test_prior_config_default_nongaussian(prior_config) -> None:

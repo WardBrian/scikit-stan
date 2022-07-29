@@ -39,12 +39,7 @@ real gamma_llh(vector y, real s_log_y,
         L +=  alpha * (- dot_product(mu, y) + sum(log(mu))); 
     }
 
-    return L;     
-
-    // THIS IS WRONG, but could in principle be refactored to be correct...   
-    //return (alpha - 1) * s_log_y + 
-    //            rows(y) * alpha * (log(alpha) - lgamma(alpha)) - 
-    //                                (sum(y ./ mu) + sum(log(mu)));                
+    return L;              
 }
 
 /**
@@ -79,10 +74,8 @@ real inv_gaussian_llh(vector y, real s_log_y,
             0.5 * lambda * dot_self((y - mu) ./ (mu .* sqrt_y));
 }
 
-// TODO: vectorize (overload, really) the algorithm, 
-// either here or a PR to Stan math core
-
-/* (P)RNG for Inverse Gaussian distribution
+/**
+* (P)RNG for Inverse Gaussian distribution
 * The distribution is assumed to be parameterized by mu, the linear predictor,
 * and by lambda, the dispersion parameter (see the distribution's two-parameter form).
 
@@ -107,30 +100,3 @@ real inv_gaussian_rng(real mu, real lambda) {
         return mu * mu / x;
     }
 }
-
-// TODO: vectorize (overload, really) the above algorithm, 
-// either here or a PR to Stan math core
-
-/* Vectorized (P)RNG for Inverse Gaussian distribution
-*  
-* parameters of distribution
-* @param mu: mean of distribution 
-* @param lambda: shape parameter of distribution
-* See this Wikipedia algorithm for sampling: 
-* https://www.wikiwand.com/en/Inverse_Gaussian_distribution#/Sampling_from_an_inverse-Gaussian_distribution
-*/
-//vector inv_gaussian_rng(vector mu, real lambda) {
-//    int N = rows(mu); 
-//    real nu[rows(mu)] = uniform_rng(0,1, N); 
-//    real y = nu * nu; 
-//    real x = mu + 
-//                    mu / (2 * lambda) * (mu * y - sqrt(4 * mu * lambda * y + square(mu) * square(y)));
-//    
-//    real z = uniform_rng(0,1);
-//    if (z < mu / (mu + x)) {
-//        return x;
-//    }
-//    else {
-//        return mu * mu / x;
-//    }
-//}

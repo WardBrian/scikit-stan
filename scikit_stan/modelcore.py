@@ -138,9 +138,8 @@ class CoreEstimator:
     ]:
         ...
 
-    # custom function adapted from sklearn's validations
-    # TODO: add check that X and y have the same relevant
-    # dimensions...? should be a separate validation...
+    # custom function adapted from sklearn's validations,
+    # which are distributed under the 3-Clause BSD License.
     def _validate_data(
         self,
         X: Optional[ArrayLike] = None,
@@ -174,7 +173,6 @@ class CoreEstimator:
             res_y = _check_y(y, dtype=dtype)  # type:ignore
             res_X = None
         else:
-            # TODO: add separate validation of X and y? !!!!!
             res_X, res_y = check_X_y(X, y, dtype=dtype)  # type:ignore
 
         return res_X, res_y

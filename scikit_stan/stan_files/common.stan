@@ -1,6 +1,5 @@
 /* Common functions used for various components of the package. */
 
-// TODO: add this to Stan core math?  
 /* Inverse of the Cauchit link function; the inverse of the CDF for the Cauchy
     distribution. 
 

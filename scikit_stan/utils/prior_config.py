@@ -116,7 +116,6 @@ def map_priors(prior_config: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     #       excluding the intercept or
     #   2) be scalars, in which case the same values will be
     #       repeated for each coefficient
-    # TODO: length check happens right before everything is fed to model method in fit()!
     if not (
         "prior_intercept_mu" in config_keys and "prior_intercept_sigma" in config_keys
     ):
