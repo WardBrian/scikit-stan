@@ -13,10 +13,10 @@ Source installation requires a working installation of [CmdStan](https://mc-stan
 ## Basic usage
 
 ```python
-from scikit_learn import GLM
+from scikit_stan import GLM
 
-m = GLM(familiy='gamma')
-m.fit(X, y) # runs HMC-NUTs
+m = GLM(family='gamma') # Gamma family distribution with canonical inverse link
+m.fit(X, y) # runs HMC-NUTS
 m.predict(X) # generates new predictions from fitted model
 ```
 

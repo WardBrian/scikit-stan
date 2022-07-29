@@ -165,9 +165,9 @@ class GLM(CoreEstimator):
         The prior on all regression coefficients is set with the following keys:
             + "prior_slope_dist": distribution of the prior for each coefficient
 
-            + "prior_slope_mu": location parameters of the prior for each coefficient
+            + "prior_slope_mu": list of location parameters of the prior for each coefficient
 
-            + "prior_slope_sigma": scale parameters of the prior for each coefficient
+            + "prior_slope_sigma": list of scale parameters of the prior for each coefficient
         Thus, to specify a standard normal prior on the first feature,
         the dictionary should be passed as
 
@@ -408,6 +408,7 @@ class GLM(CoreEstimator):
         # likely to be reused across multiple features
         # default prior selection follows:
         # https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+        # NOTE: this sets up default priors for all features
         if self.family == "gaussian" and self.autoscale:
             DEFAULT_SLOPE_PRIOR["prior_slope_sigma"] = [2.5 * sdy / sdx] * K
         else:
@@ -423,6 +424,11 @@ class GLM(CoreEstimator):
             priors_ = DEFAULT_SLOPE_PRIOR
         else:
             priors_ = validate_prior(self.priors, "slope")
+            if len(self.priors["prior_slope_mu"]) != K or len(self.priors["prior_slope_sigma"]) != K:
+                raise ValueError(
+                    f"""Length of prior_slope_mu and prior_slope_sigma must be equal to the number of features in X.
+                    Got {len(self.priors["prior_slope_mu"])} and {len(self.priors["prior_slope_sigma"])} respectively."""
+                )
 
         self.priors_ = priors_
 

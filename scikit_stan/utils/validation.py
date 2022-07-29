@@ -475,8 +475,9 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
         both parameterized by a single scalar.
         Priors here with more parameters are a future feature.
         For single-parameter priors, this field is a dictionary with the following keys
-            "prior_aux_dist": distribution of the prior on this parameter
-            "prior_aux_param": parameter of the prior on this parameter
+            + "prior_aux_dist": distribution of the prior on this parameter
+            
+            + "prior_aux_param": parameter of the prior on this parameter
 
         For example, to specify a chi2 prior with nu=2.5, pass
             {"prior_aux_dist": "chi2", "prior_aux_param": 2.5}
