@@ -17,7 +17,8 @@ from scikit_stan import GLM
 
 m = GLM(family='gamma') # Gamma family distribution with canonical inverse link
 m.fit(X, y) # runs HMC-NUTS
-m.predict(X) # generates new predictions from fitted model
+predictions = m.predict(X) # generates new predictions from fitted model
+score = m.score(X, y) # computes the R2 score of the fitted model on the data X and observations y 
 ```
 
 ## Attribution

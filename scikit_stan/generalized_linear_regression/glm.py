@@ -187,7 +187,6 @@ class GLM(CoreEstimator):
         if Gaussian family else
 
         .. math:: \alpha \sim \text{normal}(0, 2.5)
-
         To set this prior explicitly, pass a dictionary with the following keys:
             + "prior_intercept_dist": str, distribution of the prior from the list
             of supported prior distributions: "normal", "laplace"
@@ -195,7 +194,6 @@ class GLM(CoreEstimator):
             + "prior_intercept_mu": float, location parameter of the prior distribution
 
             + "prior_intercept_sigma": float, error scale parameter of the prior distribution
-
         Thus, for example, passing
             {
                 "prior_intercept_dist": "normal",
