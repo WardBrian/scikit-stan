@@ -66,7 +66,7 @@ html_theme = "pydata_sphinx_theme"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = '_static/images/logo_icon.png'
+html_logo = "_static/images/logo_icon.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
