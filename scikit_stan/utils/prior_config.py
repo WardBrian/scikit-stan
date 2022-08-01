@@ -120,8 +120,8 @@ def map_priors(prior_config: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         "prior_intercept_mu" in config_keys and "prior_intercept_sigma" in config_keys
     ):
         warnings.warn(
-            f"""No location or scale specified for intercept prior {dist_key_intercept}, defaulting to 
-            {INTERCEPT_PRIOR_DEFAULTS_INFO[dist_key_intercept]}."""
+            f"No location or scale specified for intercept prior {dist_key_intercept}"
+            f", defaulting to\n{INTERCEPT_PRIOR_DEFAULTS_INFO[dist_key_intercept]}."
         )
         res_priors["prior_intercept_mu"], res_priors["prior_intercept_sigma"] = (
             "default",
@@ -136,7 +136,7 @@ def map_priors(prior_config: Optional[Dict[str, Any]]) -> Dict[str, Any]:
 
     if not ("prior_slope_mu" in config_keys and "prior_slope_sigma" in config_keys):
         warnings.warn(
-            f"""No location or scale specified for slope prior {dist_key_slope}, defaulting to 
+            f"""No location or scale specified for slope prior {dist_key_slope}, defaulting to
             {SLOPE_PRIOR_DEFAULTS_INFO[dist_key_slope]}."""
         )
         res_priors["prior_slope_mu"], res_priors["prior_slope_sigma"] = (
