@@ -250,55 +250,63 @@
 <span class="sd">    ----------</span>
 <span class="sd">    algorithm : str, optional</span>
 <span class="sd">        Algorithm to be used by the Stan model. The following are supported:</span>
+
 <span class="sd">            * HMC-NUTS - runs the HMC-NUTS sampler,</span>
 <span class="sd">            * L-BFGS - produces a likelihood estimate of model parameters,</span>
 <span class="sd">            * ADVI - runs Stan&#39;s variational inference algorithm to compute the posterior.</span>
+
 <span class="sd">    family : str, optional</span>
 <span class="sd">        Distribution family used for linear regression. All R Families package are supported:</span>
+
 <span class="sd">            * &quot;gaussian&quot; - Gaussian distribution,</span>
 <span class="sd">            * &quot;gamma&quot; - Gamma distribution,</span>
 <span class="sd">            * &quot;inverse-gaussian&quot; - Inverse Gaussian distribution,</span>
 <span class="sd">            * &quot;poisson&quot; - Poisson distribution,</span>
-<span class="sd">            * &quot;binomial&quot; - Binomial distribution,</span>
+<span class="sd">            * &quot;binomial&quot; - Binomial distribution</span>
+
 <span class="sd">    link : Optional[str], optional</span>
 <span class="sd">        Distribution link function used for linear regression,</span>
 <span class="sd">        following R&#39;s family-link combinations.</span>
 <span class="sd">        These are family-specific:</span>
+
 <span class="sd">            * &quot;gaussian&quot;:</span>
-<span class="sd">                * &quot;identity&quot; - Identity link function,</span>
-<span class="sd">                * &quot;log&quot; - Log link function,</span>
-<span class="sd">                * &quot;inverse&quot; - Inverse link function,</span>
+<span class="sd">                + &quot;identity&quot; - Identity link function,</span>
+<span class="sd">                + &quot;log&quot; - Log link function,</span>
+<span class="sd">                + &quot;inverse&quot; - Inverse link function</span>
 <span class="sd">            * &quot;gamma&quot;:</span>
-<span class="sd">                * &quot;identity&quot; - Identity link function,</span>
-<span class="sd">                * &quot;log&quot; - Log link function,</span>
-<span class="sd">                * &quot;inverse&quot; - Inverse link function,</span>
+<span class="sd">                + &quot;identity&quot; - Identity link function,</span>
+<span class="sd">                + &quot;log&quot; - Log link function,</span>
+<span class="sd">                + &quot;inverse&quot; - Inverse link function</span>
 <span class="sd">            * &quot;inverse-gaussian&quot;:</span>
-<span class="sd">                * &quot;identity&quot; - Identity link function,</span>
-<span class="sd">                * &quot;log&quot; - Log link function,</span>
-<span class="sd">                * &quot;inverse&quot; - Inverse link function,</span>
-<span class="sd">                * &quot;inverse-square&quot; - Inverse square link function,</span>
+<span class="sd">                + &quot;identity&quot; - Identity link function,</span>
+<span class="sd">                + &quot;log&quot; - Log link function,</span>
+<span class="sd">                + &quot;inverse&quot; - Inverse link function,</span>
+<span class="sd">                + &quot;inverse-square&quot; - Inverse square link function</span>
 <span class="sd">            * &quot;poisson&quot;:</span>
-<span class="sd">                * &quot;identity&quot; - Identity link function,</span>
-<span class="sd">                * &quot;log&quot; - Log link function,</span>
-<span class="sd">                * &quot;sqrt&quot; - Square root link function,</span>
+<span class="sd">                + &quot;identity&quot; - Identity link function,</span>
+<span class="sd">                + &quot;log&quot; - Log link function,</span>
+<span class="sd">                + &quot;sqrt&quot; - Square root link function</span>
 <span class="sd">            * &quot;binomial&quot;:</span>
-<span class="sd">                * &quot;log&quot; - Log link function,</span>
-<span class="sd">                * &quot;logit&quot; - Logit link function,</span>
-<span class="sd">                * &quot;probit&quot; - Probit link function,</span>
-<span class="sd">                * &quot;cloglog&quot; - Complementary log-log link function,</span>
-<span class="sd">                * &quot;cauchit&quot; - Cauchit link function,</span>
+<span class="sd">                + &quot;log&quot; - Log link function,</span>
+<span class="sd">                + &quot;logit&quot; - Logit link function,</span>
+<span class="sd">                + &quot;probit&quot; - Probit link function,</span>
+<span class="sd">                + &quot;cloglog&quot; - Complementary log-log link function,</span>
+<span class="sd">                + &quot;cauchit&quot; - Cauchit link function</span>
+
 <span class="sd">        If an invalid combination of family and link is passed, a ValueError is raised.</span>
 
 <span class="sd">        When no link is specified, these are family-specific defaults for the link function:</span>
+
 <span class="sd">            * &quot;gaussian&quot;: &quot;identity&quot;,</span>
 <span class="sd">            * &quot;gamma&quot;: &quot;inverse&quot;,</span>
 <span class="sd">            * &quot;inverse-gaussian&quot;: &quot;inverse&quot;,</span>
 <span class="sd">            * &quot;poisson&quot;: &quot;identity&quot;,</span>
-<span class="sd">            * &quot;binomial&quot;: &quot;logit&quot;,</span>
+<span class="sd">            * &quot;binomial&quot;: &quot;logit&quot;</span>
+
 <span class="sd">    seed : Optional[int], optional</span>
 <span class="sd">        Seed for random number generator. Must be an integer between 0 an 2^32-1.</span>
 <span class="sd">        If this is left unspecified, then a random seed will be used for all chains</span>
-<span class="sd">        via numpy.random.RandomState().</span>
+<span class="sd">        via :class:`numpy.random.RandomState`.</span>
 <span class="sd">        Specifying this field will yield the same result for multiple uses if</span>
 <span class="sd">        all other parameters are held the same.</span>
 <span class="sd">    priors : Optional[Dict[str, Union[int, float, List]]], optional</span>
@@ -324,19 +332,19 @@
 <span class="sd">        If the number of specified priors is less than the number of predictors,</span>
 <span class="sd">        the remaining coefficients are set to the default prior.</span>
 <span class="sd">        The prior on all regression coefficients is set with the following keys:</span>
+
 <span class="sd">            + &quot;prior_slope_dist&quot;: distribution of the prior for each coefficient</span>
-
 <span class="sd">            + &quot;prior_slope_mu&quot;: list of location parameters of the prior for each coefficient</span>
-
 <span class="sd">            + &quot;prior_slope_sigma&quot;: list of scale parameters of the prior for each coefficient</span>
-<span class="sd">        Thus, to specify a standard normal prior on the first feature,</span>
-<span class="sd">        the dictionary should be passed as</span>
 
-<span class="sd">        {</span>
-<span class="sd">            &quot;prior_slope_dist&quot;: &quot;normal&quot;,</span>
-<span class="sd">            &quot;prior_slope_mu&quot;: [0.],</span>
-<span class="sd">            &quot;prior_slope_sigma&quot;: [1.]</span>
-<span class="sd">        }</span>
+<span class="sd">        Thus, to specify a standard normal prior on the first feature,</span>
+<span class="sd">        the dictionary should be passed as::</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;prior_slope_dist&quot;: &quot;normal&quot;,</span>
+<span class="sd">                &quot;prior_slope_mu&quot;: [0.],</span>
+<span class="sd">                &quot;prior_slope_sigma&quot;: [1.]</span>
+<span class="sd">            }</span>
 
 <span class="sd">        Any unspecified priors will be set to the default.</span>
 <span class="sd">    prior_intercept : Optional[Dict[str, Any]], optional</span>
@@ -348,19 +356,19 @@
 <span class="sd">        if Gaussian family else</span>
 
 <span class="sd">        .. math:: \alpha \sim \text{normal}(0, 2.5)</span>
+
 <span class="sd">        To set this prior explicitly, pass a dictionary with the following keys:</span>
-<span class="sd">            + &quot;prior_intercept_dist&quot;: str, distribution of the prior from the list</span>
-<span class="sd">            of supported prior distributions: &quot;normal&quot;, &quot;laplace&quot;</span>
 
+<span class="sd">            + &quot;prior_intercept_dist&quot;: str, distribution of the prior from the list of supported</span>
+<span class="sd">              prior distributions: &quot;normal&quot;, &quot;laplace&quot;</span>
 <span class="sd">            + &quot;prior_intercept_mu&quot;: float, location parameter of the prior distribution</span>
-
 <span class="sd">            + &quot;prior_intercept_sigma&quot;: float, error scale parameter of the prior distribution</span>
-<span class="sd">        Thus, for example, passing</span>
+
+<span class="sd">        Thus, for example, passing::</span>
+
 <span class="sd">            {</span>
 <span class="sd">                &quot;prior_intercept_dist&quot;: &quot;normal&quot;,</span>
-
 <span class="sd">                &quot;prior_intercept_mu&quot;: 0,</span>
-
 <span class="sd">                &quot;prior_intercept_sigma&quot;: 1</span>
 <span class="sd">            }</span>
 
@@ -377,30 +385,34 @@
 <span class="sd">        both parameterized by a single scalar.</span>
 <span class="sd">        Priors here with more parameters are a future feature.</span>
 <span class="sd">        For single-parameter priors, this field is a dictionary with the following keys</span>
-<span class="sd">            &quot;prior_aux_dist&quot;: distribution of the prior on this parameter</span>
-<span class="sd">            &quot;prior_aux_param&quot;: parameter of the prior on this parameter</span>
 
-<span class="sd">        For example, to specify a chi2 prior with nu=2.5, pass</span>
+<span class="sd">            + &quot;prior_aux_dist&quot;: distribution of the prior on this parameter</span>
+<span class="sd">            + &quot;prior_aux_param&quot;: parameter of the prior on this parameter</span>
+
+<span class="sd">        For example, to specify a chi2 prior with nu=2.5, pass::</span>
+
 <span class="sd">            {</span>
 <span class="sd">                &quot;prior_aux_dist&quot;: &quot;chi2&quot;,</span>
 
 <span class="sd">                &quot;prior_aux_param&quot;: 2.5</span>
 <span class="sd">            }</span>
 
-<span class="sd">        The default un-scaled prior is exponential(1), the default scaled prior is</span>
-<span class="sd">        exponential(1/sy) where sy = sd(y) - if the specified family is a Gaussian,</span>
-<span class="sd">        and sy = 1 in all other cases. Setting auto_scale=True results in division by</span>
+<span class="sd">        The default un-scaled prior is ``exponential(1)``, the default scaled prior is</span>
+<span class="sd">        ``exponential(1/sy)`` where ``sy = sd(y)`` if the specified family is a Gaussian,</span>
+<span class="sd">        and ``sy = 1`` in all other cases. Setting ``autoscale=True`` results in division by</span>
 <span class="sd">        sy.</span>
 
-<span class="sd">        NOTE: the usual prior-selection advice holds. See these discussions about prior selection:</span>
-<span class="sd">            * https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations</span>
-<span class="sd">            * http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf</span>
-
 <span class="sd">    autoscale : bool, optional</span>
-<span class="sd">        Enable automatic scaling of priors. Autoscaling is performed the same as in rstanarm:</span>
-<span class="sd">            https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html</span>
+<span class="sd">        Enable automatic scaling of priors. Autoscaling is performed the same as in `rstanarm</span>
+<span class="sd">        &lt;https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html&gt;`__.</span>
 
 <span class="sd">        This procedure does not happen by default.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The usual prior-selection advice holds. See these discussions about prior selection:</span>
+<span class="sd">        - https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations</span>
+<span class="sd">        - http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -583,11 +595,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">priors_</span> <span class="o">=</span> <span class="n">validate_prior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">,</span> <span class="s2">&quot;slope&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span>
-                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s2">&quot;prior_slope_mu&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">K</span>
-                <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s2">&quot;prior_slope_sigma&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">K</span>
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s2">&quot;prior_slope_mu&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">K</span>  <span class="c1"># type: ignore</span>
+                <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s2">&quot;prior_slope_sigma&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">K</span>  <span class="c1"># type: ignore</span>
             <span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Length of prior_slope_mu and prior_slope_sigma must be &quot;</span>
+                    <span class="s2">&quot;Length of prior_slope_mu and prior_slope_sigma must be &quot;</span>  <span class="c1"># type: ignore</span>
                     <span class="s2">&quot;equal to the number of features in X.</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s1">&#39;prior_slope_mu&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s1">&#39;prior_slope_sigma&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> respectively.&quot;</span>
@@ -878,12 +890,12 @@
             <span class="s2">&quot;_xfail_checks&quot;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s2">&quot;check_methods_sample_order_invariance&quot;</span><span class="p">:</span> <span class="s2">&quot;check is not applicable.&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;check_methods_subset_invariance&quot;</span><span class="p">:</span> <span class="s2">&quot;check is not applicable.&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;check_fit_idempotent&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;model is idempotent, but not to the required degree of accuracy as this is a</span>
-<span class="s2">                    probabilistic setting.&quot;&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;check_fit_idempotent&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;model is idempotent, but not to the required degree of</span>
+<span class="s2">                    accuracy as this is a probabilistic setting.&quot;&quot;&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;check_fit1d&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;provided automatic cast from 1d to 2d in data validation.&quot;&quot;&quot;</span><span class="p">,</span>
                 <span class="c1"># NOTE: the expected behavior here is to raise a ValueError, the package intends</span>
                 <span class="c1"># to give alternative default behavior in these scenarios!</span>
-                <span class="s2">&quot;check_fit2d_predict1d&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;provided automatic cast from 1d to 2d in data validation.</span>
+                <span class="s2">&quot;check_fit2d_predict1d&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;&quot;provided automatic cast from 1d to 2d in data validation</span>
 <span class="s2">                 STILL NEEDS TO BE INVESTIGATED FOR GQ ISSUE&quot;&quot;&quot;</span><span class="p">,</span>
                 <span class="c1"># NOTE: the expected behavior here is to raise a ValueError,</span>
                 <span class="c1">#  the package intends to give alternative default behavior in these scenarios!</span>

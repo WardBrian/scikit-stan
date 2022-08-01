@@ -214,25 +214,25 @@ passed to Stan computations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – <dl class="simple">
-<dt>Algorithm to be used by the Stan model. The following are supported:</dt><dd><ul>
+<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – <p>Algorithm to be used by the Stan model. The following are supported:</p>
+<blockquote>
+<div><ul>
 <li><p>HMC-NUTS - runs the HMC-NUTS sampler,</p></li>
 <li><p>L-BFGS - produces a likelihood estimate of model parameters,</p></li>
 <li><p>ADVI - runs Stan’s variational inference algorithm to compute the posterior.</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </p></li>
-<li><p><strong>family</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – <dl class="simple">
-<dt>Distribution family used for linear regression. All R Families package are supported:</dt><dd><ul>
+<li><p><strong>family</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – <p>Distribution family used for linear regression. All R Families package are supported:</p>
+<blockquote>
+<div><ul>
 <li><p>”gaussian” - Gaussian distribution,</p></li>
 <li><p>”gamma” - Gamma distribution,</p></li>
 <li><p>”inverse-gaussian” - Inverse Gaussian distribution,</p></li>
 <li><p>”poisson” - Poisson distribution,</p></li>
-<li><p>”binomial” - Binomial distribution,</p></li>
+<li><p>”binomial” - Binomial distribution</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </p></li>
 <li><p><strong>link</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – <p>Distribution link function used for linear regression,
 following R’s family-link combinations.
@@ -243,7 +243,7 @@ These are family-specific:</p>
 <dt>”gaussian”:</dt><dd><ul>
 <li><p>”identity” - Identity link function,</p></li>
 <li><p>”log” - Log link function,</p></li>
-<li><p>”inverse” - Inverse link function,</p></li>
+<li><p>”inverse” - Inverse link function</p></li>
 </ul>
 </dd>
 </dl>
@@ -252,7 +252,7 @@ These are family-specific:</p>
 <dt>”gamma”:</dt><dd><ul>
 <li><p>”identity” - Identity link function,</p></li>
 <li><p>”log” - Log link function,</p></li>
-<li><p>”inverse” - Inverse link function,</p></li>
+<li><p>”inverse” - Inverse link function</p></li>
 </ul>
 </dd>
 </dl>
@@ -262,7 +262,7 @@ These are family-specific:</p>
 <li><p>”identity” - Identity link function,</p></li>
 <li><p>”log” - Log link function,</p></li>
 <li><p>”inverse” - Inverse link function,</p></li>
-<li><p>”inverse-square” - Inverse square link function,</p></li>
+<li><p>”inverse-square” - Inverse square link function</p></li>
 </ul>
 </dd>
 </dl>
@@ -271,7 +271,7 @@ These are family-specific:</p>
 <dt>”poisson”:</dt><dd><ul>
 <li><p>”identity” - Identity link function,</p></li>
 <li><p>”log” - Log link function,</p></li>
-<li><p>”sqrt” - Square root link function,</p></li>
+<li><p>”sqrt” - Square root link function</p></li>
 </ul>
 </dd>
 </dl>
@@ -282,7 +282,7 @@ These are family-specific:</p>
 <li><p>”logit” - Logit link function,</p></li>
 <li><p>”probit” - Probit link function,</p></li>
 <li><p>”cloglog” - Complementary log-log link function,</p></li>
-<li><p>”cauchit” - Cauchit link function,</p></li>
+<li><p>”cauchit” - Cauchit link function</p></li>
 </ul>
 </dd>
 </dl>
@@ -290,20 +290,20 @@ These are family-specific:</p>
 </ul>
 </div></blockquote>
 <p>If an invalid combination of family and link is passed, a ValueError is raised.</p>
-<dl class="simple">
-<dt>When no link is specified, these are family-specific defaults for the link function:</dt><dd><ul>
+<p>When no link is specified, these are family-specific defaults for the link function:</p>
+<blockquote>
+<div><ul>
 <li><p>”gaussian”: “identity”,</p></li>
 <li><p>”gamma”: “inverse”,</p></li>
 <li><p>”inverse-gaussian”: “inverse”,</p></li>
 <li><p>”poisson”: “identity”,</p></li>
-<li><p>”binomial”: “logit”,</p></li>
+<li><p>”binomial”: “logit”</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </p></li>
 <li><p><strong>seed</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>]</em><em>, </em><em>optional</em>) – Seed for random number generator. Must be an integer between 0 an 2^32-1.
 If this is left unspecified, then a random seed will be used for all chains
-via numpy.random.RandomState().
+via <a class="reference external" href="https://numpy.org/doc/stable/reference/random/legacy.html#numpy.random.RandomState" title="(in NumPy v1.23)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.random.RandomState</span></code></a>.
 Specifying this field will yield the same result for multiple uses if
 all other parameters are held the same.</p></li>
 <li><p><strong>priors</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><em>List</em><em>]</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – <p>Dictionary for configuring prior distribution on coefficients.
@@ -332,14 +332,14 @@ The prior on all regression coefficients is set with the following keys:</p>
 </ul>
 </div></blockquote>
 <p>Thus, to specify a standard normal prior on the first feature,
-the dictionary should be passed as</p>
-<dl class="simple">
-<dt>{</dt><dd><p>“prior_slope_dist”: “normal”,
-“prior_slope_mu”: [0.],
-“prior_slope_sigma”: [1.]</p>
-</dd>
-</dl>
-<p>}</p>
+the dictionary should be passed as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;prior_slope_dist&quot;</span><span class="p">:</span> <span class="s2">&quot;normal&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;prior_slope_mu&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.</span><span class="p">],</span>
+    <span class="s2">&quot;prior_slope_sigma&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p>Any unspecified priors will be set to the default.</p>
 </p></li>
 <li><p><strong>prior_intercept</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – <p>Prior for the intercept alpha parameter for GLM.
@@ -349,25 +349,23 @@ If this is not specified, the default is</p>
 <p>if Gaussian family else</p>
 <div class="math notranslate nohighlight">
 \[\alpha \sim \text{normal}(0, 2.5)\]</div>
-<dl>
-<dt>To set this prior explicitly, pass a dictionary with the following keys:</dt><dd><ul>
-<li><p>”prior_intercept_dist”: str, distribution of the prior from the list</p></li>
-</ul>
-<p>of supported prior distributions: “normal”, “laplace”</p>
-<ul>
+<p>To set this prior explicitly, pass a dictionary with the following keys:</p>
+<blockquote>
+<div><ul>
+<li><p>”prior_intercept_dist”: str, distribution of the prior from the list of supported
+prior distributions: “normal”, “laplace”</p></li>
 <li><p>”prior_intercept_mu”: float, location parameter of the prior distribution</p></li>
 <li><p>”prior_intercept_sigma”: float, error scale parameter of the prior distribution</p></li>
 </ul>
-</dd>
-<dt>Thus, for example, passing</dt><dd><dl>
-<dt>{</dt><dd><p>“prior_intercept_dist”: “normal”,</p>
-<p>”prior_intercept_mu”: 0,</p>
-<p>”prior_intercept_sigma”: 1</p>
-</dd>
-</dl>
-<p>}</p>
-</dd>
-</dl>
+</div></blockquote>
+<p>Thus, for example, passing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;prior_intercept_dist&quot;</span><span class="p">:</span> <span class="s2">&quot;normal&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;prior_intercept_mu&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;prior_intercept_sigma&quot;</span><span class="p">:</span> <span class="mi">1</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p>results in</p>
 <div class="math notranslate nohighlight">
 \[\alpha \sim \text{normal}(0, 1)\]</div>
@@ -380,39 +378,40 @@ both parameterized by a single scalar.
 Priors here with more parameters are a future feature.
 For single-parameter priors, this field is a dictionary with the following keys</p>
 <blockquote>
-<div><p>”prior_aux_dist”: distribution of the prior on this parameter
-“prior_aux_param”: parameter of the prior on this parameter</p>
-</div></blockquote>
-<dl>
-<dt>For example, to specify a chi2 prior with nu=2.5, pass</dt><dd><dl>
-<dt>{</dt><dd><p>“prior_aux_dist”: “chi2”,</p>
-<p>”prior_aux_param”: 2.5</p>
-</dd>
-</dl>
-<p>}</p>
-</dd>
-</dl>
-<p>The default un-scaled prior is exponential(1), the default scaled prior is
-exponential(1/sy) where sy = sd(y) - if the specified family is a Gaussian,
-and sy = 1 in all other cases. Setting auto_scale=True results in division by
-sy.</p>
-<dl class="simple">
-<dt>NOTE: the usual prior-selection advice holds. See these discussions about prior selection:</dt><dd><ul>
-<li><p><a class="reference external" href="https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations">https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations</a></p></li>
-<li><p><a class="reference external" href="http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf">http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf</a></p></li>
+<div><ul>
+<li><p>”prior_aux_dist”: distribution of the prior on this parameter</p></li>
+<li><p>”prior_aux_param”: parameter of the prior on this parameter</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
+<p>For example, to specify a chi2 prior with nu=2.5, pass:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;prior_aux_dist&quot;</span><span class="p">:</span> <span class="s2">&quot;chi2&quot;</span><span class="p">,</span>
+
+    <span class="s2">&quot;prior_aux_param&quot;</span><span class="p">:</span> <span class="mf">2.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The default un-scaled prior is <code class="docutils literal notranslate"><span class="pre">exponential(1)</span></code>, the default scaled prior is
+<code class="docutils literal notranslate"><span class="pre">exponential(1/sy)</span></code> where <code class="docutils literal notranslate"><span class="pre">sy</span> <span class="pre">=</span> <span class="pre">sd(y)</span></code> if the specified family is a Gaussian,
+and <code class="docutils literal notranslate"><span class="pre">sy</span> <span class="pre">=</span> <span class="pre">1</span></code> in all other cases. Setting <code class="docutils literal notranslate"><span class="pre">autoscale=True</span></code> results in division by
+sy.</p>
 </p></li>
-<li><p><strong>autoscale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <dl class="simple">
-<dt>Enable automatic scaling of priors. Autoscaling is performed the same as in rstanarm:</dt><dd><p><a class="reference external" href="https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html">https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html</a></p>
-</dd>
-</dl>
+<li><p><strong>autoscale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>Enable automatic scaling of priors. Autoscaling is performed the same as in <a class="reference external" href="https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html">rstanarm</a>.</p>
 <p>This procedure does not happen by default.</p>
 </p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition-notes admonition">
+<p class="admonition-title">Notes</p>
+<dl class="simple">
+<dt>The usual prior-selection advice holds. See these discussions about prior selection:</dt><dd><ul class="simple">
+<li><p><a class="reference external" href="https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations">https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations</a></p></li>
+<li><p><a class="reference external" href="http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf">http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf</a></p></li>
+</ul>
+</dd>
+</dl>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_stan.GLM.fit">
 <span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_console</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_stan/generalized_linear_regression/glm.html#GLM.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_stan.GLM.fit" title="Permalink to this definition">#</a></dt>

@@ -286,11 +286,8 @@ possible to update each component of a nested object.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>family</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – <dl class="simple">
-<dt>Name of chosen family. Only the following families are supported:</dt><dd><p>”gaussian”, “binomial”, “gamma”, “poisson”, “inverse-gaussian”.</p>
-</dd>
-</dl>
-</p></li>
+<li><p><strong>family</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Name of chosen family. Only the following families are supported:
+“gaussian”, “binomial”, “gamma”, “poisson”, “inverse-gaussian”.</p></li>
 <li><p><strong>link</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – <p>Name of chosen link function. Only the following combinations are supported,
 following the R families package:</p>
 <blockquote>
@@ -299,7 +296,7 @@ following the R families package:</p>
 <dt>”gaussian”:</dt><dd><ul>
 <li><p>”identity” - Identity link function,</p></li>
 <li><p>”log” - Log link function,</p></li>
-<li><p>”inverse” - Inverse link function,</p></li>
+<li><p>”inverse” - Inverse link function</p></li>
 </ul>
 </dd>
 </dl>
@@ -308,7 +305,7 @@ following the R families package:</p>
 <dt>”gamma”:</dt><dd><ul>
 <li><p>”identity” - Identity link function,</p></li>
 <li><p>”log” - Log link function,</p></li>
-<li><p>”inverse” - Inverse link function,</p></li>
+<li><p>”inverse” - Inverse link function</p></li>
 </ul>
 </dd>
 </dl>
@@ -318,7 +315,7 @@ following the R families package:</p>
 <li><p>”identity” - Identity link function,</p></li>
 <li><p>”log” - Log link function,</p></li>
 <li><p>”inverse” - Inverse link function,</p></li>
-<li><p>”inverse-square” - Inverse square link function,</p></li>
+<li><p>”inverse-square” - Inverse square link function</p></li>
 </ul>
 </dd>
 </dl>
@@ -327,7 +324,7 @@ following the R families package:</p>
 <dt>”poisson”:</dt><dd><ul>
 <li><p>”identity” - Identity link function,</p></li>
 <li><p>”log” - Log link function,</p></li>
-<li><p>”sqrt” - Square root link function,</p></li>
+<li><p>”sqrt” - Square root link function</p></li>
 </ul>
 </dd>
 </dl>
@@ -338,7 +335,7 @@ following the R families package:</p>
 <li><p>”logit” - Logit link function,</p></li>
 <li><p>”probit” - Probit link function,</p></li>
 <li><p>”cloglog” - Complementary log-log link function,</p></li>
-<li><p>”cauchit” - Cauchit link function,</p></li>
+<li><p>”cauchit” - Cauchit link function</p></li>
 </ul>
 </dd>
 </dl>
@@ -427,19 +424,16 @@ fitted attributes (ending with a trailing underscore) and otherwise
 raises a NotFittedError with the given message.
 If an estimator does not set any attributes with a trailing underscore, it
 can define a <code class="docutils literal notranslate"><span class="pre">__sklearn_is_fitted__</span></code> method returning a boolean to specify
-if the estimator is fitted or not.
-:param estimator: estimator instance for which the check is performed.
-:type estimator: estimator instance
-:param attributes: Attribute name(s) given as string or a list/tuple of strings</p>
-<blockquote>
-<div><p>Eg.: <code class="docutils literal notranslate"><span class="pre">[&quot;coef_&quot;,</span> <span class="pre">&quot;estimator_&quot;,</span> <span class="pre">...],</span> <span class="pre">&quot;coef_&quot;</span></code>
-If <cite>None</cite>, <cite>estimator</cite> is considered fitted if there exist an
-attribute that ends with a underscore and does not start with double
-underscore.</p>
-</div></blockquote>
+if the estimator is fitted or not.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>estimator</strong> (<em>estimator instance</em>) – estimator instance for which the check is performed.</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em> or </em><em>tuple of str</em><em>, </em><em>default=None</em>) – Attribute name(s) given as string or a list/tuple of strings
+Eg.: <code class="docutils literal notranslate"><span class="pre">[&quot;coef_&quot;,</span> <span class="pre">&quot;estimator_&quot;,</span> <span class="pre">...],</span> <span class="pre">&quot;coef_&quot;</span></code>
+If <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">estimator</span></code> is considered fitted if there exist an
+attribute that ends with a underscore and does not start with double
+underscore.</p></li>
 <li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>default=None</em>) – The default error message is, “This %(name)s instance is not fitted
 yet. Call ‘fit’ with appropriate arguments before using this
 estimator.”
@@ -515,8 +509,8 @@ This does not perform parameter autoscaling.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>aux_prior_spec</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em>) – <p>Dictionary containing configuration for prior on auxiliary parameters.
 Currently supported priors are: “exponential” and “chi2”, which are
-both parameterized by a single scalar.
-Priors here with more parameters are a future feature.
+both parameterized by a single scalar.</p>
+<p>Priors here with more parameters are a future feature.
 For single-parameter priors, this field is a dictionary with the following keys</p>
 <blockquote>
 <div><ul class="simple">
@@ -524,10 +518,10 @@ For single-parameter priors, this field is a dictionary with the following keys<
 <li><p>”prior_aux_param”: parameter of the prior on this parameter</p></li>
 </ul>
 </div></blockquote>
-<dl class="simple">
-<dt>For example, to specify a chi2 prior with nu=2.5, pass</dt><dd><p>{“prior_aux_dist”: “chi2”, “prior_aux_param”: 2.5}</p>
-</dd>
-</dl>
+<p>For example, to specify a chi2 prior with nu=2.5, pass:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;prior_aux_dist&quot;</span><span class="p">:</span> <span class="s2">&quot;chi2&quot;</span><span class="p">,</span> <span class="s2">&quot;prior_aux_param&quot;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">}</span>
+</pre></div>
+</div>
 </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

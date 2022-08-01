@@ -161,7 +161,7 @@
 <span></span><span class="kn">import</span> <span class="nn">numbers</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">isclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
@@ -250,33 +250,35 @@
 <span class="sd">    ----------</span>
 <span class="sd">    family : str</span>
 <span class="sd">        Name of chosen family. Only the following families are supported:</span>
-<span class="sd">            &quot;gaussian&quot;, &quot;binomial&quot;, &quot;gamma&quot;, &quot;poisson&quot;, &quot;inverse-gaussian&quot;.</span>
+<span class="sd">        &quot;gaussian&quot;, &quot;binomial&quot;, &quot;gamma&quot;, &quot;poisson&quot;, &quot;inverse-gaussian&quot;.</span>
 <span class="sd">    link : Optional[str]</span>
 <span class="sd">        Name of chosen link function. Only the following combinations are supported,</span>
 <span class="sd">        following the R families package:</span>
+
 <span class="sd">            * &quot;gaussian&quot;:</span>
 <span class="sd">                * &quot;identity&quot; - Identity link function,</span>
 <span class="sd">                * &quot;log&quot; - Log link function,</span>
-<span class="sd">                * &quot;inverse&quot; - Inverse link function,</span>
+<span class="sd">                * &quot;inverse&quot; - Inverse link function</span>
 <span class="sd">            * &quot;gamma&quot;:</span>
 <span class="sd">                * &quot;identity&quot; - Identity link function,</span>
 <span class="sd">                * &quot;log&quot; - Log link function,</span>
-<span class="sd">                * &quot;inverse&quot; - Inverse link function,</span>
+<span class="sd">                * &quot;inverse&quot; - Inverse link function</span>
 <span class="sd">            * &quot;inverse-gaussian&quot;:</span>
 <span class="sd">                * &quot;identity&quot; - Identity link function,</span>
 <span class="sd">                * &quot;log&quot; - Log link function,</span>
 <span class="sd">                * &quot;inverse&quot; - Inverse link function,</span>
-<span class="sd">                * &quot;inverse-square&quot; - Inverse square link function,</span>
+<span class="sd">                * &quot;inverse-square&quot; - Inverse square link function</span>
 <span class="sd">            * &quot;poisson&quot;:</span>
 <span class="sd">                * &quot;identity&quot; - Identity link function,</span>
 <span class="sd">                * &quot;log&quot; - Log link function,</span>
-<span class="sd">                * &quot;sqrt&quot; - Square root link function,</span>
+<span class="sd">                * &quot;sqrt&quot; - Square root link function</span>
 <span class="sd">            * &quot;binomial&quot;:</span>
 <span class="sd">                * &quot;log&quot; - Log link function,</span>
 <span class="sd">                * &quot;logit&quot; - Logit link function,</span>
 <span class="sd">                * &quot;probit&quot; - Probit link function,</span>
 <span class="sd">                * &quot;cloglog&quot; - Complementary log-log link function,</span>
-<span class="sd">                * &quot;cauchit&quot; - Cauchit link function,</span>
+<span class="sd">                * &quot;cauchit&quot; - Cauchit link function</span>
+
 <span class="sd">        If an invalid combination of family and link is passed, a ValueError is raised.</span>
 
 <span class="sd">    Raises</span>
@@ -429,13 +431,15 @@
     <span class="n">msg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">all_or_any</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="nb">all</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Perform is_fitted validation for estimator.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform is_fitted validation for estimator.</span>
 <span class="sd">    Checks if the estimator is fitted by verifying the presence of</span>
 <span class="sd">    fitted attributes (ending with a trailing underscore) and otherwise</span>
 <span class="sd">    raises a NotFittedError with the given message.</span>
 <span class="sd">    If an estimator does not set any attributes with a trailing underscore, it</span>
 <span class="sd">    can define a ``__sklearn_is_fitted__`` method returning a boolean to specify</span>
 <span class="sd">    if the estimator is fitted or not.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    estimator : estimator instance</span>
@@ -443,7 +447,7 @@
 <span class="sd">    attributes : str, list or tuple of str, default=None</span>
 <span class="sd">        Attribute name(s) given as string or a list/tuple of strings</span>
 <span class="sd">        Eg.: ``[&quot;coef_&quot;, &quot;estimator_&quot;, ...], &quot;coef_&quot;``</span>
-<span class="sd">        If `None`, `estimator` is considered fitted if there exist an</span>
+<span class="sd">        If ``None``, ``estimator`` is considered fitted if there exist an</span>
 <span class="sd">        attribute that ends with a underscore and does not start with double</span>
 <span class="sd">        underscore.</span>
 <span class="sd">    msg : str, default=None</span>
@@ -600,7 +604,7 @@
 
     <span class="n">sigmas</span> <span class="o">=</span> <span class="n">prior_spec</span><span class="p">[</span><span class="s2">&quot;prior_&quot;</span> <span class="o">+</span> <span class="n">coeff_type</span> <span class="o">+</span> <span class="s2">&quot;_sigma&quot;</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sigmas</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sigmas</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sigmas</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;&quot;&quot;prior_</span><span class="si">{</span><span class="n">coeff_type</span><span class="si">}</span><span class="s2">_sigma must be positive in prior given by </span><span class="si">{</span><span class="n">prior_spec</span><span class="si">}</span><span class="s2">.&quot;&quot;&quot;</span>
@@ -619,7 +623,8 @@
 
 
 <div class="viewcode-block" id="validate_aux_prior"><a class="viewcode-back" href="../../../internal_api.html#scikit_stan.utils.validation.validate_aux_prior">[docs]</a><span class="k">def</span> <span class="nf">validate_aux_prior</span><span class="p">(</span><span class="n">aux_prior_spec</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Validates passed configuration for prior on auxiliary parameters.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validates passed configuration for prior on auxiliary parameters.</span>
 <span class="sd">    This does not perform parameter autoscaling.</span>
 
 <span class="sd">    Parameters</span>
@@ -628,13 +633,15 @@
 <span class="sd">        Dictionary containing configuration for prior on auxiliary parameters.</span>
 <span class="sd">        Currently supported priors are: &quot;exponential&quot; and &quot;chi2&quot;, which are</span>
 <span class="sd">        both parameterized by a single scalar.</span>
+
 <span class="sd">        Priors here with more parameters are a future feature.</span>
 <span class="sd">        For single-parameter priors, this field is a dictionary with the following keys</span>
-<span class="sd">            + &quot;prior_aux_dist&quot;: distribution of the prior on this parameter</span>
 
+<span class="sd">            + &quot;prior_aux_dist&quot;: distribution of the prior on this parameter</span>
 <span class="sd">            + &quot;prior_aux_param&quot;: parameter of the prior on this parameter</span>
 
-<span class="sd">        For example, to specify a chi2 prior with nu=2.5, pass</span>
+<span class="sd">        For example, to specify a chi2 prior with nu=2.5, pass::</span>
+
 <span class="sd">            {&quot;prior_aux_dist&quot;: &quot;chi2&quot;, &quot;prior_aux_param&quot;: 2.5}</span>
 
 <span class="sd">    Returns</span>
