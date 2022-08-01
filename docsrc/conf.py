@@ -69,7 +69,30 @@ html_theme = "pydata_sphinx_theme"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "_static/images/logo_icon.png"
+# html_logo = "_static/images/logo_icon.png"
+
+html_theme_options = {
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/WardBrian/scikit-stan",
+            "icon": "fab fa-github",
+        },
+        {
+            "name": "Forums",
+            "url": "https://discourse.mc-stan.org/",
+            "icon": "fas fa-users",
+        },
+    ],
+    "use_edit_page_button": True,
+}
+
+html_context = {
+    "github_user": "WardBrian",
+    "github_repo": "scikit-stan",
+    "github_version": "main",
+    "doc_path": "docsrc",
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

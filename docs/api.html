@@ -119,6 +119,14 @@
       
       <div class="navbar-end-item">
         <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/WardBrian/scikit-stan" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://discourse.mc-stan.org/" rel="noopener" target="_blank" title="Forums"><span><i class="fas fa-users"></i></span>
+            <label class="sr-only">Forums</label></a>
+        </li>
       </ul>
       </div>
       
@@ -181,6 +189,13 @@
     
     <div class="toc-item">
       
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/WardBrian/scikit-stan/edit/main/docsrc/api.rst">
+        <i class="fas fa-pencil-alt"></i> Edit this page
+    </a>
+</div>
+
     </div>
     
   
@@ -438,11 +453,14 @@ The GLM class is a subclass of CoreEstimator.</p>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – X is required to have at least 2 columns and have the same number of rows as y.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – y is required to have exactly 1 column and the same number of rows as X.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Algorithm choice in model set-up is not supported.</p></li>
-<li><p><strong>Other ValueErrors may be raised by additional validation checks.</strong> – </p></li>
 </ul>
 </dd>
 </dl>
-<p>:raises These include invalid prior set-up` or :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>invalid data.:</p>
+<div class="admonition-notes admonition">
+<p class="admonition-title">Notes</p>
+<p>Other ValueErrors may be raised by additional validation checks.
+These include invalid prior set-up or invalid data.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">

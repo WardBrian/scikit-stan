@@ -284,7 +284,8 @@ class GLM(CoreEstimator):
         y: ArrayLike,
         show_console: bool = False,
     ) -> "CoreEstimator":
-        """Fits current vectorized BLR object to the given data,
+        """
+        Fits current vectorized BLR object to the given data,
         with a default set of data.
         This model is considered fit once its alpha, beta,
         and sigma parameters are determined via a regression.
@@ -315,6 +316,8 @@ class GLM(CoreEstimator):
         ValueError
             Algorithm choice in model set-up is not supported.
 
+        Notes
+        -----
         Other ValueErrors may be raised by additional validation checks.
         These include invalid prior set-up or invalid data.
         """
