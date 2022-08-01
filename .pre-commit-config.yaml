@@ -18,10 +18,14 @@ repos:
     rev: 3.9.2
     hooks:
       - id: flake8
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.910
+  - repo: local
     hooks:
       - id: mypy
-        # Copied from setup.cfg
-        exclude: ^test/
-        additional_dependencies: [ numpy >= 1.21 ]
+        name: mypy
+        entry: mypy
+        language: system
+        types: [python]
+        # pass_filenames: false
+        exclude: ^[test/|setup.py]
+        args: [scikit_stan]
+

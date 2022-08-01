@@ -1,7 +1,7 @@
 import numbers
 import warnings
 from inspect import isclass
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
@@ -440,7 +440,7 @@ def validate_prior(prior_spec: Dict[str, Any], coeff_type: str) -> Dict[str, Any
 
     sigmas = prior_spec["prior_" + coeff_type + "_sigma"]
 
-    if type(sigmas) == list:
+    if isinstance(sigmas, Sequence):
         if any(x < 0 for x in sigmas):
             raise ValueError(
                 f"""prior_{coeff_type}_sigma must be positive in prior given by {prior_spec}."""

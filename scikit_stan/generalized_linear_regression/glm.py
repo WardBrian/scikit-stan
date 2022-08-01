@@ -423,11 +423,11 @@ class GLM(CoreEstimator):
         else:
             priors_ = validate_prior(self.priors, "slope")
             if (
-                len(self.priors["prior_slope_mu"]) != K
-                or len(self.priors["prior_slope_sigma"]) != K
+                len(self.priors["prior_slope_mu"]) != K  # type: ignore
+                or len(self.priors["prior_slope_sigma"]) != K  # type: ignore
             ):
                 raise ValueError(
-                    "Length of prior_slope_mu and prior_slope_sigma must be "
+                    "Length of prior_slope_mu and prior_slope_sigma must be "  # type: ignore
                     "equal to the number of features in X.\n"
                     f"Got {len(self.priors['prior_slope_mu'])} "
                     f"and {len(self.priors['prior_slope_sigma'])} respectively."
