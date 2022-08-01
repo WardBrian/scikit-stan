@@ -3,6 +3,9 @@
 Scikit-Stan is a package of [Stan](mc-stan.org) models wrapped in a
 [Scikit-Learn](https://scikit-learn.org/stable/) style interface.
 
+This package is currently under active development and should be treated as beta software.
+
+Documentation is available at [https://brianward.dev/scikit-stan/]
 
 ## Installation
 
@@ -18,7 +21,7 @@ from scikit_stan import GLM
 m = GLM(family='gamma') # Gamma family distribution with canonical inverse link
 m.fit(X, y) # runs HMC-NUTS
 predictions = m.predict(X) # generates new predictions from fitted model
-score = m.score(X, y) # computes the R2 score of the fitted model on the data X and observations y 
+score = m.score(X, y) # computes the R2 score of the fitted model on the data X and observations y
 ```
 
 ## Attribution
