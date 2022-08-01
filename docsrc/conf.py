@@ -39,15 +39,17 @@ extensions = [
 
 
 autosummary_generate = True
-
-napoleon_preprocess_types = False
-
+napoleon_preprocess_types = True
 napoleon_type_aliases = {
-    "ArrayLike": "~numpy.ndarray",
+    "ArrayLike": ":term:`array-like`",
+    "NDArray": "~numpy.ndarray",
+    "NDArray[np.float64]": "~numpy.ndarray",
+    "NDArray[Union[np.float64, np.int64]]": "~numpy.ndarray",
 }
 napoleon_use_admonition_for_notes = True
-
 autodoc_typehints = "none"
+napoleon_use_param = True
+napoleon_use_rtype = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

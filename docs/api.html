@@ -214,7 +214,7 @@ passed to Stan computations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – <p>Algorithm to be used by the Stan model. The following are supported:</p>
+<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – <p>Algorithm to be used by the Stan model. The following are supported:</p>
 <blockquote>
 <div><ul>
 <li><p>HMC-NUTS - runs the HMC-NUTS sampler,</p></li>
@@ -223,7 +223,7 @@ passed to Stan computations.</p>
 </ul>
 </div></blockquote>
 </p></li>
-<li><p><strong>family</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – <p>Distribution family used for linear regression. All R Families package are supported:</p>
+<li><p><strong>family</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – <p>Distribution family used for linear regression. All R Families package are supported:</p>
 <blockquote>
 <div><ul>
 <li><p>”gaussian” - Gaussian distribution,</p></li>
@@ -234,7 +234,7 @@ passed to Stan computations.</p>
 </ul>
 </div></blockquote>
 </p></li>
-<li><p><strong>link</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em><em>, </em><em>optional</em>) – <p>Distribution link function used for linear regression,
+<li><p><strong>link</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional[str]</span></code>, <em>optional</em>) – <p>Distribution link function used for linear regression,
 following R’s family-link combinations.
 These are family-specific:</p>
 <blockquote>
@@ -301,12 +301,12 @@ These are family-specific:</p>
 </ul>
 </div></blockquote>
 </p></li>
-<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>]</em><em>, </em><em>optional</em>) – Seed for random number generator. Must be an integer between 0 an 2^32-1.
+<li><p><strong>seed</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional[int]</span></code>, <em>optional</em>) – Seed for random number generator. Must be an integer between 0 an 2^32-1.
 If this is left unspecified, then a random seed will be used for all chains
 via <a class="reference external" href="https://numpy.org/doc/stable/reference/random/legacy.html#numpy.random.RandomState" title="(in NumPy v1.23)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.random.RandomState</span></code></a>.
 Specifying this field will yield the same result for multiple uses if
 all other parameters are held the same.</p></li>
-<li><p><strong>priors</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Union</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><em>List</em><em>]</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – <p>Dictionary for configuring prior distribution on coefficients.
+<li><p><strong>priors</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional[Dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Union[int</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List]]]</span></code>, <em>optional</em>) – <p>Dictionary for configuring prior distribution on coefficients.
 By default, all regression coefficient priors are set to</p>
 <div class="math notranslate nohighlight">
 \[\beta \sim \text{normal}(0, 2.5 \cdot \text{sd}(y) / \text{sd}(X))\]</div>
@@ -342,7 +342,7 @@ the dictionary should be passed as:</p>
 </div>
 <p>Any unspecified priors will be set to the default.</p>
 </p></li>
-<li><p><strong>prior_intercept</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – <p>Prior for the intercept alpha parameter for GLM.
+<li><p><strong>prior_intercept</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional[Dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]]</span></code>, <em>optional</em>) – <p>Prior for the intercept alpha parameter for GLM.
 If this is not specified, the default is</p>
 <div class="math notranslate nohighlight">
 \[\alpha \sim \text{normal}(\text{mu}(y), 2.5 \cdot \text{sd}(y))\]</div>
@@ -371,7 +371,7 @@ prior distributions: “normal”, “laplace”</p></li>
 \[\alpha \sim \text{normal}(0, 1)\]</div>
 <p>by default (without autoscaling, see below).</p>
 </p></li>
-<li><p><strong>prior_aux</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – <p>Prior on the auxiliary parameter for the family used in
+<li><p><strong>prior_aux</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional[Dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]]</span></code>, <em>optional</em>) – <p>Prior on the auxiliary parameter for the family used in
 the regression: for example, the std for Gaussian, shape for gamma, etc…
 Currently supported priors are: “exponential” and “chi2”, which are
 both parameterized by a single scalar.
@@ -396,7 +396,7 @@ For single-parameter priors, this field is a dictionary with the following keys<
 and <code class="docutils literal notranslate"><span class="pre">sy</span> <span class="pre">=</span> <span class="pre">1</span></code> in all other cases. Setting <code class="docutils literal notranslate"><span class="pre">autoscale=True</span></code> results in division by
 sy.</p>
 </p></li>
-<li><p><strong>autoscale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>Enable automatic scaling of priors. Autoscaling is performed the same as in <a class="reference external" href="https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html">rstanarm</a>.</p>
+<li><p><strong>autoscale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – <p>Enable automatic scaling of priors. Autoscaling is performed the same as in <a class="reference external" href="https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html">rstanarm</a>.</p>
 <p>This procedure does not happen by default.</p>
 </p></li>
 </ul>
@@ -422,30 +422,27 @@ and sigma parameters are determined via a regression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>ArrayLike</em>) – NxK matrix of predictors, where K &gt;= 0. If K = 1,
+<li><p><strong>X</strong> (<a class="reference external" href="https://scikit-learn.org/stable/glossary.html#term-array-like" title="(in scikit-learn v1.1)"><span class="xref std std-term">array-like</span></a>) – NxK matrix of predictors, where K &gt;= 0. If K = 1,
 then X is automatically reshaped to being 2D and raises a warning.</p></li>
-<li><p><strong>y</strong> (<em>ArrayLike</em>) – Nx1 outcome vector where each row is a response corresponding to
+<li><p><strong>y</strong> (<a class="reference external" href="https://scikit-learn.org/stable/glossary.html#term-array-like" title="(in scikit-learn v1.1)"><span class="xref std std-term">array-like</span></a>) – Nx1 outcome vector where each row is a response corresponding to
 the same row of predictors in X.</p></li>
-<li><p><strong>show_console</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Printing output of default CmdStanPy console during Stan operations.</p></li>
+<li><p><strong>show_console</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Printing output of default CmdStanPy console during Stan operations.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Abstract class for all estimator-type models in this package.
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">CoreEstimator</span></code> – Abstract class for all estimator-type models in this package.
 The GLM class is a subclass of CoreEstimator.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="internal_api.html#scikit_stan.modelcore.CoreEstimator" title="scikit_stan.modelcore.CoreEstimator">CoreEstimator</a></p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – X is required to have at least 2 columns and have the same number of rows as y.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – y is required to have exactly 1 column and the same number of rows as X.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Algorithm choice in model set-up is not supported.</p></li>
 <li><p><strong>Other ValueErrors may be raised by additional validation checks.</strong> – </p></li>
-<li><p><strong>These include invalid prior set-up</strong><strong> or </strong><strong>invalid data.</strong> – </p></li>
 </ul>
 </dd>
 </dl>
+<p>:raises These include invalid prior set-up` or :class:<a href="#id1"><span class="problematic" id="id2">`</span></a>invalid data.:</p>
 </dd></dl>
 
 <dl class="py method">
@@ -463,15 +460,12 @@ future Stan release.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>ArrayLike</em>) – Predictor matrix or array of data to use for prediction.</p></li>
-<li><p><strong>show_console</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Printing output of default CmdStanPy console during Stan operations.</p></li>
+<li><p><strong>X</strong> (<a class="reference external" href="https://scikit-learn.org/stable/glossary.html#term-array-like" title="(in scikit-learn v1.1)"><span class="xref std std-term">array-like</span></a>) – Predictor matrix or array of data to use for prediction.</p></li>
+<li><p><strong>show_console</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Printing output of default CmdStanPy console during Stan operations.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Array of predictions of shape (n_samples, 1) made by fitted model.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray[np.float64]</p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> – Array of predictions of shape (n_samples, 1) made by fitted model.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -485,18 +479,15 @@ predictions generated by this method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>NDArray</em><em>[</em><em>Union</em><em>[</em><em>np.float64</em><em>, </em><em>np.int64</em><em>]</em><em>]</em>) – Predictor matrix or array of data to use for prediction.</p></li>
-<li><p><strong>show_console</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Printing output of default CmdStanPy console during Stan operations.</p></li>
+<li><p><strong>X</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">NDArray[Union[np.float64</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">np.int64]]</span></code>) – Predictor matrix or array of data to use for prediction.</p></li>
+<li><p><strong>show_console</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Printing output of default CmdStanPy console during Stan operations.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Set of draws generated by Stan generate quantities method.</p>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">NDArray[Union[np.float64</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">np.int64]]</span></code> – Set of draws generated by Stan generate quantities method.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray[Union[np.float64, np.int64]]</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Method requires data X to be supplied.</p>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Method requires data X to be supplied.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -509,22 +500,20 @@ like other sklearn estimators.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>ArrayLike</em>) – Matrix or array of predictors having shape (n_samples, n_predictors)
+<li><p><strong>X</strong> (<a class="reference external" href="https://scikit-learn.org/stable/glossary.html#term-array-like" title="(in scikit-learn v1.1)"><span class="xref std std-term">array-like</span></a>) – Matrix or array of predictors having shape (n_samples, n_predictors)
 that consists of test data.</p></li>
-<li><p><strong>y</strong> (<em>ArrayLike</em>) – Array of shape (n_samples,) containing the target values
+<li><p><strong>y</strong> (<a class="reference external" href="https://scikit-learn.org/stable/glossary.html#term-array-like" title="(in scikit-learn v1.1)"><span class="xref std std-term">array-like</span></a>) – Array of shape (n_samples,) containing the target values
 corresponding to given test dat X.</p></li>
-<li><p><strong>show_console</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Printing output of default CmdStanPy console during Stan operations.</p></li>
+<li><p><strong>show_console</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Printing output of default CmdStanPy console during Stan operations.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><dl class="simple">
+<dd class="field-even"><p><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> –</p>
+<dl class="simple">
 <dt>R2 of the prediction versus the given target values.</dt><dd><p>This is the mean accuracy of self.predict(X) with respect to y</p>
 </dd>
 </dl>
 </p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></p>
 </dd>
 </dl>
 </dd></dl>

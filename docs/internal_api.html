@@ -239,14 +239,11 @@ sk-learn’s Estimator class.</p>
 <dd><p>Get parameters for this estimator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>deep</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>default=True</em>) – If True, will return the parameters for this estimator and
+<dd class="field-odd"><p><strong>deep</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>default</em> <a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code></a>) – If True, will return the parameters for this estimator and
 contained subobjects that are estimators.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>params</strong> – Parameter names mapped to their values.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></p>
+<dd class="field-even"><p><strong>params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>) – Parameter names mapped to their values.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -260,13 +257,10 @@ The method works on simple estimators as well as on nested objects
 parameters of the form <code class="docutils literal notranslate"><span class="pre">&lt;component&gt;__&lt;parameter&gt;</span></code> so that it’s
 possible to update each component of a nested object.
 :param **params: Estimator parameters.
-:type **params: dict</p>
+:type **params: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>self</strong> – Estimator instance.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>estimator instance</p>
+<dd class="field-odd"><p><strong>self</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">estimator</span> <span class="pre">instance</span></code>) – Estimator instance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -286,9 +280,9 @@ possible to update each component of a nested object.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>family</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Name of chosen family. Only the following families are supported:
+<li><p><strong>family</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Name of chosen family. Only the following families are supported:
 “gaussian”, “binomial”, “gamma”, “poisson”, “inverse-gaussian”.</p></li>
-<li><p><strong>link</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>]</em>) – <p>Name of chosen link function. Only the following combinations are supported,
+<li><p><strong>link</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional[str]</span></code>) – <p>Name of chosen link function. Only the following combinations are supported,
 following the R families package:</p>
 <blockquote>
 <div><ul>
@@ -392,21 +386,18 @@ only finite values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>ArrayLike</em>) – Array-like, list, sparse matrix, or similar of data to be checked.</p></li>
-<li><p><strong>ensure_2d</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to ensure that the array is 2D</p></li>
-<li><p><strong>allow_nd</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to allow the array to be an n-dimensional matrix where n &gt; 2</p></li>
-<li><p><strong>dtype</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.10)"><em>type</em></a><em>, </em><em>optional</em>) – Dtype of the data; regressions only supported on
+<li><p><strong>X</strong> (<a class="reference external" href="https://scikit-learn.org/stable/glossary.html#term-array-like" title="(in scikit-learn v1.1)"><span class="xref std std-term">array-like</span></a>) – Array-like, list, sparse matrix, or similar of data to be checked.</p></li>
+<li><p><strong>ensure_2d</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Whether to ensure that the array is 2D</p></li>
+<li><p><strong>allow_nd</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <em>optional</em>) – Whether to allow the array to be an n-dimensional matrix where n &gt; 2</p></li>
+<li><p><strong>dtype</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></a>, <em>optional</em>) – Dtype of the data; regressions only supported on
 float64 or int64 arrays</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Verified set of data that can be used for regression.</p>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">NDArray[Union[np.float64</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">np.int64]]</span></code> – Verified set of data that can be used for regression.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>NDArray[Union[np.float64, np.int64]]</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Sparse, complex, or otherwise invalid data type passed for X.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Invalid number of dimensions in data passed for X, or otherwise data that
     cannot be recast to satisfy dimension requirements</p></li>
@@ -428,23 +419,23 @@ if the estimator is fitted or not.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>estimator</strong> (<em>estimator instance</em>) – estimator instance for which the check is performed.</p></li>
-<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em> or </em><em>tuple of str</em><em>, </em><em>default=None</em>) – Attribute name(s) given as string or a list/tuple of strings
+<li><p><strong>estimator</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">estimator</span> <span class="pre">instance</span></code>) – estimator instance for which the check is performed.</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>default</em> <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>) – Attribute name(s) given as string or a list/tuple of strings
 Eg.: <code class="docutils literal notranslate"><span class="pre">[&quot;coef_&quot;,</span> <span class="pre">&quot;estimator_&quot;,</span> <span class="pre">...],</span> <span class="pre">&quot;coef_&quot;</span></code>
 If <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">estimator</span></code> is considered fitted if there exist an
 attribute that ends with a underscore and does not start with double
 underscore.</p></li>
-<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>default=None</em>) – The default error message is, “This %(name)s instance is not fitted
+<li><p><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>default</em> <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>) – The default error message is, “This %(name)s instance is not fitted
 yet. Call ‘fit’ with appropriate arguments before using this
 estimator.”
 For custom messages if “%(name)s” is present in the message string,
 it is substituted for the estimator name.
 Eg. : “Estimator, %(name)s, must be fitted before sparsifying”.</p></li>
-<li><p><strong>all_or_any</strong> (<em>callable</em><em>, </em><em>{all</em><em>, </em><em>any}</em><em>, </em><em>default=all</em>) – Specify whether all or any of the given attributes must exist.</p></li>
+<li><p><strong>all_or_any</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">callable</span></code>, <code class="docutils literal notranslate"><span class="pre">{all,</span> <span class="pre">any}</span></code>, <em>default</em> <code class="xref py py-class docutils literal notranslate"><span class="pre">all</span></code>) – Specify whether all or any of the given attributes must exist.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>NotFittedError</strong> – If the attributes are not found.</p>
@@ -458,7 +449,7 @@ Eg. : “Estimator, %(name)s, must be fitted before sparsifying”.</p></li>
 <dd><p>Check that all arrays have consistent first dimensions.
 Checks whether all objects in arrays have the same shape or length.
 :param *arrays: Objects that will be checked for consistent length.
-:type *arrays: list or tuple of input objects.</p>
+:type *arrays: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> of <code class="xref py py-class docutils literal notranslate"><span class="pre">input</span> <span class="pre">objects.</span></code></p>
 </dd></dl>
 
 <dl class="py function">
@@ -478,19 +469,16 @@ This is only called when there is a prior to check.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>prior_spec</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em>) – Proposed prior dictionary, can be either for slope or intercept.</p></li>
-<li><p><strong>coeff_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Specify whether the prior is for slope or intercept - should only be
+<li><p><strong>prior_spec</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]</span></code>) – Proposed prior dictionary, can be either for slope or intercept.</p></li>
+<li><p><strong>coeff_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Specify whether the prior is for slope or intercept - should only be
 ‘slope’ or ‘intercept’.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Validated dictionary of parameters for the given prior.</p>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]</span></code> – Validated dictionary of parameters for the given prior.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>, Any]</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Validating a non-(slope or intercept) prior type.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Prior distribution is not specified.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Not all parameters for prior set-up are specified.</p></li>
@@ -507,7 +495,7 @@ This is only called when there is a prior to check.</p>
 This does not perform parameter autoscaling.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>aux_prior_spec</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>Any</em><em>]</em>) – <p>Dictionary containing configuration for prior on auxiliary parameters.
+<dd class="field-odd"><p><strong>aux_prior_spec</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]</span></code>) – <p>Dictionary containing configuration for prior on auxiliary parameters.
 Currently supported priors are: “exponential” and “chi2”, which are
 both parameterized by a single scalar.</p>
 <p>Priors here with more parameters are a future feature.
@@ -525,13 +513,10 @@ For single-parameter priors, this field is a dictionary with the following keys<
 </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary containing validated configuration for prior on auxiliary parameters.</p>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]</span></code> – Dictionary containing validated configuration for prior on auxiliary parameters.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a>, Any]</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Prior’s distribution is not specified.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Unsupported prior distribution for auxiliary parameter.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><strong>ValueError</strong></a> – Prior distribution parameters are not specified.</p></li>
