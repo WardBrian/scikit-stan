@@ -90,55 +90,63 @@ class GLM(CoreEstimator):
     ----------
     algorithm : str, optional
         Algorithm to be used by the Stan model. The following are supported:
+
             * HMC-NUTS - runs the HMC-NUTS sampler,
             * L-BFGS - produces a likelihood estimate of model parameters,
             * ADVI - runs Stan's variational inference algorithm to compute the posterior.
+
     family : str, optional
         Distribution family used for linear regression. All R Families package are supported:
+
             * "gaussian" - Gaussian distribution,
             * "gamma" - Gamma distribution,
             * "inverse-gaussian" - Inverse Gaussian distribution,
             * "poisson" - Poisson distribution,
-            * "binomial" - Binomial distribution,
+            * "binomial" - Binomial distribution
+
     link : Optional[str], optional
         Distribution link function used for linear regression,
         following R's family-link combinations.
         These are family-specific:
+
             * "gaussian":
-                * "identity" - Identity link function,
-                * "log" - Log link function,
-                * "inverse" - Inverse link function,
+                + "identity" - Identity link function,
+                + "log" - Log link function,
+                + "inverse" - Inverse link function
             * "gamma":
-                * "identity" - Identity link function,
-                * "log" - Log link function,
-                * "inverse" - Inverse link function,
+                + "identity" - Identity link function,
+                + "log" - Log link function,
+                + "inverse" - Inverse link function
             * "inverse-gaussian":
-                * "identity" - Identity link function,
-                * "log" - Log link function,
-                * "inverse" - Inverse link function,
-                * "inverse-square" - Inverse square link function,
+                + "identity" - Identity link function,
+                + "log" - Log link function,
+                + "inverse" - Inverse link function,
+                + "inverse-square" - Inverse square link function
             * "poisson":
-                * "identity" - Identity link function,
-                * "log" - Log link function,
-                * "sqrt" - Square root link function,
+                + "identity" - Identity link function,
+                + "log" - Log link function,
+                + "sqrt" - Square root link function
             * "binomial":
-                * "log" - Log link function,
-                * "logit" - Logit link function,
-                * "probit" - Probit link function,
-                * "cloglog" - Complementary log-log link function,
-                * "cauchit" - Cauchit link function,
+                + "log" - Log link function,
+                + "logit" - Logit link function,
+                + "probit" - Probit link function,
+                + "cloglog" - Complementary log-log link function,
+                + "cauchit" - Cauchit link function
+
         If an invalid combination of family and link is passed, a ValueError is raised.
 
         When no link is specified, these are family-specific defaults for the link function:
+
             * "gaussian": "identity",
             * "gamma": "inverse",
             * "inverse-gaussian": "inverse",
             * "poisson": "identity",
-            * "binomial": "logit",
+            * "binomial": "logit"
+
     seed : Optional[int], optional
         Seed for random number generator. Must be an integer between 0 an 2^32-1.
         If this is left unspecified, then a random seed will be used for all chains
-        via numpy.random.RandomState().
+        via :class:`numpy.random.RandomState`.
         Specifying this field will yield the same result for multiple uses if
         all other parameters are held the same.
     priors : Optional[Dict[str, Union[int, float, List]]], optional
@@ -164,19 +172,19 @@ class GLM(CoreEstimator):
         If the number of specified priors is less than the number of predictors,
         the remaining coefficients are set to the default prior.
         The prior on all regression coefficients is set with the following keys:
+
             + "prior_slope_dist": distribution of the prior for each coefficient
-
             + "prior_slope_mu": list of location parameters of the prior for each coefficient
-
             + "prior_slope_sigma": list of scale parameters of the prior for each coefficient
-        Thus, to specify a standard normal prior on the first feature,
-        the dictionary should be passed as
 
-        {
-            "prior_slope_dist": "normal",
-            "prior_slope_mu": [0.],
-            "prior_slope_sigma": [1.]
-        }
+        Thus, to specify a standard normal prior on the first feature,
+        the dictionary should be passed as::
+
+            {
+                "prior_slope_dist": "normal",
+                "prior_slope_mu": [0.],
+                "prior_slope_sigma": [1.]
+            }
 
         Any unspecified priors will be set to the default.
     prior_intercept : Optional[Dict[str, Any]], optional
@@ -188,19 +196,19 @@ class GLM(CoreEstimator):
         if Gaussian family else
 
         .. math:: \alpha \sim \text{normal}(0, 2.5)
+
         To set this prior explicitly, pass a dictionary with the following keys:
-            + "prior_intercept_dist": str, distribution of the prior from the list
-            of supported prior distributions: "normal", "laplace"
 
+            + "prior_intercept_dist": str, distribution of the prior from the list of supported
+              prior distributions: "normal", "laplace"
             + "prior_intercept_mu": float, location parameter of the prior distribution
-
             + "prior_intercept_sigma": float, error scale parameter of the prior distribution
-        Thus, for example, passing
+
+        Thus, for example, passing::
+
             {
                 "prior_intercept_dist": "normal",
-
                 "prior_intercept_mu": 0,
-
                 "prior_intercept_sigma": 1
             }
 
@@ -217,30 +225,34 @@ class GLM(CoreEstimator):
         both parameterized by a single scalar.
         Priors here with more parameters are a future feature.
         For single-parameter priors, this field is a dictionary with the following keys
-            "prior_aux_dist": distribution of the prior on this parameter
-            "prior_aux_param": parameter of the prior on this parameter
 
-        For example, to specify a chi2 prior with nu=2.5, pass
+            + "prior_aux_dist": distribution of the prior on this parameter
+            + "prior_aux_param": parameter of the prior on this parameter
+
+        For example, to specify a chi2 prior with nu=2.5, pass::
+
             {
                 "prior_aux_dist": "chi2",
 
                 "prior_aux_param": 2.5
             }
 
-        The default un-scaled prior is exponential(1), the default scaled prior is
-        exponential(1/sy) where sy = sd(y) - if the specified family is a Gaussian,
-        and sy = 1 in all other cases. Setting auto_scale=True results in division by
+        The default un-scaled prior is ``exponential(1)``, the default scaled prior is
+        ``exponential(1/sy)`` where ``sy = sd(y)`` if the specified family is a Gaussian,
+        and ``sy = 1`` in all other cases. Setting ``autoscale=True`` results in division by
         sy.
 
-        NOTE: the usual prior-selection advice holds. See these discussions about prior selection:
-            * https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations
-            * http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf
-
     autoscale : bool, optional
-        Enable automatic scaling of priors. Autoscaling is performed the same as in rstanarm:
-            https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+        Enable automatic scaling of priors. Autoscaling is performed the same as in `rstanarm
+        <https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html>`__.
 
         This procedure does not happen by default.
+
+    Notes
+    -----
+    The usual prior-selection advice holds. See these discussions about prior selection:
+        - https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations
+        - http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf
     """
 
     def __init__(

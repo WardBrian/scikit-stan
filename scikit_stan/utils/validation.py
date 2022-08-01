@@ -90,33 +90,35 @@ def validate_family(family: str, link: Optional[str]) -> None:
     ----------
     family : str
         Name of chosen family. Only the following families are supported:
-            "gaussian", "binomial", "gamma", "poisson", "inverse-gaussian".
+        "gaussian", "binomial", "gamma", "poisson", "inverse-gaussian".
     link : Optional[str]
         Name of chosen link function. Only the following combinations are supported,
         following the R families package:
+
             * "gaussian":
                 * "identity" - Identity link function,
                 * "log" - Log link function,
-                * "inverse" - Inverse link function,
+                * "inverse" - Inverse link function
             * "gamma":
                 * "identity" - Identity link function,
                 * "log" - Log link function,
-                * "inverse" - Inverse link function,
+                * "inverse" - Inverse link function
             * "inverse-gaussian":
                 * "identity" - Identity link function,
                 * "log" - Log link function,
                 * "inverse" - Inverse link function,
-                * "inverse-square" - Inverse square link function,
+                * "inverse-square" - Inverse square link function
             * "poisson":
                 * "identity" - Identity link function,
                 * "log" - Log link function,
-                * "sqrt" - Square root link function,
+                * "sqrt" - Square root link function
             * "binomial":
                 * "log" - Log link function,
                 * "logit" - Logit link function,
                 * "probit" - Probit link function,
                 * "cloglog" - Complementary log-log link function,
-                * "cauchit" - Cauchit link function,
+                * "cauchit" - Cauchit link function
+
         If an invalid combination of family and link is passed, a ValueError is raised.
 
     Raises
@@ -269,13 +271,15 @@ def check_is_fitted(
     msg: Optional[str] = None,
     all_or_any: Callable[[Iterable[object]], bool] = all,
 ) -> None:
-    """Perform is_fitted validation for estimator.
+    """
+    Perform is_fitted validation for estimator.
     Checks if the estimator is fitted by verifying the presence of
     fitted attributes (ending with a trailing underscore) and otherwise
     raises a NotFittedError with the given message.
     If an estimator does not set any attributes with a trailing underscore, it
     can define a ``__sklearn_is_fitted__`` method returning a boolean to specify
     if the estimator is fitted or not.
+
     Parameters
     ----------
     estimator : estimator instance
@@ -283,7 +287,7 @@ def check_is_fitted(
     attributes : str, list or tuple of str, default=None
         Attribute name(s) given as string or a list/tuple of strings
         Eg.: ``["coef_", "estimator_", ...], "coef_"``
-        If `None`, `estimator` is considered fitted if there exist an
+        If ``None``, ``estimator`` is considered fitted if there exist an
         attribute that ends with a underscore and does not start with double
         underscore.
     msg : str, default=None
@@ -459,7 +463,8 @@ def validate_prior(prior_spec: Dict[str, Any], coeff_type: str) -> Dict[str, Any
 
 
 def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
-    """Validates passed configuration for prior on auxiliary parameters.
+    """
+    Validates passed configuration for prior on auxiliary parameters.
     This does not perform parameter autoscaling.
 
     Parameters
@@ -468,13 +473,15 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
         Dictionary containing configuration for prior on auxiliary parameters.
         Currently supported priors are: "exponential" and "chi2", which are
         both parameterized by a single scalar.
+
         Priors here with more parameters are a future feature.
         For single-parameter priors, this field is a dictionary with the following keys
-            + "prior_aux_dist": distribution of the prior on this parameter
 
+            + "prior_aux_dist": distribution of the prior on this parameter
             + "prior_aux_param": parameter of the prior on this parameter
 
-        For example, to specify a chi2 prior with nu=2.5, pass
+        For example, to specify a chi2 prior with nu=2.5, pass::
+
             {"prior_aux_dist": "chi2", "prior_aux_param": 2.5}
 
     Returns

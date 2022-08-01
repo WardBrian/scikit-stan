@@ -45,6 +45,7 @@ napoleon_preprocess_types = False
 napoleon_type_aliases = {
     "ArrayLike": "~numpy.ndarray",
 }
+napoleon_use_admonition_for_notes = True
 
 autodoc_typehints = "none"
 
