@@ -24,10 +24,7 @@ SciKit Stan is a Python package of generalized linear models in the Stan with th
 `scikit_stan` wraps the `CmdStanPy <https://mc-stan.org/cmdstanpy/index.html>`_
 Python interface into Stan and provides a base for developing probabilistic models on top of Stan in Python.
 
-This package is designed to provide a sk-learn type interface to Stan. Concretely,
-the `sk-learn class system <https://scikit-learn.org/stable/developers/develop.html>`_
+This package is designed to provide a sk-learn type interface to models written in Stan.
+Concretely, the `sk-learn methods system <https://scikit-learn.org/stable/developers/develop.html>`_
 is the same here, with :meth:`~GLM.fit`, :meth:`~GLM.predict` and :meth:`~GLM.score` methods, among others,
-having the same purpose in their respective contexts.
-
-
-
+having the same purpose in their respective contexts. 

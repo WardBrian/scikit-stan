@@ -33,6 +33,7 @@
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -237,7 +238,8 @@
 
 
 <div class="viewcode-block" id="GLM"><a class="viewcode-back" href="../../../api.html#scikit_stan.GLM">[docs]</a><span class="k">class</span> <span class="nc">GLM</span><span class="p">(</span><span class="n">CoreEstimator</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;A generalized linear model estimator with several options for families, links,</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A generalized linear model estimator with several options for families, links,</span>
 <span class="sd">    and priors on regression coefficients, the intercept, and error scale,</span>
 <span class="sd">    done in an sk-learn style.</span>
 <span class="sd">    This class also provides an autoscaling feature of the priors.</span>
@@ -324,9 +326,9 @@
 <span class="sd">        The prior on all regression coefficients is set with the following keys:</span>
 <span class="sd">            + &quot;prior_slope_dist&quot;: distribution of the prior for each coefficient</span>
 
-<span class="sd">            + &quot;prior_slope_mu&quot;: location parameters of the prior for each coefficient</span>
+<span class="sd">            + &quot;prior_slope_mu&quot;: list of location parameters of the prior for each coefficient</span>
 
-<span class="sd">            + &quot;prior_slope_sigma&quot;: scale parameters of the prior for each coefficient</span>
+<span class="sd">            + &quot;prior_slope_sigma&quot;: list of scale parameters of the prior for each coefficient</span>
 <span class="sd">        Thus, to specify a standard normal prior on the first feature,</span>
 <span class="sd">        the dictionary should be passed as</span>
 
@@ -346,7 +348,6 @@
 <span class="sd">        if Gaussian family else</span>
 
 <span class="sd">        .. math:: \alpha \sim \text{normal}(0, 2.5)</span>
-
 <span class="sd">        To set this prior explicitly, pass a dictionary with the following keys:</span>
 <span class="sd">            + &quot;prior_intercept_dist&quot;: str, distribution of the prior from the list</span>
 <span class="sd">            of supported prior distributions: &quot;normal&quot;, &quot;laplace&quot;</span>
@@ -354,7 +355,6 @@
 <span class="sd">            + &quot;prior_intercept_mu&quot;: float, location parameter of the prior distribution</span>
 
 <span class="sd">            + &quot;prior_intercept_sigma&quot;: float, error scale parameter of the prior distribution</span>
-
 <span class="sd">        Thus, for example, passing</span>
 <span class="sd">            {</span>
 <span class="sd">                &quot;prior_intercept_dist&quot;: &quot;normal&quot;,</span>
@@ -392,9 +392,9 @@
 <span class="sd">        and sy = 1 in all other cases. Setting auto_scale=True results in division by</span>
 <span class="sd">        sy.</span>
 
-<span class="sd">    NOTE: the usual prior-selection advice holds. See these discussions about prior selection:</span>
-<span class="sd">        * https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations</span>
-<span class="sd">        * http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf</span>
+<span class="sd">        NOTE: the usual prior-selection advice holds. See these discussions about prior selection:</span>
+<span class="sd">            * https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations</span>
+<span class="sd">            * http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf</span>
 
 <span class="sd">    autoscale : bool, optional</span>
 <span class="sd">        Enable automatic scaling of priors. Autoscaling is performed the same as in rstanarm:</span>
@@ -426,7 +426,6 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
 
-    <span class="c1"># TODO: make intercept-less choice?</span>
 <div class="viewcode-block" id="GLM.fit"><a class="viewcode-back" href="../../../api.html#scikit_stan.GLM.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">X</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
@@ -567,6 +566,7 @@
         <span class="c1"># likely to be reused across multiple features</span>
         <span class="c1"># default prior selection follows:</span>
         <span class="c1"># https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html</span>
+        <span class="c1"># NOTE: this sets up default priors for all features</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoscale</span><span class="p">:</span>
             <span class="n">DEFAULT_SLOPE_PRIOR</span><span class="p">[</span><span class="s2">&quot;prior_slope_sigma&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">sdy</span> <span class="o">/</span> <span class="n">sdx</span><span class="p">]</span> <span class="o">*</span> <span class="n">K</span>
         <span class="k">else</span><span class="p">:</span>
@@ -582,10 +582,19 @@
             <span class="n">priors_</span> <span class="o">=</span> <span class="n">DEFAULT_SLOPE_PRIOR</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">priors_</span> <span class="o">=</span> <span class="n">validate_prior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">,</span> <span class="s2">&quot;slope&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s2">&quot;prior_slope_mu&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">K</span>
+                <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s2">&quot;prior_slope_sigma&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">K</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Length of prior_slope_mu and prior_slope_sigma must be &quot;</span>
+                    <span class="s2">&quot;equal to the number of features in X.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s1">&#39;prior_slope_mu&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s1">&#39;prior_slope_sigma&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> respectively.&quot;</span>
+                <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">priors_</span> <span class="o">=</span> <span class="n">priors_</span>
 
-        <span class="c1"># TODO: add functionality for GLM to not have an intercept at all</span>
         <span class="c1"># set up default prior for intercept if not user-specified</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -648,12 +657,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">model_</span> <span class="o">=</span> <span class="n">GLM_CONTINUOUS_STAN</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model_</span> <span class="o">=</span> <span class="n">GLM_DISCRETE_STAN</span>
-            <span class="c1"># TODO: this shouldn&#39;t be a repeat, this should be different for every component?</span>
             <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;trials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">y_clean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">X_clean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">seed_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span>
-
-        <span class="nb">print</span><span class="p">(</span><span class="n">dat</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">fitted_samples_</span> <span class="o">=</span> <span class="n">method_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="p">](</span>  <span class="c1"># type:ignore</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model_</span><span class="p">,</span>
@@ -728,8 +734,6 @@
             <span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">ensure_2d</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_cont_dat_</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span>
         <span class="p">)</span>
 
-        <span class="c1"># TODO: link functions???</span>
-        <span class="c1"># TODO: discrete families</span>
         <span class="c1"># NOTE: in a future Stan release, generate quantities() will not be restricted</span>
         <span class="c1"># to requiring an MCMC sample, so the following will be obsolete</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">!=</span> <span class="s2">&quot;HMC-NUTS&quot;</span><span class="p">:</span>

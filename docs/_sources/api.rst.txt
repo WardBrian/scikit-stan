@@ -14,7 +14,7 @@ for developers seeking to add additional models or improve existing models.
    internal_api.rst
 
 Generalized Linear Model
-========================
+------------------------
 
 .. autoclass:: scikit_stan.GLM
    :members:

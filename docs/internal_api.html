@@ -519,8 +519,10 @@ both parameterized by a single scalar.
 Priors here with more parameters are a future feature.
 For single-parameter priors, this field is a dictionary with the following keys</p>
 <blockquote>
-<div><p>”prior_aux_dist”: distribution of the prior on this parameter
-“prior_aux_param”: parameter of the prior on this parameter</p>
+<div><ul class="simple">
+<li><p>”prior_aux_dist”: distribution of the prior on this parameter</p></li>
+<li><p>”prior_aux_param”: parameter of the prior on this parameter</p></li>
+</ul>
 </div></blockquote>
 <dl class="simple">
 <dt>For example, to specify a chi2 prior with nu=2.5, pass</dt><dd><p>{“prior_aux_dist”: “chi2”, “prior_aux_param”: 2.5}</p>

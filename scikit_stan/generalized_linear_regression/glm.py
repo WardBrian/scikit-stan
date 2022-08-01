@@ -78,7 +78,8 @@ except ValueError:
 
 
 class GLM(CoreEstimator):
-    r"""A generalized linear model estimator with several options for families, links,
+    r"""
+    A generalized linear model estimator with several options for families, links,
     and priors on regression coefficients, the intercept, and error scale,
     done in an sk-learn style.
     This class also provides an autoscaling feature of the priors.
@@ -231,9 +232,9 @@ class GLM(CoreEstimator):
         and sy = 1 in all other cases. Setting auto_scale=True results in division by
         sy.
 
-    NOTE: the usual prior-selection advice holds. See these discussions about prior selection:
-        * https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations
-        * http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf
+        NOTE: the usual prior-selection advice holds. See these discussions about prior selection:
+            * https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations
+            * http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf
 
     autoscale : bool, optional
         Enable automatic scaling of priors. Autoscaling is performed the same as in rstanarm:

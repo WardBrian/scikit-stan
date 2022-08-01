@@ -431,22 +431,22 @@ div.rendered_html tbody tr:hover {
 }
 </style>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from scikit_stan import GLM
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scikit_stan</span> <span class="kn">import</span> <span class="n">GLM</span>
 
-import numpy as np
-import pandas as pd  # type: ignore
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># type: ignore</span>
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
-from scipy.special import expit
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">expit</span>
 
-from sklearn.model_selection import GridSearchCV
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">GridSearchCV</span>
 
-from pathlib import Path
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 </pre></div>
 </div>
 </div>
@@ -460,32 +460,32 @@ c:\Users\alizm\anaconda3\envs\cmdstan\lib\site-packages\tqdm\auto.py:22: TqdmWar
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mpl.rc(&#39;axes.spines&#39;, top=True, bottom=True, left=True, right=True)
-#mpl.rc(&#39;axes&#39;, facecolor=&#39;white&#39;)
-mpl.rc(&quot;xtick&quot;, bottom=True, labelbottom=True)
-mpl.rc(&quot;ytick&quot;, left=True, labelleft=True)
-mpl.style.use(&#39;ggplot&#39;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mpl</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes.spines&#39;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1">#mpl.rc(&#39;axes&#39;, facecolor=&#39;white&#39;)</span>
+<span class="n">mpl</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s2">&quot;xtick&quot;</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">labelbottom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">mpl</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s2">&quot;ytick&quot;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">mpl</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;ggplot&#39;</span><span class="p">)</span>
 
 
-# center images
-from IPython.core.display import HTML
-HTML(&quot;&quot;&quot;
-&lt;style&gt;
-.jp-RenderedImage, .output_png{
-    display: table-cell;
-    text-align: center;
-    vertical-align: middle;
-}
-&lt;/style&gt;
-&quot;&quot;&quot;)
+<span class="c1"># center images</span>
+<span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="kn">import</span> <span class="n">HTML</span>
+<span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">&lt;style&gt;</span>
+<span class="s2">.jp-RenderedImage, .output_png{</span>
+<span class="s2">    display: table-cell;</span>
+<span class="s2">    text-align: center;</span>
+<span class="s2">    vertical-align: middle;</span>
+<span class="s2">}</span>
+<span class="s2">&lt;/style&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
 <br/></pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -508,11 +508,11 @@ how the package integrates with the rest of the sk-learn ecosystem.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Import radon data
-# based on: https://mc-stan.org/users/documentation/case-studies/radon.html
-srrs2 = pd.read_csv(Path.cwd() / &quot;data&quot; / &quot;srrs2.dat&quot;)
-srrs2.columns = srrs2.columns.map(str.strip)
-srrs_mn = srrs2.assign(fips=srrs2.stfips*1000 + srrs2.cntyfips)[srrs2.state==&#39;MN&#39;]
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import radon data</span>
+<span class="c1"># based on: https://mc-stan.org/users/documentation/case-studies/radon.html</span>
+<span class="n">srrs2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;srrs2.dat&quot;</span><span class="p">)</span>
+<span class="n">srrs2</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">srrs2</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">strip</span><span class="p">)</span>
+<span class="n">srrs_mn</span> <span class="o">=</span> <span class="n">srrs2</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">fips</span><span class="o">=</span><span class="n">srrs2</span><span class="o">.</span><span class="n">stfips</span><span class="o">*</span><span class="mi">1000</span> <span class="o">+</span> <span class="n">srrs2</span><span class="o">.</span><span class="n">cntyfips</span><span class="p">)[</span><span class="n">srrs2</span><span class="o">.</span><span class="n">state</span><span class="o">==</span><span class="s1">&#39;MN&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -520,21 +520,9 @@ srrs_mn = srrs2.assign(fips=srrs2.stfips*1000 + srrs2.cntyfips)[srrs2.state==&#3
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>cty = pd.read_csv(Path.cwd() / &quot;data&quot; / &quot;cty.dat&quot;)
-cty_mn = cty[cty.st==&#39;MN&#39;].copy()
-cty_mn[ &#39;fips&#39;] = 1000*cty_mn.stfips + cty_mn.ctfips
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>srrs_mn = srrs_mn.merge(cty_mn[[&#39;fips&#39;, &#39;Uppm&#39;]], on=&#39;fips&#39;)
-srrs_mn = srrs_mn.drop_duplicates(subset=&#39;idnum&#39;)
-u = np.log(srrs_mn.Uppm)
-
-n = len(srrs_mn)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cty</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;cty.dat&quot;</span><span class="p">)</span>
+<span class="n">cty_mn</span> <span class="o">=</span> <span class="n">cty</span><span class="p">[</span><span class="n">cty</span><span class="o">.</span><span class="n">st</span><span class="o">==</span><span class="s1">&#39;MN&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">cty_mn</span><span class="p">[</span> <span class="s1">&#39;fips&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span><span class="o">*</span><span class="n">cty_mn</span><span class="o">.</span><span class="n">stfips</span> <span class="o">+</span> <span class="n">cty_mn</span><span class="o">.</span><span class="n">ctfips</span>
 </pre></div>
 </div>
 </div>
@@ -542,9 +530,11 @@ n = len(srrs_mn)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>srrs_mn.county = srrs_mn.county.str.strip()
-mn_counties = srrs_mn.county.unique()
-counties = len(mn_counties)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">srrs_mn</span> <span class="o">=</span> <span class="n">srrs_mn</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">cty_mn</span><span class="p">[[</span><span class="s1">&#39;fips&#39;</span><span class="p">,</span> <span class="s1">&#39;Uppm&#39;</span><span class="p">]],</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;fips&#39;</span><span class="p">)</span>
+<span class="n">srrs_mn</span> <span class="o">=</span> <span class="n">srrs_mn</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s1">&#39;idnum&#39;</span><span class="p">)</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">srrs_mn</span><span class="o">.</span><span class="n">Uppm</span><span class="p">)</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">srrs_mn</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -552,11 +542,21 @@ counties = len(mn_counties)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>county_lookup = dict(zip(mn_counties, range(len(mn_counties))))
-county = srrs_mn[&#39;county_code&#39;] = srrs_mn.county.replace(county_lookup).values
-radon = srrs_mn.activity
-srrs_mn[&#39;log_radon&#39;] = log_radon = np.log(radon + 0.1).values
-floor_measure = srrs_mn.floor.values
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">srrs_mn</span><span class="o">.</span><span class="n">county</span> <span class="o">=</span> <span class="n">srrs_mn</span><span class="o">.</span><span class="n">county</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="n">mn_counties</span> <span class="o">=</span> <span class="n">srrs_mn</span><span class="o">.</span><span class="n">county</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">counties</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mn_counties</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">county_lookup</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">mn_counties</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mn_counties</span><span class="p">))))</span>
+<span class="n">county</span> <span class="o">=</span> <span class="n">srrs_mn</span><span class="p">[</span><span class="s1">&#39;county_code&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">srrs_mn</span><span class="o">.</span><span class="n">county</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">county_lookup</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+<span class="n">radon</span> <span class="o">=</span> <span class="n">srrs_mn</span><span class="o">.</span><span class="n">activity</span>
+<span class="n">srrs_mn</span><span class="p">[</span><span class="s1">&#39;log_radon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">log_radon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">radon</span> <span class="o">+</span> <span class="mf">0.1</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+<span class="n">floor_measure</span> <span class="o">=</span> <span class="n">srrs_mn</span><span class="o">.</span><span class="n">floor</span><span class="o">.</span><span class="n">values</span>
 </pre></div>
 </div>
 </div>
@@ -564,7 +564,7 @@ floor_measure = srrs_mn.floor.values
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>srrs_mn.activity.apply(lambda x: np.log(x+0.1)).hist(bins=25)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">srrs_mn</span><span class="o">.</span><span class="n">activity</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mf">0.1</span><span class="p">))</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -585,16 +585,16 @@ floor_measure = srrs_mn.floor.values
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>glm = GLM(family=&quot;gaussian&quot;, link=&quot;identity&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">glm</span> <span class="o">=</span> <span class="n">GLM</span><span class="p">(</span><span class="n">family</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">link</span><span class="o">=</span><span class="s2">&quot;identity&quot;</span><span class="p">)</span>
 
-fitted = glm.fit(floor_measure, log_radon)
-xvals = np.linspace(-0.2, 1.2)
-plt.scatter(srrs_mn.floor, np.log(srrs_mn.activity+0.1))
+<span class="n">fitted</span> <span class="o">=</span> <span class="n">glm</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">floor_measure</span><span class="p">,</span> <span class="n">log_radon</span><span class="p">)</span>
+<span class="n">xvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">srrs_mn</span><span class="o">.</span><span class="n">floor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">srrs_mn</span><span class="o">.</span><span class="n">activity</span><span class="o">+</span><span class="mf">0.1</span><span class="p">))</span>
 
-plt.plot(xvals, fitted.alpha_ + fitted.beta_*xvals, &#39;r--&#39;)
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xvals</span><span class="p">,</span> <span class="n">fitted</span><span class="o">.</span><span class="n">alpha_</span> <span class="o">+</span> <span class="n">fitted</span><span class="o">.</span><span class="n">beta_</span><span class="o">*</span><span class="n">xvals</span><span class="p">,</span> <span class="s1">&#39;r--&#39;</span><span class="p">)</span>
 <br/></pre></div>
 </div>
 </div>
@@ -603,29 +603,32 @@ plt.plot(xvals, fitted.alpha_ + fitted.beta_*xvals, &#39;r--&#39;)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-c:\users\alizm\documents\flatironinstitute\sk-stan-regression\sk_stan_regression\utils\validation.py:226: UserWarning: Passed data is one-dimensional, while estimator expects it to be at at least two-dimensional.
+c:\users\alizm\documents\flatironinstitute\sk-stan-regression\scikit_stan\utils\validation.py:226: UserWarning: Passed data is one-dimensional, while estimator expects it to be at at least two-dimensional.
   warnings.warn(
-c:\users\alizm\documents\flatironinstitute\sk-stan-regression\sk_stan_regression\generalized_linear_regression\glm.py:411: UserWarning: Prior on intercept not specified. Using default prior.
+c:\users\alizm\documents\flatironinstitute\sk-stan-regression\scikit_stan\generalized_linear_regression\glm.py:434: UserWarning: Prior on intercept not specified. Using default prior.
                 alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)
   warnings.warn(
-c:\users\alizm\documents\flatironinstitute\sk-stan-regression\sk_stan_regression\generalized_linear_regression\glm.py:445: UserWarning: Prior on auxiliary parameter not specified. Using default unscaled prior
+c:\users\alizm\documents\flatironinstitute\sk-stan-regression\scikit_stan\generalized_linear_regression\glm.py:468: UserWarning: Prior on auxiliary parameter not specified. Using default unscaled prior
                         sigma ~ exponential(1)
 
   warnings.warn(
-14:55:13 - cmdstanpy - INFO - CmdStan start processing
+20:13:27 - cmdstanpy - INFO - CmdStan start processing
 chain 1 |<span class="ansi-yellow-fg">          </span>| 00:00 Status
 
 
 
-chain 1 |<span class="ansi-yellow-fg">█▊        </span>| 00:00 Iteration:  200 / 2000 [ 10%]  (Warmup)
+chain 1 |<span class="ansi-yellow-fg">█▎        </span>| 00:00 Iteration:  100 / 2000 [  5%]  (Warmup)
 
 
 
 
-chain 1 |<span class="ansi-yellow-fg">█████     </span>| 00:00 Iteration:  900 / 2000 [ 45%]  (Warmup)
+chain 1 |<span class="ansi-yellow-fg">████      </span>| 00:00 Iteration:  700 / 2000 [ 35%]  (Warmup)
 
 
-chain 1 |<span class="ansi-blue-fg">███████▎  </span>| 00:01 Iteration: 1300 / 2000 [ 65%]  (Sampling)
+chain 1 |<span class="ansi-blue-fg">██████▎   </span>| 00:00 Iteration: 1100 / 2000 [ 55%]  (Sampling)
+
+
+chain 1 |<span class="ansi-blue-fg">███████▋  </span>| 00:02 Iteration: 1400 / 2000 [ 70%]  (Sampling)
 
 
 chain 1 |<span class="ansi-blue-fg">████████▋ </span>| 00:02 Iteration: 1600 / 2000 [ 80%]  (Sampling)
@@ -634,10 +637,13 @@ chain 1 |<span class="ansi-blue-fg">████████▋ </span>| 00:02 I
 chain 1 |<span class="ansi-blue-fg">█████████▌</span>| 00:03 Iteration: 1800 / 2000 [ 90%]  (Sampling)
 
 
-chain 1 |<span class="ansi-blue-fg">██████████</span>| 00:03 Sampling completed
-chain 2 |<span class="ansi-blue-fg">██████████</span>| 00:03 Sampling completed
-chain 3 |<span class="ansi-blue-fg">██████████</span>| 00:03 Sampling completed
-chain 4 |<span class="ansi-blue-fg">██████████</span>| 00:03 Sampling completed
+chain 1 |<span class="ansi-blue-fg">██████████</span>| 00:03 Iteration: 1900 / 2000 [ 95%]  (Sampling)
+
+
+chain 1 |<span class="ansi-blue-fg">██████████</span>| 00:04 Sampling completed
+chain 2 |<span class="ansi-blue-fg">██████████</span>| 00:04 Sampling completed
+chain 3 |<span class="ansi-blue-fg">██████████</span>| 00:04 Sampling completed
+chain 4 |<span class="ansi-blue-fg">██████████</span>| 00:04 Sampling completed
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -654,9 +660,11 @@ chain 4 |<span class="ansi-blue-fg">██████████</span>| 00:03
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 
-14:55:17 - cmdstanpy - INFO - CmdStan done processing.
-14:55:17 - cmdstanpy - WARNING - Non-fatal error during sampling:
-Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/sk_stan_regression/stan_files/glm_v_continuous.stan&#39;, line 74, column 4 to column 35)
+20:13:31 - cmdstanpy - INFO - CmdStan done processing.
+20:13:31 - cmdstanpy - WARNING - Non-fatal error during sampling:
+Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/scikit_stan/stan_files/glm_v_continuous.stan&#39;, line 71, column 4 to column 35)
+        Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/scikit_stan/stan_files/glm_v_continuous.stan&#39;, line 71, column 4 to column 35)
+Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/scikit_stan/stan_files/glm_v_continuous.stan&#39;, line 71, column 4 to column 35)
 Consider re-running with show_console=True if the above output is unclear!
 </pre></div></div>
 </div>
@@ -669,12 +677,12 @@ Consider re-running with show_console=True if the above output is unclear!
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x23a2fa0bac0&gt;]
+[&lt;matplotlib.lines.Line2D at 0x282fef64ee0&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -690,36 +698,36 @@ Consider re-running with show_console=True if the above output is unclear!
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%%capture
-# this actually is a hyperhyperparameter optimization problem
-# optimize over prior_aux_param, which is a hyperhyperparameter
-# as it is the hyperparameter for the prior for sigma, which is used
-# as a parameter in the family distribution
-glm_opt = GLM(family=&quot;gaussian&quot;, link=&quot;identity&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%capture</span>
+<span class="c1"># this actually is a hyperhyperparameter optimization problem</span>
+<span class="c1"># optimize over prior_aux_param, which is a hyperhyperparameter</span>
+<span class="c1"># as it is the hyperparameter for the prior for sigma, which is used</span>
+<span class="c1"># as a parameter in the family distribution</span>
+<span class="n">glm_opt</span> <span class="o">=</span> <span class="n">GLM</span><span class="p">(</span><span class="n">family</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">link</span><span class="o">=</span><span class="s2">&quot;identity&quot;</span><span class="p">)</span>
 
-param_range = np.linspace(0.1, 1, 5)
+<span class="n">param_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 
-param_grid = {
-        &quot;prior_aux&quot; :
-            list({
-                &quot;prior_aux_dist&quot;: &quot;exponential&quot;,
+<span class="n">param_grid</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;prior_aux&quot;</span> <span class="p">:</span>
+            <span class="nb">list</span><span class="p">({</span>
+                <span class="s2">&quot;prior_aux_dist&quot;</span><span class="p">:</span> <span class="s2">&quot;exponential&quot;</span><span class="p">,</span>
 
-                &quot;prior_aux_param&quot;: aux_val
-            }
-            for aux_val in param_range)
-}
-
-
-grid_search = GridSearchCV(glm, param_grid=param_grid);
-
-searched = grid_search.fit(floor_measure, log_radon);
+                <span class="s2">&quot;prior_aux_param&quot;</span><span class="p">:</span> <span class="n">aux_val</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">aux_val</span> <span class="ow">in</span> <span class="n">param_range</span><span class="p">)</span>
+<span class="p">}</span>
 
 
-print(grid_search.cv_results_)
+<span class="n">grid_search</span> <span class="o">=</span> <span class="n">GridSearchCV</span><span class="p">(</span><span class="n">glm</span><span class="p">,</span> <span class="n">param_grid</span><span class="o">=</span><span class="n">param_grid</span><span class="p">);</span>
 
-#fitted = glm.fit(X=floor_measure, y=log_radon);
+<span class="n">searched</span> <span class="o">=</span> <span class="n">grid_search</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">floor_measure</span><span class="p">,</span> <span class="n">log_radon</span><span class="p">);</span>
 
-#fitted.alpha_, fitted.beta_, fitted.sigma_
+
+<span class="nb">print</span><span class="p">(</span><span class="n">grid_search</span><span class="o">.</span><span class="n">cv_results_</span><span class="p">)</span>
+
+<span class="c1">#fitted = glm.fit(X=floor_measure, y=log_radon);</span>
+
+<span class="c1">#fitted.alpha_, fitted.beta_, fitted.sigma_</span>
 </pre></div>
 </div>
 </div>
@@ -1071,38 +1079,38 @@ Consider re-running with show_console=True if the above output is unclear!
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%%capture
-# this actually is a hyperhyperparameter optimization problem
-# optimize over prior_aux_param, which is a hyperhyperparameter
-# as it is the hyperparameter for the prior for sigma, which is used
-# as a parameter in the family distribution
-glm_opt2 = GLM(family=&quot;gaussian&quot;, link=&quot;identity&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%capture</span>
+<span class="c1"># this actually is a hyperhyperparameter optimization problem</span>
+<span class="c1"># optimize over prior_aux_param, which is a hyperhyperparameter</span>
+<span class="c1"># as it is the hyperparameter for the prior for sigma, which is used</span>
+<span class="c1"># as a parameter in the family distribution</span>
+<span class="n">glm_opt2</span> <span class="o">=</span> <span class="n">GLM</span><span class="p">(</span><span class="n">family</span><span class="o">=</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="n">link</span><span class="o">=</span><span class="s2">&quot;identity&quot;</span><span class="p">)</span>
 
-param_range = np.linspace(0.1, 0.5, 5)
+<span class="n">param_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 
-param_grid = {
-        &quot;prior_intercept&quot; :
-            list({
-                &quot;prior_intercept_dist&quot;: &quot;normal&quot;,
+<span class="n">param_grid</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;prior_intercept&quot;</span> <span class="p">:</span>
+            <span class="nb">list</span><span class="p">({</span>
+                <span class="s2">&quot;prior_intercept_dist&quot;</span><span class="p">:</span> <span class="s2">&quot;normal&quot;</span><span class="p">,</span>
 
-                &quot;prior_intercept_mu&quot;: 1.5,
+                <span class="s2">&quot;prior_intercept_mu&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
 
-                &quot;prior_intercept_sigma&quot;: sigma_alpha_val
-            }
-            for sigma_alpha_val in param_range)
-}
-
-
-grid_search2 = GridSearchCV(glm, param_grid=param_grid);
-
-searched = grid_search2.fit(floor_measure, log_radon);
+                <span class="s2">&quot;prior_intercept_sigma&quot;</span><span class="p">:</span> <span class="n">sigma_alpha_val</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">sigma_alpha_val</span> <span class="ow">in</span> <span class="n">param_range</span><span class="p">)</span>
+<span class="p">}</span>
 
 
-print(grid_search.cv_results_)
+<span class="n">grid_search2</span> <span class="o">=</span> <span class="n">GridSearchCV</span><span class="p">(</span><span class="n">glm</span><span class="p">,</span> <span class="n">param_grid</span><span class="o">=</span><span class="n">param_grid</span><span class="p">);</span>
 
-#fitted = glm.fit(X=floor_measure, y=log_radon);
+<span class="n">searched</span> <span class="o">=</span> <span class="n">grid_search2</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">floor_measure</span><span class="p">,</span> <span class="n">log_radon</span><span class="p">);</span>
 
-#fitted.alpha_, fitted.beta_, fitted.sigma_
+
+<span class="nb">print</span><span class="p">(</span><span class="n">grid_search</span><span class="o">.</span><span class="n">cv_results_</span><span class="p">)</span>
+
+<span class="c1">#fitted = glm.fit(X=floor_measure, y=log_radon);</span>
+
+<span class="c1">#fitted.alpha_, fitted.beta_, fitted.sigma_</span>
 </pre></div>
 </div>
 </div>
@@ -1456,8 +1464,8 @@ Consider re-running with show_console=True if the above output is unclear!
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gs_rez2 = grid_search2.cv_results_
-gs_rez2
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gs_rez2</span> <span class="o">=</span> <span class="n">grid_search2</span><span class="o">.</span><span class="n">cv_results_</span>
+<span class="n">gs_rez2</span>
 <br/></pre></div>
 </div>
 </div>
@@ -1508,8 +1516,8 @@ gs_rez2
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gs_rez = grid_search.cv_results_
-gs_rez
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gs_rez</span> <span class="o">=</span> <span class="n">grid_search</span><span class="o">.</span><span class="n">cv_results_</span>
+<span class="n">gs_rez</span>
 <br/></pre></div>
 </div>
 </div>
@@ -1548,49 +1556,15 @@ gs_rez
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mean_y = gs_rez2[&#39;mean_test_score&#39;]
-plt.plot(param_range, mean_y[::-1])
-plt.ylabel(&quot;Mean Test Score&quot;)
-plt.xlabel(f&quot;Prior Intercept $\sigma_\\alpha$ Parameter&quot;)
-plt.title(f&quot;Score with Gridsearch on Prior Intercept $\sigma_\\alpha$ Parameter&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mean_y</span> <span class="o">=</span> <span class="n">gs_rez2</span><span class="p">[</span><span class="s1">&#39;mean_test_score&#39;</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">param_range</span><span class="p">,</span> <span class="n">mean_y</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Mean Test Score&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Prior Intercept $\sigma_</span><span class="se">\\</span><span class="s2">alpha$ Parameter&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Score with Gridsearch on Prior Intercept $\sigma_</span><span class="se">\\</span><span class="s2">alpha$ Parameter&quot;</span><span class="p">)</span>
 </pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Text(0.5, 1.0, &#39;Score with Gridsearch on Prior Intercept $\\sigma_\\alpha$ Parameter&#39;)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/examples_Hyperparameter_Optimization_16_1.png" src="../_images/examples_Hyperparameter_Optimization_16_1.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Initialize two different GLM objects, one for each lot.
-glm_gamma1 = GLM(family=&quot;gamma&quot;, link=&quot;inverse&quot;, seed=1234)
-glm_gamma2 = GLM(family=&quot;gamma&quot;, link=&quot;inverse&quot;, seed=1234)
-
-# Fit the model. Note that default priors are used without autoscaling, see the
-# API to see how to change these.
-glm_gamma1.fit(bc_data_X, bc_data_lot1, show_console=False)
-glm_gamma2.fit(bc_data_X, bc_data_lot2, show_console=False)
-
-print(glm_gamma1.alpha_, glm_gamma1.beta_)
-print(glm_gamma2.alpha_, glm_gamma2.beta_)
-<br/></pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1600,22 +1574,19 @@ print(glm_gamma2.alpha_, glm_gamma2.beta_)
 <div class="highlight"><pre>
 <span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
 <span class="ansi-red-intense-fg ansi-bold">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">c:\Users\alizm\Documents\FlatironInstitute\sk-stan-regression\docsrc\examples\Hyperparameter Optimization.ipynb Cell 12</span> in <span class="ansi-cyan-fg">&lt;cell line: 7&gt;</span><span class="ansi-blue-intense-fg ansi-bold">()</span>
-<span class="ansi-green-fg">      &lt;a href=&#39;vscode-notebook-cell:/c%3A/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/docsrc/examples/Hyperparameter%20Optimization.ipynb#ch0000024?line=2&#39;&gt;3&lt;/a&gt;</span> glm_gamma2 = GLM(family=&#34;gamma&#34;, link=&#34;inverse&#34;, seed=1234)
-<span class="ansi-green-fg">      &lt;a href=&#39;vscode-notebook-cell:/c%3A/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/docsrc/examples/Hyperparameter%20Optimization.ipynb#ch0000024?line=4&#39;&gt;5&lt;/a&gt;</span> # Fit the model. Note that default priors are used without autoscaling, see the
-<span class="ansi-green-fg">      &lt;a href=&#39;vscode-notebook-cell:/c%3A/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/docsrc/examples/Hyperparameter%20Optimization.ipynb#ch0000024?line=5&#39;&gt;6&lt;/a&gt;</span> # API to see how to change these.
-<span class="ansi-green-intense-fg ansi-bold">----&gt; &lt;a href=&#39;vscode-notebook-cell:/c%3A/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/docsrc/examples/Hyperparameter%20Optimization.ipynb#ch0000024?line=6&#39;&gt;7&lt;/a&gt;</span> glm_gamma1.fit(bc_data_X, bc_data_lot1, show_console=False)
-<span class="ansi-green-fg">      &lt;a href=&#39;vscode-notebook-cell:/c%3A/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/docsrc/examples/Hyperparameter%20Optimization.ipynb#ch0000024?line=7&#39;&gt;8&lt;/a&gt;</span> glm_gamma2.fit(bc_data_X, bc_data_lot2, show_console=False)
-<span class="ansi-green-fg">     &lt;a href=&#39;vscode-notebook-cell:/c%3A/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/docsrc/examples/Hyperparameter%20Optimization.ipynb#ch0000024?line=9&#39;&gt;10&lt;/a&gt;</span> print(glm_gamma1.alpha_, glm_gamma1.beta_)
+<span class="ansi-green-intense-fg ansi-bold">c:\Users\alizm\Documents\FlatironInstitute\sk-stan-regression\docsrc\examples\Hyperparameter Optimization.ipynb Cell 17</span> in <span class="ansi-cyan-fg">&lt;cell line: 1&gt;</span><span class="ansi-blue-intense-fg ansi-bold">()</span>
+<span class="ansi-green-intense-fg ansi-bold">----&gt; &lt;a href=&#39;vscode-notebook-cell:/c%3A/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/docsrc/examples/Hyperparameter%20Optimization.ipynb#ch0000016?line=0&#39;&gt;1&lt;/a&gt;</span> mean_y = gs_rez2[&#39;mean_test_score&#39;]
+<span class="ansi-green-fg">      &lt;a href=&#39;vscode-notebook-cell:/c%3A/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/docsrc/examples/Hyperparameter%20Optimization.ipynb#ch0000016?line=1&#39;&gt;2&lt;/a&gt;</span> plt.plot(param_range, mean_y[::-1])
+<span class="ansi-green-fg">      &lt;a href=&#39;vscode-notebook-cell:/c%3A/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/docsrc/examples/Hyperparameter%20Optimization.ipynb#ch0000016?line=2&#39;&gt;3&lt;/a&gt;</span> plt.ylabel(&#34;Mean Test Score&#34;)
 
-<span class="ansi-red-intense-fg ansi-bold">NameError</span>: name &#39;bc_data_X&#39; is not defined
+<span class="ansi-red-intense-fg ansi-bold">NameError</span>: name &#39;gs_rez2&#39; is not defined
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>glm.fit(floor_measure, log_radon)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">glm</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">floor_measure</span><span class="p">,</span> <span class="n">log_radon</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1624,39 +1595,28 @@ print(glm_gamma2.alpha_, glm_gamma2.beta_)
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-c:\users\alizm\documents\flatironinstitute\sk-stan-regression\sk_stan_regression\utils\validation.py:226: UserWarning: Passed data is one-dimensional, while estimator expects it to be at at least two-dimensional.
-  warnings.warn(
-c:\users\alizm\documents\flatironinstitute\sk-stan-regression\sk_stan_regression\generalized_linear_regression\glm.py:411: UserWarning: Prior on intercept not specified. Using default prior.
-                alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)
-  warnings.warn(
-c:\users\alizm\documents\flatironinstitute\sk-stan-regression\sk_stan_regression\generalized_linear_regression\glm.py:445: UserWarning: Prior on auxiliary parameter not specified. Using default unscaled prior
-                        sigma ~ exponential(1)
-
-  warnings.warn(
-18:45:29 - cmdstanpy - INFO - CmdStan start processing
+20:13:50 - cmdstanpy - INFO - CmdStan start processing
 chain 1 |<span class="ansi-yellow-fg">          </span>| 00:00 Status
 
 
 
 
-
-chain 1 |<span class="ansi-yellow-fg">█▎        </span>| 00:00 Iteration:  100 / 2000 [  5%]  (Warmup)
-
-
-chain 1 |<span class="ansi-yellow-fg">████      </span>| 00:00 Iteration:  700 / 2000 [ 35%]  (Warmup)
+chain 1 |<span class="ansi-yellow-fg">█▊        </span>| 00:00 Iteration:  200 / 2000 [ 10%]  (Warmup)
 
 
-chain 1 |<span class="ansi-blue-fg">██████▎   </span>| 00:00 Iteration: 1100 / 2000 [ 55%]  (Sampling)
+chain 1 |<span class="ansi-yellow-fg">█████     </span>| 00:00 Iteration:  900 / 2000 [ 45%]  (Warmup)
 
 
-chain 1 |<span class="ansi-blue-fg">███████▋  </span>| 00:01 Iteration: 1400 / 2000 [ 70%]  (Sampling)
 
 
-chain 1 |<span class="ansi-blue-fg">████████▋ </span>| 00:02 Iteration: 1600 / 2000 [ 80%]  (Sampling)
+
+chain 1 |<span class="ansi-blue-fg">███████▋  </span>| 00:02 Iteration: 1400 / 2000 [ 70%]  (Sampling)
 
 
-chain 1 |<span class="ansi-blue-fg">█████████▌</span>| 00:03 Iteration: 1800 / 2000 [ 90%]  (Sampling)
 
+
+
+chain 1 |<span class="ansi-blue-fg">█████████ </span>| 00:03 Iteration: 1700 / 2000 [ 85%]  (Sampling)
 
 
 chain 1 |<span class="ansi-blue-fg">██████████</span>| 00:03 Iteration: 1900 / 2000 [ 95%]  (Sampling)
@@ -1681,12 +1641,13 @@ chain 4 |<span class="ansi-blue-fg">██████████</span>| 00:03
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
 
-18:45:33 - cmdstanpy - INFO - CmdStan done processing.
-18:45:33 - cmdstanpy - WARNING - Non-fatal error during sampling:
-Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/sk_stan_regression/stan_files/glm_v_continuous.stan&#39;, line 74, column 4 to column 35)
-        Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/sk_stan_regression/stan_files/glm_v_continuous.stan&#39;, line 74, column 4 to column 35)
-Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/sk_stan_regression/stan_files/glm_v_continuous.stan&#39;, line 74, column 4 to column 35)
-Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/sk_stan_regression/stan_files/glm_v_continuous.stan&#39;, line 74, column 4 to column 35)
+20:13:54 - cmdstanpy - INFO - CmdStan done processing.
+20:13:54 - cmdstanpy - WARNING - Non-fatal error during sampling:
+Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/scikit_stan/stan_files/glm_v_continuous.stan&#39;, line 71, column 4 to column 35)
+        Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/scikit_stan/stan_files/glm_v_continuous.stan&#39;, line 71, column 4 to column 35)
+Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/scikit_stan/stan_files/glm_v_continuous.stan&#39;, line 71, column 4 to column 35)
+Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/scikit_stan/stan_files/glm_v_continuous.stan&#39;, line 71, column 4 to column 35)
+        Exception: normal_lpdf: Scale parameter is 0, but must be positive! (in &#39;C:/Users/alizm/Documents/FlatironInstitute/sk-stan-regression/scikit_stan/stan_files/glm_v_continuous.stan&#39;, line 71, column 4 to column 35)
 Consider re-running with show_console=True if the above output is unclear!
 </pre></div></div>
 </div>
@@ -1699,19 +1660,19 @@ Consider re-running with show_console=True if the above output is unclear!
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;sk_stan_regression.generalized_linear_regression.glm.GLM at 0x19e53b49690&gt;
+&lt;scikit_stan.generalized_linear_regression.glm.GLM at 0x282ff350880&gt;
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>glm.alpha_, glm.beta_, glm.sigma_
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">glm</span><span class="o">.</span><span class="n">alpha_</span><span class="p">,</span> <span class="n">glm</span><span class="o">.</span><span class="n">beta_</span><span class="p">,</span> <span class="n">glm</span><span class="o">.</span><span class="n">sigma_</span>
 </pre></div>
 </div>
 </div>
@@ -1725,31 +1686,33 @@ Consider re-running with show_console=True if the above output is unclear!
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import arviz as az
-az.style.use(&quot;arviz-darkgrid&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">arviz</span> <span class="k">as</span> <span class="nn">az</span>
+<span class="n">az</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;arviz-darkgrid&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>t =az.from_cmdstanpy(fitted.fitted_samples_)
-az.plot_trace(t, var_names=[&quot;alpha&quot;, &quot;sigma&quot;])
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span><span class="n">az</span><span class="o">.</span><span class="n">from_cmdstanpy</span><span class="p">(</span><span class="n">fitted</span><span class="o">.</span><span class="n">fitted_samples_</span><span class="p">)</span>
+<span class="n">az</span><span class="o">.</span><span class="n">plot_trace</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">var_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="s2">&quot;sigma&quot;</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 array([[&lt;AxesSubplot:title={&#39;center&#39;:&#39;alpha&#39;}&gt;,
         &lt;AxesSubplot:title={&#39;center&#39;:&#39;alpha&#39;}&gt;],
+       [&lt;AxesSubplot:title={&#39;center&#39;:&#39;beta&#39;}&gt;,
+        &lt;AxesSubplot:title={&#39;center&#39;:&#39;beta&#39;}&gt;],
        [&lt;AxesSubplot:title={&#39;center&#39;:&#39;sigma&#39;}&gt;,
         &lt;AxesSubplot:title={&#39;center&#39;:&#39;sigma&#39;}&gt;]], dtype=object)
 </pre></div></div>
@@ -1758,7 +1721,7 @@ array([[&lt;AxesSubplot:title={&#39;center&#39;:&#39;alpha&#39;}&gt;,
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Hyperparameter_Optimization_21_1.png" src="../_images/examples_Hyperparameter_Optimization_21_1.png" />
+<img alt="../_images/examples_Hyperparameter_Optimization_20_1.png" src="../_images/examples_Hyperparameter_Optimization_20_1.png" />
 </div>
 </div>
 </section>

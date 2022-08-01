@@ -33,6 +33,7 @@
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -398,7 +399,6 @@
     <span class="k">return</span> <span class="n">array_res</span></div>
 
 
-<span class="c1"># TODO: add additional arguments</span>
 <span class="k">def</span> <span class="nf">_check_y</span><span class="p">(</span>
     <span class="n">y</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]]:</span>
@@ -422,7 +422,6 @@
 
 <span class="c1"># NOTE: This is derived from sk-learn&#39;s validation checks, which</span>
 <span class="c1"># are distributed under the 3-Clause BSD License.</span>
-<span class="c1"># TODO: simplify</span>
 <div class="viewcode-block" id="check_is_fitted"><a class="viewcode-back" href="../../../internal_api.html#scikit_stan.utils.validation.check_is_fitted">[docs]</a><span class="k">def</span> <span class="nf">check_is_fitted</span><span class="p">(</span>
     <span class="n">estimator</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">attributes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -619,9 +618,6 @@
     <span class="p">}</span></div>
 
 
-<span class="c1"># TODO: to generalize to multi-parameter priors here, additional validation checks are</span>
-<span class="c1"># necessary, and on the Stan side, priors to the log-likelihood should be set</span>
-<span class="c1"># via a vector rather than just a single vague parameter.</span>
 <div class="viewcode-block" id="validate_aux_prior"><a class="viewcode-back" href="../../../internal_api.html#scikit_stan.utils.validation.validate_aux_prior">[docs]</a><span class="k">def</span> <span class="nf">validate_aux_prior</span><span class="p">(</span><span class="n">aux_prior_spec</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Validates passed configuration for prior on auxiliary parameters.</span>
 <span class="sd">    This does not perform parameter autoscaling.</span>
@@ -634,8 +630,9 @@
 <span class="sd">        both parameterized by a single scalar.</span>
 <span class="sd">        Priors here with more parameters are a future feature.</span>
 <span class="sd">        For single-parameter priors, this field is a dictionary with the following keys</span>
-<span class="sd">            &quot;prior_aux_dist&quot;: distribution of the prior on this parameter</span>
-<span class="sd">            &quot;prior_aux_param&quot;: parameter of the prior on this parameter</span>
+<span class="sd">            + &quot;prior_aux_dist&quot;: distribution of the prior on this parameter</span>
+
+<span class="sd">            + &quot;prior_aux_param&quot;: parameter of the prior on this parameter</span>
 
 <span class="sd">        For example, to specify a chi2 prior with nu=2.5, pass</span>
 <span class="sd">            {&quot;prior_aux_dist&quot;: &quot;chi2&quot;, &quot;prior_aux_param&quot;: 2.5}</span>
@@ -672,8 +669,6 @@
         <span class="s2">&quot;prior_aux_dist&quot;</span><span class="p">:</span> <span class="n">PRIORS_AUX_MAP</span><span class="p">[</span><span class="n">dist_key</span><span class="p">],</span>
     <span class="p">}</span>
 
-    <span class="c1"># NOTE: this section has placeholder values, see the TODO above for generalization</span>
-    <span class="c1"># add validation for additional priors on auxiliary variable(s) here</span>
     <span class="k">if</span> <span class="n">dist_key</span> <span class="o">==</span> <span class="s2">&quot;exponential&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="s2">&quot;prior_aux_param&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config_keys</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>

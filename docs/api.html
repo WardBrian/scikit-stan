@@ -169,12 +169,7 @@
 
 <nav id="bd-toc-nav">
     <ul class="visible nav section-nav flex-column">
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#">
-   API Reference
-  </a>
- </li>
- <li class="toc-h1 nav-item toc-entry">
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#generalized-linear-model">
    Generalized Linear Model
   </a>
@@ -205,9 +200,8 @@
 for developers seeking to add additional models or improve existing models.</p>
 <div class="toctree-wrapper compound">
 </div>
-</section>
 <section id="generalized-linear-model">
-<h1>Generalized Linear Model<a class="headerlink" href="#generalized-linear-model" title="Permalink to this heading">#</a></h1>
+<h2>Generalized Linear Model<a class="headerlink" href="#generalized-linear-model" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="scikit_stan.GLM">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_stan.</span></span><span class="sig-name descname"><span class="pre">GLM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HMC-NUTS'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gaussian'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior_aux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autoscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_stan/generalized_linear_regression/glm.html#GLM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_stan.GLM" title="Permalink to this definition">#</a></dt>
@@ -333,8 +327,8 @@ The prior on all regression coefficients is set with the following keys:</p>
 <blockquote>
 <div><ul>
 <li><p>”prior_slope_dist”: distribution of the prior for each coefficient</p></li>
-<li><p>”prior_slope_mu”: location parameters of the prior for each coefficient</p></li>
-<li><p>”prior_slope_sigma”: scale parameters of the prior for each coefficient</p></li>
+<li><p>”prior_slope_mu”: list of location parameters of the prior for each coefficient</p></li>
+<li><p>”prior_slope_sigma”: list of scale parameters of the prior for each coefficient</p></li>
 </ul>
 </div></blockquote>
 <p>Thus, to specify a standard normal prior on the first feature,
@@ -402,11 +396,13 @@ For single-parameter priors, this field is a dictionary with the following keys<
 exponential(1/sy) where sy = sd(y) - if the specified family is a Gaussian,
 and sy = 1 in all other cases. Setting auto_scale=True results in division by
 sy.</p>
-</p></li>
-<li><p><strong>NOTE</strong> (<em>the usual prior-selection advice holds. See these discussions about prior selection:</em>) – <ul>
+<dl class="simple">
+<dt>NOTE: the usual prior-selection advice holds. See these discussions about prior selection:</dt><dd><ul>
 <li><p><a class="reference external" href="https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations">https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations</a></p></li>
 <li><p><a class="reference external" href="http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf">http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf</a></p></li>
 </ul>
+</dd>
+</dl>
 </p></li>
 <li><p><strong>autoscale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <dl class="simple">
 <dt>Enable automatic scaling of priors. Autoscaling is performed the same as in rstanarm:</dt><dd><p><a class="reference external" href="https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html">https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html</a></p>
@@ -536,6 +532,7 @@ corresponding to given test dat X.</p></li>
 
 </dd></dl>
 
+</section>
 </section>
 
 
