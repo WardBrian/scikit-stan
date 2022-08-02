@@ -514,8 +514,8 @@ if __name__ == "__main__":
 
     # from data import bcdata_dict
     # NOTE: rate parameter sometimes becomes negative for poisson?
-    # blr = GLM(family="bernoulli")
-    # blr = GLM(family="gamma", link="inverse")
+    # glm = GLM(family="bernoulli")
+    # glm = GLM(family="gamma", link="inverse")
     # glm = GLM(family="poisson", link="log", algorithm="MLE")
 
     # X, y = _gen_fam_dat_discrete(
@@ -609,11 +609,11 @@ if __name__ == "__main__":
 #    (bcdata_dict["lot1"], bcdata_dict["lot2"])
 # )
 # bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict["lot2"]
-# blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
+# glm.fit(X=bc_data_X, y=bc_data_y, show_console=True)
 # glm.fit(X=gamma_dat_X, y=gamma_dat_Y, show_console=False)
 # print(glm.alpha_, glm.beta_)
 # glm.fit(X=gauss_dat_X, y=gauss_dat_y, show_console=True)
-# blr.fit(X=bc_data_X, y=bc_data_y, show_console=True)
+# glm.fit(X=bc_data_X, y=bc_data_y, show_console=True)
 # predics = glm.predict(X=gauss_dat_X)
 # predics = glm.predict(X=gamma_dat_X)
 # plt.scatter(gauss_dat_X, gauss_dat_y)
@@ -624,6 +624,6 @@ if __name__ == "__main__":
 # plt.scatter(gamma_dat_X, predics)
 
 # plt.show()
-# print(blr.predict(X=bc_data_X, show_console=False))
-# print(blr.fit(X=xdat, y=ydat, show_console=True))
-# print(blr.predict(X=xdat, show_console=True))
+# print(glm.predict(X=bc_data_X, show_console=False))
+# print(glm.fit(X=xdat, y=ydat, show_console=True))
+# print(glm.predict(X=xdat, show_console=True))

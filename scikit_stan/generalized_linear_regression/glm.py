@@ -1,4 +1,4 @@
-"""Vectorized BLR model with sk-learn type API"""
+"""Vectorized GLM model with sk-learn type API"""
 
 import warnings
 from pathlib import Path
@@ -285,8 +285,7 @@ class GLM(CoreEstimator):
         show_console: bool = False,
     ) -> "CoreEstimator":
         """
-        Fits current vectorized BLR object to the given data,
-        with a default set of data.
+        Fits GLM object to the given data.
         This model is considered fit once its alpha, beta,
         and sigma parameters are determined via a regression.
 
