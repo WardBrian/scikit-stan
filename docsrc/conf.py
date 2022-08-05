@@ -5,13 +5,32 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # -- Path setup --------------------------------------------------------------
+import os
+
+# hacky for RTD - which doesn't actually call conda activate
+# see: https://github.com/readthedocs/readthedocs.org/issues/5339
+if os.environ.get("READTHEDOCS", False):
+    import cmdstanpy
+
+    import scikit_stan
+
+    version = "v" + scikit_stan.__version__
+
+    cmdstanpy.set_cmdstan_path(
+        "/home/docs/checkouts/readthedocs.org/user_builds/scikit_stan/"
+        "conda/" + version + "/bin/cmdstan"
+    )
+
+    os.environ["CXX"] = (
+        "/home/docs/checkouts/readthedocs.org/user_builds/scikit_stan/"
+        "conda/" + version + "/bin/x86_64-conda-linux-gnu-c++"
+    )
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
+
 # sys.path.insert(0, os.path.abspath('.'))
 
 
