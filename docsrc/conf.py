@@ -29,22 +29,14 @@ else:
 if os.environ.get("READTHEDOCS", False):
     import cmdstanpy
 
-    if "latest" in os.curdir:
-        version = "latest"
-    else:
-        import scikit_stan
-
-        version = "v" + scikit_stan.__version__
-
-    cmdstanpy.set_cmdstan_path(
-        "/home/docs/checkouts/readthedocs.org/user_builds/scikit_stan/"
-        "conda/" + version + "/bin/cmdstan"
+    path = os.path.join(
+        os.environ["CONDA_ENVS_PATH"],
+        os.environ["READTHEDOCS_VERSION_NAME"],
+        "bin",
     )
+    cmdstanpy.set_cmdstan_path(os.path.join(path, "cmdstan", ""))
 
-    os.environ["CXX"] = (
-        "/home/docs/checkouts/readthedocs.org/user_builds/scikit_stan/"
-        "conda/" + version + "/bin/x86_64-conda-linux-gnu-c++"
-    )
+    os.environ["CXX"] = os.path.join(path, "x86_64-conda-linux-gnu-c++")
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
