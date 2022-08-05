@@ -22,7 +22,6 @@ def test_notfittederror_glm() -> None:
         glm.predict(X=np.array([2, 4, 8, 16]))
 
 
-@pytest.mark.slow
 @pytest.mark.parametrize("prior_config", [None, {}])
 def test_prior_config_default_nongaussian(prior_config) -> None:
     """Test that the default prior config is used if no prior config is provided."""
@@ -31,11 +30,14 @@ def test_prior_config_default_nongaussian(prior_config) -> None:
 
     fitted = glm.fit(X=X, y=y)
 
-    assert fitted.priors_ == {
-        "prior_slope_dist": 0,
-        "prior_slope_mu": [0.0],
-        "prior_slope_sigma": [2.5],
-    }
+    if prior_config is None:
+        assert fitted.priors_ == {
+            "prior_slope_dist": 0,
+            "prior_slope_mu": [0.0],
+            "prior_slope_sigma": [2.5],
+        }
+    else:
+        assert fitted.priors_["prior_slope_dist"] == -1
 
     assert fitted.prior_intercept_ == {
         "prior_intercept_dist": 0,
@@ -50,7 +52,7 @@ def test_prior_config_default_nongaussian(prior_config) -> None:
     )
 
 
-@pytest.mark.parametrize("prior_config", [None, {}])
+@pytest.mark.parametrize("prior_config", [{}, {}])
 def test_prior_config_default_gaussian(prior_config) -> None:
     """Test that the default prior config is used if no prior config is provided."""
     glm = GLM(
@@ -60,11 +62,7 @@ def test_prior_config_default_gaussian(prior_config) -> None:
 
     fitted = glm.fit(X=X, y=y)
 
-    assert fitted.priors_ == {
-        "prior_slope_dist": 0,
-        "prior_slope_mu": [0.0],
-        "prior_slope_sigma": [2.5 * np.std(y) / np.std(X)],
-    }
+    assert fitted.priors_["prior_slope_dist"] == -1
 
     assert fitted.prior_intercept_ == {
         "prior_intercept_dist": 0,
@@ -178,8 +176,14 @@ def test_prior_config_custom_normal(prior_slope_config, prior_intercept_config) 
 
     fitted = glm.fit(X=X, y=y)
 
-    assert fitted.prior_intercept_["prior_intercept_dist"] == 0
-    assert fitted.priors_["prior_slope_dist"] == 0
+    if len(prior_slope_config) == 0:
+        assert fitted.prior_intercept_["prior_intercept_dist"] == -1
+    else:
+        assert fitted.prior_intercept_["prior_intercept_dist"] == 0
+    if len(prior_intercept_config) == 0:
+        assert fitted.priors_["prior_slope_dist"] == -1
+    else:
+        assert fitted.priors_["prior_slope_dist"] == 0
 
 
 def test_prior_setup_full() -> None:
@@ -224,7 +228,7 @@ def test_prior_setup_half() -> None:
 
     fitted = glm.fit(X=X, y=y)
 
-    assert fitted.prior_intercept_["prior_intercept_dist"] == 0
+    assert fitted.prior_intercept_["prior_intercept_dist"] == -1
     assert fitted.priors_["prior_slope_dist"] == 0
 
 
@@ -414,9 +418,11 @@ def test_glm_prior_aux_setup(prior_aux) -> None:
 
     glm.fit(X=gaussian_dat_X, y=gaussian_dat_Y)
 
-    if prior_aux is None or len(prior_aux) == 0:
+    if prior_aux is None:
         """Default unscaled prior."""
         assert glm.prior_aux_ == {"prior_aux_dist": 0, "prior_aux_param": 1.0}
+    elif len(prior_aux) == 0:
+        assert glm.prior_aux_ == {"prior_aux_dist": -1, "prior_aux_param": 0.0}
     else:
         if prior_aux["prior_aux_dist"] == "exponential":
             assert glm.prior_aux_ == {"prior_aux_dist": 0, "prior_aux_param": 0.5}

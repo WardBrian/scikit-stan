@@ -167,6 +167,9 @@ class GLM(CoreEstimator):
 
         .. math:: \beta \sim \text{normal}(0, 2.5)
 
+        If an empty dictionary {} is passed, no priors are used and
+        the default Stan uniform(-inf, inf) prior is used for all coefficients.
+
         The number of specified prior parameters cannot exceed the number of predictors in
         the data as each parameter is associated with a single coefficient.
         If the number of specified priors is less than the number of predictors,
@@ -197,6 +200,8 @@ class GLM(CoreEstimator):
 
         .. math:: \alpha \sim \text{normal}(0, 2.5)
 
+        If an empty dictionary {} is passed, the default Stan uniform(-inf, inf) prior is used.
+
         To set this prior explicitly, pass a dictionary with the following keys:
 
             + "prior_intercept_dist": str, distribution of the prior from the list of supported
@@ -224,6 +229,9 @@ class GLM(CoreEstimator):
         Currently supported priors are: "exponential" and "chi2", which are
         both parameterized by a single scalar.
         Priors here with more parameters are a future feature.
+
+        If an empty dictionary {} is passed, the default Stan uniform(-inf, inf) prior is used.
+
         For single-parameter priors, this field is a dictionary with the following keys
 
             + "prior_aux_dist": distribution of the prior on this parameter
@@ -432,25 +440,34 @@ class GLM(CoreEstimator):
         priors_ = {}
 
         # user did not specify any regression coefficient priors
-        if self.priors is None or len(self.priors) == 0:
+        if self.priors is None:
             priors_ = DEFAULT_SLOPE_PRIOR
         else:
-            priors_ = validate_prior(self.priors, "slope")
-            if (
-                len(self.priors["prior_slope_mu"]) != K  # type: ignore
-                or len(self.priors["prior_slope_sigma"]) != K  # type: ignore
-            ):
-                raise ValueError(
-                    "Length of prior_slope_mu and prior_slope_sigma must be "  # type: ignore
-                    "equal to the number of features in X.\n"
-                    f"Got {len(self.priors['prior_slope_mu'])} "
-                    f"and {len(self.priors['prior_slope_sigma'])} respectively."
-                )
+            # set slope priors to be default flat as in Stan:
+            # uniform(-infinity, +infinity)
+            if len(self.priors) == 0:
+                priors_ = {
+                    "prior_slope_dist": -1,  # no prior for intercept
+                    "prior_slope_mu": [0] * K,
+                    "prior_slope_sigma": [0] * K,
+                }
+            else:
+                priors_ = validate_prior(self.priors, "slope")
+                if (
+                    len(self.priors["prior_slope_mu"]) != K  # type: ignore
+                    or len(self.priors["prior_slope_sigma"]) != K  # type: ignore
+                ):
+                    raise ValueError(
+                        "Length of prior_slope_mu and prior_slope_sigma must be "  # type: ignore
+                        "equal to the number of features in X.\n"
+                        f"Got {len(self.priors['prior_slope_mu'])} "
+                        f"and {len(self.priors['prior_slope_sigma'])} respectively."
+                    )
 
         self.priors_ = priors_
 
         # set up default prior for intercept if not user-specified
-        if self.prior_intercept is None or len(self.prior_intercept) == 0:
+        if self.prior_intercept is None:
             warnings.warn(
                 """Prior on intercept not specified. Using default prior.
                 alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)"""
@@ -467,12 +484,23 @@ class GLM(CoreEstimator):
                 2.5 * sdy if self.autoscale else 2.5
             )
         else:
-            self.prior_intercept_ = validate_prior(self.prior_intercept, "intercept")
+            # set intercept prior to be default flat as in Stan:
+            # uniform(-infinity, +infinity)
+            if len(self.prior_intercept) == 0:
+                self.prior_intercept_ = {
+                    "prior_intercept_dist": -1,
+                    "prior_intercept_mu": 0.0,
+                    "prior_intercept_sigma": 0.0,
+                }
+            else:
+                self.prior_intercept_ = validate_prior(
+                    self.prior_intercept, "intercept"
+                )
 
         self.prior_aux_: Dict[str, Any] = {}
 
         # validate auxiliary parameter prior
-        if self.prior_aux is None or len(self.prior_aux) == 0:
+        if self.prior_aux is None:
             self.prior_aux_ = {
                 "prior_aux_dist": 0,  # exponential
             }
@@ -493,7 +521,15 @@ class GLM(CoreEstimator):
 
                 self.prior_aux_["prior_aux_param"] = 1.0
         else:
-            self.prior_aux_ = validate_aux_prior(self.prior_aux)
+            # set auxiliary parameter prior to be default flat as in Stan:
+            # uniform(-infinity, +infinity)
+            if len(self.prior_aux) == 0:
+                self.prior_aux_ = {
+                    "prior_aux_dist": -1,
+                    "prior_aux_param": 0.0,
+                }
+            else:
+                self.prior_aux_ = validate_aux_prior(self.prior_aux)
 
         dat["prior_intercept_dist"] = self.prior_intercept_["prior_intercept_dist"]
         dat["prior_intercept_mu"] = self.prior_intercept_["prior_intercept_mu"]
