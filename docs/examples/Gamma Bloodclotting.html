@@ -35,6 +35,7 @@
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.1/dist/embed-amd.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -455,11 +456,14 @@ div.rendered_html tbody tr:hover {
 </style>
 <section id="Gamma-regression-for-blood-clotting">
 <h1>Gamma regression for blood clotting<a class="headerlink" href="#Gamma-regression-for-blood-clotting" title="Permalink to this heading">#</a></h1>
-<div class="nbinput docutils container">
+<p>As a preliminary example of this package’s functionality, we provide an example of performing a Gamma regression, which is used when the response variable is continuous and positive. We have adapted the following canonical example of a Gamma regression from McCullagh &amp; Nelder (1989).</p>
+<p>Nine different percentage concentrations with prothrombin-free plasma (<span class="math notranslate nohighlight">\(u\)</span>) and clotting was induced via two lots of thromboplastin. Previous researchers had fitted a hyperbolic model, using an inverse transformation of the data for both lots <span class="math notranslate nohighlight">\(1\)</span> and <span class="math notranslate nohighlight">\(2\)</span>, but we will analyze both lots using the inverse link and Gamma family.</p>
+<p>The following initial plots hint at using a log scale for <span class="math notranslate nohighlight">\(u\)</span> to achieve inverse linearity, as well as the fact that the two lots have different regression and intercept coefficients.</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="kn">from</span> <span class="nn">scikit_stan</span> <span class="kn">import</span> <span class="n">GLM</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scikit_stan</span> <span class="kn">import</span> <span class="n">GLM</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -469,69 +473,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/home/brian/miniconda3/envs/intern/lib/python3.7/site-packages/tqdm/auto.py:22: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
-  from .autonotebook import tqdm as notebook_tqdm
-</pre></div></div>
-</div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span> <span class="n">pd</span>  <span class="c1"># type: ignore</span>
-
-<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mpl</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;axes.spines&#39;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="c1">#mpl.rc(&#39;axes&#39;, facecolor=&#39;white&#39;)</span>
-<span class="n">mpl</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s2">&quot;xtick&quot;</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">labelbottom</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">mpl</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s2">&quot;ytick&quot;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">labelleft</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">mpl</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;ggplot&#39;</span><span class="p">)</span>
-
-
-<span class="c1"># center images</span>
-<span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="kn">import</span> <span class="n">HTML</span>
-<span class="n">HTML</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">&lt;style&gt;</span>
-<span class="s2">.jp-RenderedImage, .output_png{</span>
-<span class="s2">    display: table-cell;</span>
-<span class="s2">    text-align: center;</span>
-<span class="s2">    vertical-align: middle;</span>
-<span class="s2">}</span>
-<span class="s2">&lt;/style&gt;</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<style>
-.jp-RenderedImage, .output_png{
-    display: table-cell;
-    text-align: center;
-    vertical-align: middle;
-}
-</style></div>
-</div>
-<p>As a preliminary example of this package’s functionality, we provide an example of performing a Gamma regression, which is used when the response variable is continuous and positive. We have adapted the following canonical example of a Gamma regression from McCullagh &amp; Nelder (1989).</p>
-<p>Nine different percentage concentrations with prothrombin-free plasma (<span class="math notranslate nohighlight">\(u\)</span>) and clotting was induced via two lots of thromboplastin. Previous researchers had fitted a hyperbolic model, using an inverse transformation of the data for both lots <span class="math notranslate nohighlight">\(1\)</span> and <span class="math notranslate nohighlight">\(2\)</span> using untransformed data and we will analyze both lots using the inverse link and Gamma error.</p>
-<p>The following initial plots hint at using a log scale for <span class="math notranslate nohighlight">\(u\)</span> to achieve inverse linearity, as well as the fact that the two lots have different regression and intercept coefficients.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ATTRIBUTION: McCullagh &amp; Nelder (1989), chapter 8.4.2 p 301-302</span>
@@ -547,44 +490,46 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">l1</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">bcdata_dict</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">],</span> <span class="n">bcdata_dict</span><span class="p">[</span><span class="s2">&quot;lot1&quot;</span><span class="p">],</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;lot 1&quot;</span><span class="p">)</span>
 <span class="n">l2</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">bcdata_dict</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">],</span> <span class="n">bcdata_dict</span><span class="p">[</span><span class="s2">&quot;lot2&quot;</span><span class="p">],</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;lot 2&quot;</span><span class="p">)</span>
 
-<span class="c1">#.set_title(&quot;Mean Clotting Times vs Plasma Concentration&quot;)</span>
-<span class="c1">#.set_xlabel(&#39;Normal Plasma Concentration&#39;)</span>
-<span class="c1">#.set_ylabel(&#39;Blood Clotting Time&#39;)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Mean Clotting Times vs Plasma Concentration&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Normal Plasma Concentration&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Blood Clotting Time&#39;</span><span class="p">)</span>
 
-<span class="c1">#plt.set_xlabel(&#39;Normal Plasma Concentration&#39;)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">l1</span><span class="p">,</span> <span class="n">l2</span><span class="p">])</span>
-<span class="c1">#fig.show()</span>
-<span class="c1">#plt.show()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/brian/miniconda3/envs/intern/lib/python3.7/site-packages/traitlets/traitlets.py:3264: FutureWarning: --rc={&#39;figure.dpi&#39;: 96} for dict-traits is deprecated in traitlets 5.0. You can pass --rc &lt;key=value&gt; ... multiple times to add items to a dict.
+  FutureWarning,
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fe4a89ac110&gt;
+&lt;matplotlib.legend.Legend at 0x7f1b612be910&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Gamma_Bloodclotting_6_1.png" src="../_images/examples_Gamma_Bloodclotting_6_1.png" />
-</div>
+<img alt="../_images/examples_Gamma_Bloodclotting_5_2.svg" src="../_images/examples_Gamma_Bloodclotting_5_2.svg" /></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">l1</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">bc_data_X</span><span class="p">,</span> <span class="n">bc_data_lot1</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;lot 1&quot;</span><span class="p">)</span>
@@ -594,38 +539,34 @@ div.rendered_html tbody tr:hover {
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Normal Plasma Concentration&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Blood Clotting Time&#39;</span><span class="p">)</span>
 
-
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">l1</span><span class="p">,</span> <span class="n">l2</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fe4edc662d0&gt;
+&lt;matplotlib.legend.Legend at 0x7f1b60463250&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Gamma_Bloodclotting_7_1.png" src="../_images/examples_Gamma_Bloodclotting_7_1.png" />
-</div>
+<img alt="../_images/examples_Gamma_Bloodclotting_6_1.svg" src="../_images/examples_Gamma_Bloodclotting_6_1.svg" /></div>
 </div>
 <p>After this preliminary data analysis, we fit two lines to the two lots of data. Using <span class="math notranslate nohighlight">\(x = \log u\)</span>, we fit a GLM to the data.</p>
 <p>The original results were as follows, and we recreate regression coefficients within a standard deviation of these values:</p>
-<dl class="simple">
-<dt>:nbsphinx-math:<a href="#id1"><span class="problematic" id="id2">`</span></a>begin{align}</dt><dd><p>text{lot 1:} quad &amp; hat{mu} ^{-1} = - 0.01655(pm 0.00086) + 0.01534(pm 0.00143)x \
-text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02391(pm 0.00038) + 0.02360(pm 0.00062)x \</p>
-</dd>
-</dl>
-<p>end{align}`</p>
-<p>As in previous work, we will fit two different linear models: one for each lot in the dataset. As usual, the <span class="math notranslate nohighlight">\(\alpha\)</span> parameter is the regression intercept and <span class="math notranslate nohighlight">\(\mathbf{\beta}\)</span> is vector of regression coefficients. In continuous models, the parameter <span class="math notranslate nohighlight">\(\sigma\)</span> represents an auxiliary variable for the model. In this case, <span class="math notranslate nohighlight">\(\sigma\)</span> is the shape parameter for the Gamma distribution.</p>
+<div class="math notranslate nohighlight">
+\[\text{lot 1:} \quad  \hat{\mu} ^{-1} = - 0.01655(\pm 0.00086) + 0.01534(\pm 0.00143)x\]</div>
+<div class="math notranslate nohighlight">
+\[\text{lot 2:} \quad  \hat{\mu} ^{-1} = - 0.02391(\pm 0.00038) + 0.02360(\pm 0.00062)x\]</div>
+<p>As in previous work, we will fit two different linear models for each lot in the dataset. As usual, the <span class="math notranslate nohighlight">\(\alpha\)</span> parameter is the regression intercept and <span class="math notranslate nohighlight">\(\mathbf{\beta}\)</span> is vector of regression coefficients and the parameter <span class="math notranslate nohighlight">\(\sigma\)</span> represents an auxiliary variable for the model. In this case, <span class="math notranslate nohighlight">\(\sigma\)</span> is the shape parameter for the Gamma distribution.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize two different GLM objects, one for each lot.</span>
@@ -639,7 +580,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02391(pm 0.00038) + 0.02360(pm 0.000
 
 <span class="nb">print</span><span class="p">(</span><span class="n">glm_gamma1</span><span class="o">.</span><span class="n">alpha_</span><span class="p">,</span> <span class="n">glm_gamma1</span><span class="o">.</span><span class="n">beta_</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">glm_gamma2</span><span class="o">.</span><span class="n">alpha_</span><span class="p">,</span> <span class="n">glm_gamma2</span><span class="o">.</span><span class="n">beta_</span><span class="p">)</span>
-<br/></pre></div>
+</pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -647,33 +588,41 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02391(pm 0.00038) + 0.02360(pm 0.000
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/brian/Dev/intern/sk-stan-regression/scikit_stan/utils/validation.py:229: UserWarning: Passed data is one-dimensional, while estimator expects it to be at at least two-dimensional.
+/home/brian/Dev/py/scikit-stan/scikit_stan/utils/validation.py:229: UserWarning: Passed data is one-dimensional, while estimator expects it to be at at least two-dimensional.
   &#34;&#34;&#34;Passed data is one-dimensional, while estimator expects&#34;&#34;&#34;
-/home/brian/Dev/intern/sk-stan-regression/scikit_stan/generalized_linear_regression/glm.py:457: UserWarning: Prior on intercept not specified. Using default prior.
+/home/brian/Dev/py/scikit-stan/scikit_stan/generalized_linear_regression/glm.py:473: UserWarning: Prior on intercept not specified. Using default prior.
                 alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)
   alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)&#34;&#34;&#34;
-/home/brian/Dev/intern/sk-stan-regression/scikit_stan/generalized_linear_regression/glm.py:492: UserWarning: Prior on auxiliary parameter not specified. Using default unscaled prior
+/home/brian/Dev/py/scikit-stan/scikit_stan/generalized_linear_regression/glm.py:519: UserWarning: Prior on auxiliary parameter not specified. Using default unscaled prior
                         sigma ~ exponential(1)
 
   &#34;&#34;&#34;
-14:52:17 - cmdstanpy - INFO - CmdStan start processing
-chain 1 |<span class="ansi-yellow-fg">                                                                                                                      </span>| 00:00 Status
-chain 2 |<span class="ansi-yellow-fg">                                                                                                                      </span>| 00:00 Status
-
-chain 3 |<span class="ansi-yellow-fg">                                                                                                                      </span>| 00:00 Status
-
-
-chain 1 |<span class="ansi-yellow-fg">██████████████████████████████████████████▌                                          </span>| 00:00 Iteration:  900 / 2000 [ 45%]  (Warmup)
-
-chain 3 |<span class="ansi-yellow-fg">██████████████████████████████████████▋                                              </span>| 00:00 Iteration:  800 / 2000 [ 40%]  (Warmup)
-chain 2 |<span class="ansi-yellow-fg">██████████████████████████████████████▋                                              </span>| 00:00 Iteration:  800 / 2000 [ 40%]  (Warmup)
-
-
-chain 1 |<span class="ansi-blue-fg">██████████████████████████████████████████████████████████████████████████████████████████████████████████</span>| 00:00 Sampling completed
-chain 2 |<span class="ansi-blue-fg">██████████████████████████████████████████████████████████████████████████████████████████████████████████</span>| 00:00 Sampling completed
-chain 3 |<span class="ansi-blue-fg">██████████████████████████████████████████████████████████████████████████████████████████████████████████</span>| 00:00 Sampling completed
-chain 4 |<span class="ansi-blue-fg">██████████████████████████████████████████████████████████████████████████████████████████████████████████</span>| 00:00 Sampling completed
+09:27:24 - cmdstanpy - INFO - CmdStan start processing
 </pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "8a31da50b208446c87de6d134e2742ee"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "93d962d9a14f4c0abef914e07ba6575e"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "ac0438df68414059a4d3705fdc921a23"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "da90a322748d4741b9939b6268040669"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -688,16 +637,47 @@ chain 4 |<span class="ansi-blue-fg">██████████████�
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-
-14:52:17 - cmdstanpy - INFO - CmdStan done processing.
-14:52:17 - cmdstanpy - WARNING - Some chains may have failed to converge.
+09:27:24 - cmdstanpy - INFO - CmdStan done processing.
+09:27:24 - cmdstanpy - WARNING - Some chains may have failed to converge.
         Chain 1 had 12 divergent transitions (1.2%)
         Chain 2 had 20 divergent transitions (2.0%)
         Chain 3 had 38 divergent transitions (3.8%)
         Chain 4 had 27 divergent transitions (2.7%)
         Use function &#34;diagnose()&#34; to see further information.
-14:52:17 - cmdstanpy - INFO - CmdStan start processing
+09:27:24 - cmdstanpy - INFO - CmdStan start processing
 </pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "087833b98f9d4105ae00ebaefddcbe81"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "3ae6318902c1466ab386fd88b02f8100"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "b943342fee164d7aa195d0bcf84fa8cb"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "28ddb8ce00984429a7a101f47b27a896"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -712,40 +692,8 @@ chain 4 |<span class="ansi-blue-fg">██████████████�
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-chain 1 |<span class="ansi-yellow-fg">                                                                                                                      </span>| 00:00 Status
-chain 2 |<span class="ansi-yellow-fg">                                                                                                                      </span>| 00:00 Status
-
-chain 3 |<span class="ansi-yellow-fg">                                                                                                                      </span>| 00:00 Status
-
-
-chain 1 |<span class="ansi-blue-fg">███████████████████████████████████████████████████████████████████████▋           </span>| 00:00 Iteration: 1600 / 2000 [ 80%]  (Sampling)
-
-
-chain 4 |<span class="ansi-blue-fg">████████████████████████████████████████████████████████████▎                      </span>| 00:00 Iteration: 1300 / 2000 [ 65%]  (Sampling)
-chain 2 |<span class="ansi-blue-fg">████████████████████████████████████████████████████████████▎                      </span>| 00:00 Iteration: 1300 / 2000 [ 65%]  (Sampling)
-
-chain 1 |<span class="ansi-blue-fg">██████████████████████████████████████████████████████████████████████████████████████████████████████████</span>| 00:00 Sampling completed
-chain 2 |<span class="ansi-blue-fg">██████████████████████████████████████████████████████████████████████████████████████████████████████████</span>| 00:00 Sampling completed
-chain 3 |<span class="ansi-blue-fg">██████████████████████████████████████████████████████████████████████████████████████████████████████████</span>| 00:00 Sampling completed
-chain 4 |<span class="ansi-blue-fg">██████████████████████████████████████████████████████████████████████████████████████████████████████████</span>| 00:00 Sampling completed
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-
-14:52:18 - cmdstanpy - INFO - CmdStan done processing.
-14:52:18 - cmdstanpy - WARNING - Some chains may have failed to converge.
+09:27:24 - cmdstanpy - INFO - CmdStan done processing.
+09:27:24 - cmdstanpy - WARNING - Some chains may have failed to converge.
         Chain 1 had 41 divergent transitions (4.1%)
         Chain 2 had 13 divergent transitions (1.3%)
         Chain 3 had 41 divergent transitions (4.1%)
@@ -764,15 +712,13 @@ chain 4 |<span class="ansi-blue-fg">██████████████�
 </pre></div></div>
 </div>
 <p>As can be seen above, the fitted model has the following parameters, which are within one standard deviation of the results from past studies.</p>
-<dl class="simple">
-<dt>:nbsphinx-math:<a href="#id3"><span class="problematic" id="id4">`</span></a>begin{align}</dt><dd><p>text{lot 1:} quad &amp; hat{mu} ^{-1} = - 0.01437 + 0.01511 cdot x \
-text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
-</dd>
-</dl>
-<p>end{align}`</p>
+<div class="math notranslate nohighlight">
+\[\text{lot 1:} \quad  \hat{\mu} ^{-1} = - 0.01437 + 0.01511 \cdot x\]</div>
+<div class="math notranslate nohighlight">
+\[\text{lot 2:} \quad  \hat{\mu} ^{-1} = - 0.02016 + 0.02301 \cdot x\]</div>
 <p>As a verification of the accuracy of the fitted model, we can plot the fitted lines and the data.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mu_inv1</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span><span class="p">(</span> <span class="n">glm_gamma1</span><span class="o">.</span><span class="n">alpha_</span> <span class="o">+</span> <span class="n">glm_gamma1</span><span class="o">.</span><span class="n">beta_</span> <span class="o">*</span> <span class="n">bc_data_X</span><span class="p">)</span>
@@ -781,7 +727,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mlot1</span><span class="p">,</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">bc_data_X</span><span class="p">,</span> <span class="n">mu_inv1</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;mu_inv lot 1&quot;</span><span class="p">)</span>
@@ -794,29 +740,28 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Blood Clotting Time&#39;</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">mlot1</span><span class="p">,</span> <span class="n">mlot2</span><span class="p">,</span> <span class="n">l1</span><span class="p">,</span> <span class="n">l2</span><span class="p">])</span>
-<br/></pre></div>
+</pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fe4ecaf5a50&gt;
+&lt;matplotlib.legend.Legend at 0x7f1b42fb7150&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Gamma_Bloodclotting_12_1.png" src="../_images/examples_Gamma_Bloodclotting_12_1.png" />
-</div>
+<img alt="../_images/examples_Gamma_Bloodclotting_11_1.svg" src="../_images/examples_Gamma_Bloodclotting_11_1.svg" /></div>
 </div>
 <p>As this package is a wrapper around CmdStanPy, we can gather additional statistics about the fitted model with methods from that package. In particular, we can consider further statistics about the model by using CmdStanPy’s summary method on the results of the fit.</p>
 <p>Notice that <span class="math notranslate nohighlight">\(\mu\)</span> (“mu”) and the link-inverted <span class="math notranslate nohighlight">\(\mu\)</span> (“mu unlinked”) are included as part of the model summary.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">glm_gamma1</span><span class="o">.</span><span class="n">fitted_samples_</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
@@ -824,7 +769,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -879,7 +824,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>-37.410400</td>
       <td>-36.307800</td>
       <td>861.4500</td>
-      <td>4606.69000</td>
+      <td>4656.49000</td>
       <td>1.001880</td>
     </tr>
     <tr>
@@ -891,7 +836,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>-0.015038</td>
       <td>0.004532</td>
       <td>862.3550</td>
-      <td>4611.52000</td>
+      <td>4661.38000</td>
       <td>1.003900</td>
     </tr>
     <tr>
@@ -903,7 +848,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.014942</td>
       <td>0.022047</td>
       <td>934.1880</td>
-      <td>4995.66000</td>
+      <td>5049.67000</td>
       <td>1.002810</td>
     </tr>
     <tr>
@@ -915,7 +860,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>4.355220</td>
       <td>8.396990</td>
       <td>1285.2623</td>
-      <td>6873.06043</td>
+      <td>6947.36379</td>
       <td>1.001570</td>
     </tr>
     <tr>
@@ -927,7 +872,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.009228</td>
       <td>0.018233</td>
       <td>1079.9900</td>
-      <td>5775.32000</td>
+      <td>5837.76000</td>
       <td>1.003590</td>
     </tr>
     <tr>
@@ -939,7 +884,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.019839</td>
       <td>0.026989</td>
       <td>2096.4000</td>
-      <td>11210.70000</td>
+      <td>11331.90000</td>
       <td>1.000950</td>
     </tr>
     <tr>
@@ -951,7 +896,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.026019</td>
       <td>0.034033</td>
       <td>2169.0200</td>
-      <td>11599.00000</td>
+      <td>11724.40000</td>
       <td>1.000100</td>
     </tr>
     <tr>
@@ -963,7 +908,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.030277</td>
       <td>0.039523</td>
       <td>1877.9900</td>
-      <td>10042.70000</td>
+      <td>10151.30000</td>
       <td>1.000160</td>
     </tr>
     <tr>
@@ -975,7 +920,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.036296</td>
       <td>0.047927</td>
       <td>1539.6700</td>
-      <td>8233.52000</td>
+      <td>8322.53000</td>
       <td>1.000540</td>
     </tr>
     <tr>
@@ -987,7 +932,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.040590</td>
       <td>0.054155</td>
       <td>1392.0200</td>
-      <td>7443.98000</td>
+      <td>7524.45000</td>
       <td>1.000820</td>
     </tr>
     <tr>
@@ -999,7 +944,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.046579</td>
       <td>0.062837</td>
       <td>1266.6400</td>
-      <td>6773.47000</td>
+      <td>6846.70000</td>
       <td>1.001140</td>
     </tr>
     <tr>
@@ -1011,7 +956,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.050822</td>
       <td>0.069085</td>
       <td>1208.4500</td>
-      <td>6462.32000</td>
+      <td>6532.18000</td>
       <td>1.001330</td>
     </tr>
     <tr>
@@ -1023,7 +968,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.054161</td>
       <td>0.074133</td>
       <td>1174.6600</td>
-      <td>6281.61000</td>
+      <td>6349.52000</td>
       <td>1.001450</td>
     </tr>
     <tr>
@@ -1035,7 +980,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>108.399000</td>
       <td>242.066000</td>
       <td>1818.3600</td>
-      <td>9723.86000</td>
+      <td>9828.98000</td>
       <td>1.000590</td>
     </tr>
     <tr>
@@ -1047,7 +992,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>50.411300</td>
       <td>66.695600</td>
       <td>2828.0200</td>
-      <td>15123.10000</td>
+      <td>15286.60000</td>
       <td>1.001050</td>
     </tr>
     <tr>
@@ -1059,7 +1004,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>38.437100</td>
       <td>50.272600</td>
       <td>2492.9400</td>
-      <td>13331.30000</td>
+      <td>13475.40000</td>
       <td>0.999943</td>
     </tr>
     <tr>
@@ -1071,7 +1016,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>33.028200</td>
       <td>43.673200</td>
       <td>2114.7000</td>
-      <td>11308.50000</td>
+      <td>11430.80000</td>
       <td>0.999647</td>
     </tr>
     <tr>
@@ -1083,7 +1028,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>27.559100</td>
       <td>37.367900</td>
       <td>1730.5500</td>
-      <td>9254.25000</td>
+      <td>9354.30000</td>
       <td>0.999774</td>
     </tr>
     <tr>
@@ -1095,7 +1040,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>24.637300</td>
       <td>34.155300</td>
       <td>1541.5000</td>
-      <td>8243.30000</td>
+      <td>8332.42000</td>
       <td>1.000070</td>
     </tr>
     <tr>
@@ -1107,7 +1052,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>21.470100</td>
       <td>30.499700</td>
       <td>1360.9300</td>
-      <td>7277.73000</td>
+      <td>7356.41000</td>
       <td>1.000640</td>
     </tr>
     <tr>
@@ -1119,7 +1064,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>19.676700</td>
       <td>28.457500</td>
       <td>1261.4000</td>
-      <td>6745.45000</td>
+      <td>6818.38000</td>
       <td>1.001100</td>
     </tr>
     <tr>
@@ -1131,7 +1076,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>18.467400</td>
       <td>27.087200</td>
       <td>1197.4500</td>
-      <td>6403.48000</td>
+      <td>6472.71000</td>
       <td>1.001480</td>
     </tr>
   </tbody>
@@ -1139,7 +1084,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
 </div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">glm_gamma2</span><span class="o">.</span><span class="n">fitted_samples_</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
@@ -1147,7 +1092,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1202,7 +1147,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>-33.185600</td>
       <td>-32.051900</td>
       <td>987.83200</td>
-      <td>4257.90000</td>
+      <td>5039.96000</td>
       <td>1.01210</td>
     </tr>
     <tr>
@@ -1214,7 +1159,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>-0.019850</td>
       <td>0.012094</td>
       <td>898.71800</td>
-      <td>3873.78000</td>
+      <td>4585.30000</td>
       <td>1.00918</td>
     </tr>
     <tr>
@@ -1226,7 +1171,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.022455</td>
       <td>0.033127</td>
       <td>972.99500</td>
-      <td>4193.94000</td>
+      <td>4964.26000</td>
       <td>1.00612</td>
     </tr>
     <tr>
@@ -1238,7 +1183,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>4.409540</td>
       <td>8.717830</td>
       <td>1072.54535</td>
-      <td>4623.04031</td>
+      <td>5472.17016</td>
       <td>1.00596</td>
     </tr>
     <tr>
@@ -1250,7 +1195,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.016191</td>
       <td>0.032582</td>
       <td>1131.15000</td>
-      <td>4875.66000</td>
+      <td>5771.19000</td>
       <td>1.01033</td>
     </tr>
     <tr>
@@ -1262,7 +1207,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.032257</td>
       <td>0.044268</td>
       <td>1998.83000</td>
-      <td>8615.63000</td>
+      <td>10198.10000</td>
       <td>1.00607</td>
     </tr>
     <tr>
@@ -1274,7 +1219,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.041511</td>
       <td>0.054722</td>
       <td>2446.73000</td>
-      <td>10546.30000</td>
+      <td>12483.30000</td>
       <td>1.00297</td>
     </tr>
     <tr>
@@ -1286,7 +1231,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.047969</td>
       <td>0.063013</td>
       <td>2191.46000</td>
-      <td>9445.96000</td>
+      <td>11180.90000</td>
       <td>1.00204</td>
     </tr>
     <tr>
@@ -1298,7 +1243,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.056866</td>
       <td>0.075441</td>
       <td>1745.12000</td>
-      <td>7522.09000</td>
+      <td>8903.69000</td>
       <td>1.00193</td>
     </tr>
     <tr>
@@ -1310,7 +1255,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.063270</td>
       <td>0.084460</td>
       <td>1565.08000</td>
-      <td>6746.04000</td>
+      <td>7985.11000</td>
       <td>1.00219</td>
     </tr>
     <tr>
@@ -1322,7 +1267,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.072246</td>
       <td>0.097545</td>
       <td>1407.77000</td>
-      <td>6067.95000</td>
+      <td>7182.48000</td>
       <td>1.00264</td>
     </tr>
     <tr>
@@ -1334,7 +1279,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.078692</td>
       <td>0.106941</td>
       <td>1334.78000</td>
-      <td>5753.38000</td>
+      <td>6810.12000</td>
       <td>1.00294</td>
     </tr>
     <tr>
@@ -1346,7 +1291,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>0.083589</td>
       <td>0.114434</td>
       <td>1291.95000</td>
-      <td>5568.74000</td>
+      <td>6591.56000</td>
       <td>1.00315</td>
     </tr>
     <tr>
@@ -1358,7 +1303,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>61.782700</td>
       <td>133.382000</td>
       <td>2127.11000</td>
-      <td>9168.57000</td>
+      <td>10852.60000</td>
       <td>1.00250</td>
     </tr>
     <tr>
@@ -1370,7 +1315,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>31.002400</td>
       <td>41.434500</td>
       <td>3000.78000</td>
-      <td>12934.40000</td>
+      <td>15310.10000</td>
       <td>1.00315</td>
     </tr>
     <tr>
@@ -1382,7 +1327,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>24.090000</td>
       <td>31.592900</td>
       <td>3105.42000</td>
-      <td>13385.40000</td>
+      <td>15844.00000</td>
       <td>1.00129</td>
     </tr>
     <tr>
@@ -1394,7 +1339,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>20.847000</td>
       <td>27.504900</td>
       <td>2693.03000</td>
-      <td>11607.90000</td>
+      <td>13740.00000</td>
       <td>1.00097</td>
     </tr>
     <tr>
@@ -1406,7 +1351,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>17.587500</td>
       <td>23.759600</td>
       <td>2010.65000</td>
-      <td>8666.59000</td>
+      <td>10258.40000</td>
       <td>1.00136</td>
     </tr>
     <tr>
@@ -1418,7 +1363,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>15.805500</td>
       <td>21.899300</td>
       <td>1754.08000</td>
-      <td>7560.70000</td>
+      <td>8949.40000</td>
       <td>1.00183</td>
     </tr>
     <tr>
@@ -1430,7 +1375,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>13.841800</td>
       <td>19.660700</td>
       <td>1500.77000</td>
-      <td>6468.85000</td>
+      <td>7657.01000</td>
       <td>1.00248</td>
     </tr>
     <tr>
@@ -1442,7 +1387,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>12.711500</td>
       <td>18.374000</td>
       <td>1376.47000</td>
-      <td>5933.08000</td>
+      <td>7022.83000</td>
       <td>1.00287</td>
     </tr>
     <tr>
@@ -1454,7 +1399,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
       <td>11.964400</td>
       <td>17.557100</td>
       <td>1309.62000</td>
-      <td>5644.91000</td>
+      <td>6681.73000</td>
       <td>1.00312</td>
     </tr>
   </tbody>
@@ -1463,7 +1408,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
 </div>
 <p>Additional information about the model and various visualizations can be revealed by Arviz, which seamlessly integrates with CmdStanPy components. Consider the following.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">arviz</span> <span class="k">as</span> <span class="nn">az</span>
@@ -1472,7 +1417,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">infdata</span> <span class="o">=</span> <span class="n">az</span><span class="o">.</span><span class="n">from_cmdstanpy</span><span class="p">(</span><span class="n">glm_gamma1</span><span class="o">.</span><span class="n">fitted_samples_</span><span class="p">)</span>
@@ -1481,7 +1426,7 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1492,8 +1437,8 @@ text{lot 2:} quad &amp; hat{mu} ^{-1} = - 0.02016 + 0.02301 cdot x \</p>
               <ul class="xr-sections group-sections">
 
             <li class = "xr-section-item">
-                  <input id="idata_posterior9c1f9a76-afc7-4bd1-85ee-203cf735fcae" class="xr-section-summary-in" type="checkbox">
-                  <label for="idata_posterior9c1f9a76-afc7-4bd1-85ee-203cf735fcae" class = "xr-section-summary">posterior</label>
+                  <input id="idata_posteriorc5fbc7e4-7401-44e4-9d58-ad5510cc6bf3" class="xr-section-summary-in" type="checkbox">
+                  <label for="idata_posteriorc5fbc7e4-7401-44e4-9d58-ad5510cc6bf3" class = "xr-section-summary">posterior</label>
                   <div class="xr-section-inline-details"></div>
                   <div class="xr-section-details">
                       <ul id="xr-dataset-coord-list" class="xr-var-list">
@@ -1863,17 +1808,17 @@ Data variables:
     mu                 (chain, draw, mu_dim_0) float64 0.01198 ... 0.06505
     mu_unlinked        (chain, draw, mu_unlinked_dim_0) float64 83.46 ... 15.37
 Attributes:
-    created_at:                 2022-08-01T18:52:18.971217
+    created_at:                 2022-08-05T13:27:25.751774
     arviz_version:              0.12.1
     inference_library:          cmdstanpy
-    inference_library_version:  1.0.4</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-a4ef6385-27d7-4c0c-9efa-5f4dd8d984cb' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-a4ef6385-27d7-4c0c-9efa-5f4dd8d984cb' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>chain</span>: 4</li><li><span class='xr-has-index'>draw</span>: 1000</li><li><span class='xr-has-index'>beta_dim_0</span>: 1</li><li><span class='xr-has-index'>mu_dim_0</span>: 9</li><li><span class='xr-has-index'>mu_unlinked_dim_0</span>: 9</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-6ca2fbf0-a7b2-4de6-b86e-1f87a4c20413' class='xr-section-summary-in' type='checkbox'  checked><label for='section-6ca2fbf0-a7b2-4de6-b86e-1f87a4c20413' class='xr-section-summary' >Coordinates: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>chain</span></div><div class='xr-var-dims'>(chain)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3</div><input id='attrs-04fabecb-afe0-4968-a467-aa07bc7d3136' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-04fabecb-afe0-4968-a467-aa07bc7d3136' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-9be9f70c-44f6-4967-be16-55df49db8f1d' class='xr-var-data-in' type='checkbox'><label for='data-9be9f70c-44f6-4967-be16-55df49db8f1d' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0, 1, 2, 3])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>draw</span></div><div class='xr-var-dims'>(draw)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3 4 5 ... 995 996 997 998 999</div><input id='attrs-8519ad36-6770-4884-b175-ad700c70a531' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-8519ad36-6770-4884-b175-ad700c70a531' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-e1c29b86-cd2b-4ff4-840c-8be338e5396e' class='xr-var-data-in' type='checkbox'><label for='data-e1c29b86-cd2b-4ff4-840c-8be338e5396e' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([  0,   1,   2, ..., 997, 998, 999])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>beta_dim_0</span></div><div class='xr-var-dims'>(beta_dim_0)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0</div><input id='attrs-69a39ad5-9814-4e7b-abac-be6d52c4bd91' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-69a39ad5-9814-4e7b-abac-be6d52c4bd91' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-2bfb0f3c-984e-4e8a-8c58-53dbd2823a5a' class='xr-var-data-in' type='checkbox'><label for='data-2bfb0f3c-984e-4e8a-8c58-53dbd2823a5a' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mu_dim_0</span></div><div class='xr-var-dims'>(mu_dim_0)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3 4 5 6 7 8</div><input id='attrs-3897e783-be47-4c9e-b9f2-0014508bd71e' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-3897e783-be47-4c9e-b9f2-0014508bd71e' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-ec8aca31-f302-4afd-9ed4-c00ea2f5cc2f' class='xr-var-data-in' type='checkbox'><label for='data-ec8aca31-f302-4afd-9ed4-c00ea2f5cc2f' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0, 1, 2, 3, 4, 5, 6, 7, 8])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mu_unlinked_dim_0</span></div><div class='xr-var-dims'>(mu_unlinked_dim_0)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3 4 5 6 7 8</div><input id='attrs-3decb9bf-2e94-41be-9ec7-622df05e5397' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-3decb9bf-2e94-41be-9ec7-622df05e5397' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-80dff5bd-b6c7-4579-9508-9747419028b4' class='xr-var-data-in' type='checkbox'><label for='data-80dff5bd-b6c7-4579-9508-9747419028b4' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0, 1, 2, 3, 4, 5, 6, 7, 8])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-9f4e5eaa-5b5d-4bec-b696-c4e74c9df9cc' class='xr-section-summary-in' type='checkbox'  checked><label for='section-9f4e5eaa-5b5d-4bec-b696-c4e74c9df9cc' class='xr-section-summary' >Data variables: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>alpha</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-0.009843 -0.01419 ... -0.02642</div><input id='attrs-b9b4f426-7b76-446f-a55d-b9ddf2fa7e8e' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-b9b4f426-7b76-446f-a55d-b9ddf2fa7e8e' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-238ede0f-d20d-433f-8741-446538b803e4' class='xr-var-data-in' type='checkbox'><label for='data-238ede0f-d20d-433f-8741-446538b803e4' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[-0.00984345, -0.01419023, -0.02182411, ..., -0.01113135,
+    inference_library_version:  1.0.4</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-f2b9bec7-d11c-4ea6-b27e-44c64abc5577' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-f2b9bec7-d11c-4ea6-b27e-44c64abc5577' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>chain</span>: 4</li><li><span class='xr-has-index'>draw</span>: 1000</li><li><span class='xr-has-index'>beta_dim_0</span>: 1</li><li><span class='xr-has-index'>mu_dim_0</span>: 9</li><li><span class='xr-has-index'>mu_unlinked_dim_0</span>: 9</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-7ae0eddd-241d-475e-a980-ed50e6b7ca3c' class='xr-section-summary-in' type='checkbox'  checked><label for='section-7ae0eddd-241d-475e-a980-ed50e6b7ca3c' class='xr-section-summary' >Coordinates: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>chain</span></div><div class='xr-var-dims'>(chain)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3</div><input id='attrs-2a7e7599-7403-43da-96a8-c7aa7ba42ce4' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-2a7e7599-7403-43da-96a8-c7aa7ba42ce4' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-583c5fff-a960-4eb5-8de6-e8b6796c443c' class='xr-var-data-in' type='checkbox'><label for='data-583c5fff-a960-4eb5-8de6-e8b6796c443c' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0, 1, 2, 3])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>draw</span></div><div class='xr-var-dims'>(draw)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3 4 5 ... 995 996 997 998 999</div><input id='attrs-9daf8ea2-f431-4058-83d2-3f772053c531' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-9daf8ea2-f431-4058-83d2-3f772053c531' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-076d40ba-b02c-4099-8faf-e5495ba54eed' class='xr-var-data-in' type='checkbox'><label for='data-076d40ba-b02c-4099-8faf-e5495ba54eed' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([  0,   1,   2, ..., 997, 998, 999])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>beta_dim_0</span></div><div class='xr-var-dims'>(beta_dim_0)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0</div><input id='attrs-57aecd42-9775-4e08-895a-b0200c526dc5' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-57aecd42-9775-4e08-895a-b0200c526dc5' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-aec71ed2-c323-48a7-bd94-3d59233160c3' class='xr-var-data-in' type='checkbox'><label for='data-aec71ed2-c323-48a7-bd94-3d59233160c3' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mu_dim_0</span></div><div class='xr-var-dims'>(mu_dim_0)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3 4 5 6 7 8</div><input id='attrs-e7bbf81a-9526-4004-92f3-f230fcd0a161' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-e7bbf81a-9526-4004-92f3-f230fcd0a161' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-cfced891-0b46-43e1-bf32-83d21b21db15' class='xr-var-data-in' type='checkbox'><label for='data-cfced891-0b46-43e1-bf32-83d21b21db15' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0, 1, 2, 3, 4, 5, 6, 7, 8])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>mu_unlinked_dim_0</span></div><div class='xr-var-dims'>(mu_unlinked_dim_0)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3 4 5 6 7 8</div><input id='attrs-00cd0e76-6f85-4678-aef5-83c678727de2' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-00cd0e76-6f85-4678-aef5-83c678727de2' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-200dc3cb-0703-4a7e-8509-1d95f98afd2d' class='xr-var-data-in' type='checkbox'><label for='data-200dc3cb-0703-4a7e-8509-1d95f98afd2d' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0, 1, 2, 3, 4, 5, 6, 7, 8])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-917af353-6c2d-4aaa-848e-01927b60fb68' class='xr-section-summary-in' type='checkbox'  checked><label for='section-917af353-6c2d-4aaa-848e-01927b60fb68' class='xr-section-summary' >Data variables: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>alpha</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-0.009843 -0.01419 ... -0.02642</div><input id='attrs-832c1828-ecf6-41ed-9bd8-2524e4219754' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-832c1828-ecf6-41ed-9bd8-2524e4219754' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-28e22b77-bdc2-49d6-8f68-c3b0590b9b92' class='xr-var-data-in' type='checkbox'><label for='data-28e22b77-bdc2-49d6-8f68-c3b0590b9b92' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[-0.00984345, -0.01419023, -0.02182411, ..., -0.01113135,
         -0.0274629 , -0.03161157],
        [-0.01942446, -0.011512  , -0.01677759, ..., -0.01828706,
         -0.01523402, -0.01653224],
        [-0.01754475, -0.01157575, -0.01973857, ..., -0.00180648,
         -0.02404081, -0.02404081],
        [-0.00156218, -0.00988348, -0.01525177, ..., -0.01603392,
-        -0.01755607, -0.02641942]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>beta</span></div><div class='xr-var-dims'>(chain, draw, beta_dim_0)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.01356 0.0136 ... 0.01592 0.01986</div><input id='attrs-adc5cb42-5f54-4347-90b6-2ad4385a904a' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-adc5cb42-5f54-4347-90b6-2ad4385a904a' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-641833a1-1985-49c8-9fa9-80f2cb44742a' class='xr-var-data-in' type='checkbox'><label for='data-641833a1-1985-49c8-9fa9-80f2cb44742a' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[0.01356113],
+        -0.01755607, -0.02641942]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>beta</span></div><div class='xr-var-dims'>(chain, draw, beta_dim_0)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.01356 0.0136 ... 0.01592 0.01986</div><input id='attrs-42313976-e7d5-4a6f-ac7b-3dc55967b191' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-42313976-e7d5-4a6f-ac7b-3dc55967b191' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-572500aa-5887-4187-825b-263904d037b5' class='xr-var-data-in' type='checkbox'><label for='data-572500aa-5887-4187-825b-263904d037b5' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[0.01356113],
         [0.01360237],
         [0.01809589],
         ...,
@@ -1903,14 +1848,14 @@ Attributes:
         ...,
         [0.01499293],
         [0.01591648],
-        [0.01986202]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>sigma</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>7.244 5.589 9.795 ... 5.304 2.627</div><input id='attrs-e8e9ebb8-85d9-42ed-8e44-bd4cc258d26d' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-e8e9ebb8-85d9-42ed-8e44-bd4cc258d26d' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-5159c2ae-25b8-48f2-90fc-7abd5665ec62' class='xr-var-data-in' type='checkbox'><label for='data-5159c2ae-25b8-48f2-90fc-7abd5665ec62' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[7.24438166, 5.58860671, 9.79522038, ..., 5.65543687, 1.08936495,
+        [0.01986202]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>sigma</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>7.244 5.589 9.795 ... 5.304 2.627</div><input id='attrs-7bbf52a8-fa40-4675-ae30-f49accb5cded' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-7bbf52a8-fa40-4675-ae30-f49accb5cded' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-27e5fa38-ad95-4f14-adf5-1d9fc02c612d' class='xr-var-data-in' type='checkbox'><label for='data-27e5fa38-ad95-4f14-adf5-1d9fc02c612d' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[7.24438166, 5.58860671, 9.79522038, ..., 5.65543687, 1.08936495,
         4.95722469],
        [2.32417544, 2.35152157, 3.4384985 , ..., 8.48470652, 4.64338352,
         4.94005837],
        [6.20200987, 9.01311867, 2.12440082, ..., 5.58684686, 4.58079472,
         4.58079472],
        [5.88153259, 6.30378793, 3.89554384, ..., 5.85066486, 5.304048  ,
-        2.62683332]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>mu</span></div><div class='xr-var-dims'>(chain, draw, mu_dim_0)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.01198 0.02138 ... 0.06062 0.06505</div><input id='attrs-423b16b3-49c6-4397-a48d-b48cf7b5708f' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-423b16b3-49c6-4397-a48d-b48cf7b5708f' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-fcca5005-9554-4ef2-9919-0169189930d3' class='xr-var-data-in' type='checkbox'><label for='data-fcca5005-9554-4ef2-9919-0169189930d3' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[0.01198235, 0.02138221, 0.02688077, ..., 0.04568049,
+        2.62683332]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>mu</span></div><div class='xr-var-dims'>(chain, draw, mu_dim_0)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.01198 0.02138 ... 0.06062 0.06505</div><input id='attrs-006bf432-8659-477f-b90a-c9eb85d21454' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-006bf432-8659-477f-b90a-c9eb85d21454' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-353af627-92ca-4edf-885d-3ab5abd4b727' class='xr-var-data-in' type='checkbox'><label for='data-353af627-92ca-4edf-885d-3ab5abd4b727' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[0.01198235, 0.02138221, 0.02688077, ..., 0.04568049,
          0.04958178, 0.05260786],
         [0.00770194, 0.01713038, 0.02264567, ..., 0.04150256,
          0.04541572, 0.048451  ],
@@ -1950,7 +1895,7 @@ Attributes:
         [0.00806051, 0.01909297, 0.02554655, ..., 0.04761147,
          0.05219035, 0.05574201],
         [0.00554726, 0.01931457, 0.02736792, ..., 0.05490252,
-         0.06061647, 0.06504855]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>mu_unlinked</span></div><div class='xr-var-dims'>(chain, draw, mu_unlinked_dim_0)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>83.46 46.77 37.2 ... 16.5 15.37</div><input id='attrs-3eff430d-1253-4f53-832a-afae36b744b4' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-3eff430d-1253-4f53-832a-afae36b744b4' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-8bc1662e-bc95-4a2c-82c8-2bad41f9a7ad' class='xr-var-data-in' type='checkbox'><label for='data-8bc1662e-bc95-4a2c-82c8-2bad41f9a7ad' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[ 83.4561058,  46.7678601,  37.2013145, ...,  21.8911846,
+         0.06061647, 0.06504855]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>mu_unlinked</span></div><div class='xr-var-dims'>(chain, draw, mu_unlinked_dim_0)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>83.46 46.77 37.2 ... 16.5 15.37</div><input id='attrs-996a19b9-fac7-4436-a552-05ba6a41bcc9' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-996a19b9-fac7-4436-a552-05ba6a41bcc9' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-64660e94-84fa-408e-ab82-86c3705a2b52' class='xr-var-data-in' type='checkbox'><label for='data-64660e94-84fa-408e-ab82-86c3705a2b52' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[[ 83.4561058,  46.7678601,  37.2013145, ...,  21.8911846,
           20.1686982,  19.0085661],
         [129.837409 ,  58.3758067,  44.1585516, ...,  24.0949005,
           22.0188098,  20.6394104],
@@ -1990,14 +1935,14 @@ Attributes:
         [124.061666 ,  52.3753009,  39.144236 , ...,  21.003343 ,
           19.160629 ,  17.9397899],
         [180.269044 ,  51.7743968,  36.5391288, ...,  18.2140986,
-          16.4971662,  15.3731322]]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-3ea2a770-2bcb-4525-b5f2-0408fdca8557' class='xr-section-summary-in' type='checkbox'  checked><label for='section-3ea2a770-2bcb-4525-b5f2-0408fdca8557' class='xr-section-summary' >Attributes: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>created_at :</span></dt><dd>2022-08-01T18:52:18.971217</dd><dt><span>arviz_version :</span></dt><dd>0.12.1</dd><dt><span>inference_library :</span></dt><dd>cmdstanpy</dd><dt><span>inference_library_version :</span></dt><dd>1.0.4</dd></dl></div></li></ul></div></div><br></div>
+          16.4971662,  15.3731322]]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-bf8cd94f-a26b-4193-849f-92934a481b66' class='xr-section-summary-in' type='checkbox'  checked><label for='section-bf8cd94f-a26b-4193-849f-92934a481b66' class='xr-section-summary' >Attributes: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>created_at :</span></dt><dd>2022-08-05T13:27:25.751774</dd><dt><span>arviz_version :</span></dt><dd>0.12.1</dd><dt><span>inference_library :</span></dt><dd>cmdstanpy</dd><dt><span>inference_library_version :</span></dt><dd>1.0.4</dd></dl></div></li></ul></div></div><br></div>
                       </ul>
                   </div>
             </li>
 
             <li class = "xr-section-item">
-                  <input id="idata_sample_statsbc35e424-4f6b-4ee7-986d-7baa0f06c513" class="xr-section-summary-in" type="checkbox">
-                  <label for="idata_sample_statsbc35e424-4f6b-4ee7-986d-7baa0f06c513" class = "xr-section-summary">sample_stats</label>
+                  <input id="idata_sample_statscd1f80eb-3699-4aff-bf3b-28bf7c3db7c5" class="xr-section-summary-in" type="checkbox">
+                  <label for="idata_sample_statscd1f80eb-3699-4aff-bf3b-28bf7c3db7c5" class = "xr-section-summary">sample_stats</label>
                   <div class="xr-section-inline-details"></div>
                   <div class="xr-section-details">
                       <ul id="xr-dataset-coord-list" class="xr-var-list">
@@ -2366,47 +2311,47 @@ Data variables:
     diverging        (chain, draw) bool False False False ... False False False
     energy           (chain, draw) float64 37.13 37.62 39.4 ... 36.23 40.06
 Attributes:
-    created_at:                 2022-08-01T18:52:18.974810
+    created_at:                 2022-08-05T13:27:25.755856
     arviz_version:              0.12.1
     inference_library:          cmdstanpy
-    inference_library_version:  1.0.4</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-33668d21-7640-494b-a1ed-fe561d9d2465' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-33668d21-7640-494b-a1ed-fe561d9d2465' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>chain</span>: 4</li><li><span class='xr-has-index'>draw</span>: 1000</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-6a608451-9f2d-41f3-abd9-bf2f3f4afb72' class='xr-section-summary-in' type='checkbox'  checked><label for='section-6a608451-9f2d-41f3-abd9-bf2f3f4afb72' class='xr-section-summary' >Coordinates: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>chain</span></div><div class='xr-var-dims'>(chain)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3</div><input id='attrs-fcf4dbca-151a-40a6-bfb4-2046edc00a4e' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-fcf4dbca-151a-40a6-bfb4-2046edc00a4e' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-bbb23595-2f6f-4576-acd7-40e713def2db' class='xr-var-data-in' type='checkbox'><label for='data-bbb23595-2f6f-4576-acd7-40e713def2db' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0, 1, 2, 3])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>draw</span></div><div class='xr-var-dims'>(draw)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3 4 5 ... 995 996 997 998 999</div><input id='attrs-c81eb614-df8d-480a-8eb6-9ceac1eec099' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-c81eb614-df8d-480a-8eb6-9ceac1eec099' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-90edd5bd-f82f-4060-be02-56eae71f058c' class='xr-var-data-in' type='checkbox'><label for='data-90edd5bd-f82f-4060-be02-56eae71f058c' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([  0,   1,   2, ..., 997, 998, 999])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-7058c805-461f-4b2f-bdcb-048b667df602' class='xr-section-summary-in' type='checkbox'  checked><label for='section-7058c805-461f-4b2f-bdcb-048b667df602' class='xr-section-summary' >Data variables: <span>(7)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>lp</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-37.02 -36.34 ... -36.12 -37.81</div><input id='attrs-7838e7e4-d482-4024-9a24-b19c8e9c6ffa' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-7838e7e4-d482-4024-9a24-b19c8e9c6ffa' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-572c24a1-c185-432f-9d4d-f59f819c9ad6' class='xr-var-data-in' type='checkbox'><label for='data-572c24a1-c185-432f-9d4d-f59f819c9ad6' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[-37.022352 , -36.3373139, -37.7140981, ..., -36.6560899,
+    inference_library_version:  1.0.4</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-37f0e8f3-e822-42fa-9f02-78031c13d523' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-37f0e8f3-e822-42fa-9f02-78031c13d523' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>chain</span>: 4</li><li><span class='xr-has-index'>draw</span>: 1000</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-989b35cb-490a-4a5e-9a33-90d289a90018' class='xr-section-summary-in' type='checkbox'  checked><label for='section-989b35cb-490a-4a5e-9a33-90d289a90018' class='xr-section-summary' >Coordinates: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>chain</span></div><div class='xr-var-dims'>(chain)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3</div><input id='attrs-2c2d38d4-5008-47d8-be08-21da77a28ce6' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-2c2d38d4-5008-47d8-be08-21da77a28ce6' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-5e1dd2fc-2488-48fc-a9d5-67a425e86a6f' class='xr-var-data-in' type='checkbox'><label for='data-5e1dd2fc-2488-48fc-a9d5-67a425e86a6f' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([0, 1, 2, 3])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>draw</span></div><div class='xr-var-dims'>(draw)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>0 1 2 3 4 5 ... 995 996 997 998 999</div><input id='attrs-6be32a1c-09e1-479a-b94d-a391f59c2a7f' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-6be32a1c-09e1-479a-b94d-a391f59c2a7f' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-69997e9b-a710-41fb-95d5-1a803448f863' class='xr-var-data-in' type='checkbox'><label for='data-69997e9b-a710-41fb-95d5-1a803448f863' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([  0,   1,   2, ..., 997, 998, 999])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-d3535887-c874-4ea7-bb5c-beea00ca00d5' class='xr-section-summary-in' type='checkbox'  checked><label for='section-d3535887-c874-4ea7-bb5c-beea00ca00d5' class='xr-section-summary' >Data variables: <span>(7)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>lp</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-37.02 -36.34 ... -36.12 -37.81</div><input id='attrs-947ce8ad-65ad-449c-ae3f-9b774e2a7728' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-947ce8ad-65ad-449c-ae3f-9b774e2a7728' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-59dfc33e-94e3-4e4a-a5b2-b2ddd54a56ce' class='xr-var-data-in' type='checkbox'><label for='data-59dfc33e-94e3-4e4a-a5b2-b2ddd54a56ce' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[-37.022352 , -36.3373139, -37.7140981, ..., -36.6560899,
         -41.2966669, -37.9382321],
        [-38.4544955, -38.7509675, -36.7439065, ..., -36.7721755,
         -36.2408648, -38.3345277],
        [-36.272535 , -37.1754809, -39.0543746, ..., -38.2706657,
         -37.8677643, -37.8677643],
        [-37.6954414, -36.9467466, -37.1972901, ..., -36.1085851,
-        -36.1163266, -37.8071706]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>acceptance_rate</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.9857 0.9674 ... 0.9998 0.9893</div><input id='attrs-3ab2cea1-3d92-4bd0-9774-d8e5f1614b07' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-3ab2cea1-3d92-4bd0-9774-d8e5f1614b07' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-91977245-25aa-4617-92f3-a82e3c719ba5' class='xr-var-data-in' type='checkbox'><label for='data-91977245-25aa-4617-92f3-a82e3c719ba5' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[0.98571487, 0.96744545, 0.95912573, ..., 0.93190942, 0.91905142,
+        -36.1163266, -37.8071706]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>acceptance_rate</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.9857 0.9674 ... 0.9998 0.9893</div><input id='attrs-aa6cb892-ecd7-4e89-b316-8a33206aa591' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-aa6cb892-ecd7-4e89-b316-8a33206aa591' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-99cadc5a-4151-48c6-a06a-1102117a7b04' class='xr-var-data-in' type='checkbox'><label for='data-99cadc5a-4151-48c6-a06a-1102117a7b04' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[0.98571487, 0.96744545, 0.95912573, ..., 0.93190942, 0.91905142,
         0.9747447 ],
        [0.9979913 , 0.56358115, 0.98603597, ..., 0.99165455, 1.        ,
         0.80013587],
        [1.        , 0.9892967 , 0.53111355, ..., 0.9094837 , 0.88892348,
         0.0265327 ],
        [0.9866253 , 0.96499656, 0.93674081, ..., 0.99981179, 0.99981229,
-        0.98929226]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>step_size</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.187 0.187 0.187 ... 0.152 0.152</div><input id='attrs-11581f6a-4373-486d-b815-60b1baa786d9' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-11581f6a-4373-486d-b815-60b1baa786d9' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-eb8d5be9-f203-46f2-8f0c-485d48f23c26' class='xr-var-data-in' type='checkbox'><label for='data-eb8d5be9-f203-46f2-8f0c-485d48f23c26' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[0.1869913 , 0.1869913 , 0.1869913 , ..., 0.1869913 , 0.1869913 ,
+        0.98929226]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>step_size</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.187 0.187 0.187 ... 0.152 0.152</div><input id='attrs-8b0b7e2d-06e4-441d-981c-2944f825d08f' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-8b0b7e2d-06e4-441d-981c-2944f825d08f' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-f0afbfa9-eb79-422b-8f17-cb7a8c968fd3' class='xr-var-data-in' type='checkbox'><label for='data-f0afbfa9-eb79-422b-8f17-cb7a8c968fd3' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[0.1869913 , 0.1869913 , 0.1869913 , ..., 0.1869913 , 0.1869913 ,
         0.1869913 ],
        [0.15991981, 0.15991981, 0.15991981, ..., 0.15991981, 0.15991981,
         0.15991981],
        [0.17881634, 0.17881634, 0.17881634, ..., 0.17881634, 0.17881634,
         0.17881634],
        [0.15202691, 0.15202691, 0.15202691, ..., 0.15202691, 0.15202691,
-        0.15202691]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>tree_depth</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>4 3 3 2 4 3 4 3 ... 5 3 3 4 4 4 3 3</div><input id='attrs-72085514-1850-4fc0-9c5b-74efae940d03' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-72085514-1850-4fc0-9c5b-74efae940d03' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-1122fb67-6432-433d-88f2-4df13e128eec' class='xr-var-data-in' type='checkbox'><label for='data-1122fb67-6432-433d-88f2-4df13e128eec' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[4, 3, 3, ..., 2, 5, 4],
+        0.15202691]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>tree_depth</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>4 3 3 2 4 3 4 3 ... 5 3 3 4 4 4 3 3</div><input id='attrs-427c7069-f500-49d0-bb3d-d2c09b70a392' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-427c7069-f500-49d0-bb3d-d2c09b70a392' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-0256b14e-5392-4d49-9602-6dc3d3af04b2' class='xr-var-data-in' type='checkbox'><label for='data-0256b14e-5392-4d49-9602-6dc3d3af04b2' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[4, 3, 3, ..., 2, 5, 4],
        [3, 3, 3, ..., 2, 3, 2],
        [3, 4, 4, ..., 3, 5, 1],
-       [2, 4, 4, ..., 4, 3, 3]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>n_steps</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>15 7 7 5 15 15 ... 7 15 15 31 15 13</div><input id='attrs-d77f10a8-f452-48cf-99c9-337327479ab7' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-d77f10a8-f452-48cf-99c9-337327479ab7' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-5a28e8a7-eeda-4f2f-8a1f-1471dcbf2857' class='xr-var-data-in' type='checkbox'><label for='data-5a28e8a7-eeda-4f2f-8a1f-1471dcbf2857' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[15,  7,  7, ...,  3, 31, 31],
+       [2, 4, 4, ..., 4, 3, 3]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>n_steps</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>int64</div><div class='xr-var-preview xr-preview'>15 7 7 5 15 15 ... 7 15 15 31 15 13</div><input id='attrs-4f660b68-cdec-49b2-a847-a6bda1099fc9' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-4f660b68-cdec-49b2-a847-a6bda1099fc9' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-ab74f6a5-6152-4535-86a7-47e1487db6f3' class='xr-var-data-in' type='checkbox'><label for='data-ab74f6a5-6152-4535-86a7-47e1487db6f3' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[15,  7,  7, ...,  3, 31, 31],
        [ 7, 13, 15, ...,  5, 11,  3],
        [ 7, 15, 15, ..., 15, 31,  1],
-       [ 7, 15, 19, ..., 31, 15, 13]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>diverging</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>bool</div><div class='xr-var-preview xr-preview'>False False False ... False False</div><input id='attrs-67008d17-13e0-4d8a-b1e2-aaedaf2c0fbd' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-67008d17-13e0-4d8a-b1e2-aaedaf2c0fbd' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-43a1fca9-f013-433f-af6b-d3d4faa83611' class='xr-var-data-in' type='checkbox'><label for='data-43a1fca9-f013-433f-af6b-d3d4faa83611' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[False, False, False, ..., False, False, False],
+       [ 7, 15, 19, ..., 31, 15, 13]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>diverging</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>bool</div><div class='xr-var-preview xr-preview'>False False False ... False False</div><input id='attrs-ba7e9265-503b-40f0-b01e-3be27200ea17' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-ba7e9265-503b-40f0-b01e-3be27200ea17' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-16e7b731-64dc-4371-b37c-c1a8e41ef316' class='xr-var-data-in' type='checkbox'><label for='data-16e7b731-64dc-4371-b37c-c1a8e41ef316' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[False, False, False, ..., False, False, False],
        [False,  True, False, ..., False, False, False],
        [False, False, False, ..., False, False, False],
-       [False, False, False, ..., False, False, False]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>energy</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>37.13 37.62 39.4 ... 36.23 40.06</div><input id='attrs-4006214f-c970-46aa-b468-f1eed6a3fdbb' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-4006214f-c970-46aa-b468-f1eed6a3fdbb' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-b46ffdf1-00b7-42ad-b15f-8baaf4c6dd6b' class='xr-var-data-in' type='checkbox'><label for='data-b46ffdf1-00b7-42ad-b15f-8baaf4c6dd6b' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[37.1262708, 37.6246874, 39.401052 , ..., 37.0025797, 42.9144636,
+       [False, False, False, ..., False, False, False]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>energy</span></div><div class='xr-var-dims'>(chain, draw)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>37.13 37.62 39.4 ... 36.23 40.06</div><input id='attrs-ee28d734-eb71-4ee1-8f85-55168a8dcddb' class='xr-var-attrs-in' type='checkbox' disabled><label for='attrs-ee28d734-eb71-4ee1-8f85-55168a8dcddb' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-a17b0982-52da-415b-9a96-cc4ac0bb6dfa' class='xr-var-data-in' type='checkbox'><label for='data-a17b0982-52da-415b-9a96-cc4ac0bb6dfa' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'></dl></div><div class='xr-var-data'><pre>array([[37.1262708, 37.6246874, 39.401052 , ..., 37.0025797, 42.9144636,
         42.092842 ],
        [39.748813 , 42.2763027, 40.9778655, ..., 37.2317219, 37.3311475,
         38.7763694],
        [40.5108294, 37.7813385, 39.3601775, ..., 40.8149113, 39.502967 ,
         39.6679958],
        [38.0146122, 38.3028166, 37.9232742, ..., 36.6090695, 36.2349423,
-        40.0622324]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-d5d5b44f-8360-42b0-b699-40e9b24b2445' class='xr-section-summary-in' type='checkbox'  checked><label for='section-d5d5b44f-8360-42b0-b699-40e9b24b2445' class='xr-section-summary' >Attributes: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>created_at :</span></dt><dd>2022-08-01T18:52:18.974810</dd><dt><span>arviz_version :</span></dt><dd>0.12.1</dd><dt><span>inference_library :</span></dt><dd>cmdstanpy</dd><dt><span>inference_library_version :</span></dt><dd>1.0.4</dd></dl></div></li></ul></div></div><br></div>
+        40.0622324]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-bb69a709-e91e-4afb-bab5-627091ce5b61' class='xr-section-summary-in' type='checkbox'  checked><label for='section-bb69a709-e91e-4afb-bab5-627091ce5b61' class='xr-section-summary' >Attributes: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>created_at :</span></dt><dd>2022-08-05T13:27:25.755856</dd><dt><span>arviz_version :</span></dt><dd>0.12.1</dd><dt><span>inference_library :</span></dt><dd>cmdstanpy</dd><dt><span>inference_library_version :</span></dt><dd>1.0.4</dd></dl></div></li></ul></div></div><br></div>
                       </ul>
                   </div>
             </li>
@@ -2755,7 +2700,7 @@ dl.xr-attrs {
 .xr-wrap{width:700px!important;} </style></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">az</span><span class="o">.</span><span class="n">plot_posterior</span><span class="p">(</span><span class="n">infdata</span><span class="p">,</span> <span class="n">var_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;beta&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">]);</span>
@@ -2766,11 +2711,10 @@ dl.xr-attrs {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Gamma_Bloodclotting_19_0.png" src="../_images/examples_Gamma_Bloodclotting_19_0.png" />
-</div>
+<img alt="../_images/examples_Gamma_Bloodclotting_18_0.svg" src="../_images/examples_Gamma_Bloodclotting_18_0.svg" /></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">az</span><span class="o">.</span><span class="n">plot_trace</span><span class="p">(</span><span class="n">infdata</span><span class="p">,</span> <span class="n">var_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;beta&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">],</span> <span class="n">compact</span><span class="o">=</span><span class="kc">True</span><span class="p">);</span>
@@ -2781,10 +2725,11 @@ dl.xr-attrs {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/examples_Gamma_Bloodclotting_20_0.png" src="../_images/examples_Gamma_Bloodclotting_20_0.png" />
+<img alt="../_images/examples_Gamma_Bloodclotting_19_0.svg" src="../_images/examples_Gamma_Bloodclotting_19_0.svg" /></div>
 </div>
-</div>
-</section>
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"e726012376554ea48a856289ada6e516": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "aa07753a3e804c7296847253a13cccdc": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "bar_color": "blue", "description_width": ""}}, "b1c9f49ef42b462ba03e57207492765d": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_e726012376554ea48a856289ada6e516", "max": 22.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_aa07753a3e804c7296847253a13cccdc", "value": 22.0}}, "1b596f44e54744e09e3bd8060a3a6bd2": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "61b1c691a2434c60bff882e065552d20": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "6333ba30b8a84cd2a249cdb3f56f09c2": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_1b596f44e54744e09e3bd8060a3a6bd2", "placeholder": "\u200b", "style": "IPY_MODEL_61b1c691a2434c60bff882e065552d20", "value": "chain 1 "}}, "7bc04530091e46819eaa08eb2dd1b5b4": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "1f975f39feb046cb85c79b45b850c883": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "688cd0b417fb40f587ade7edb1485193": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_7bc04530091e46819eaa08eb2dd1b5b4", "placeholder": "\u200b", "style": "IPY_MODEL_1f975f39feb046cb85c79b45b850c883", "value": " 00:00 Sampling completed"}}, "1de97f34f20f4d03b0f3e8d74226c14e": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "8a31da50b208446c87de6d134e2742ee": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_6333ba30b8a84cd2a249cdb3f56f09c2", "IPY_MODEL_b1c9f49ef42b462ba03e57207492765d", "IPY_MODEL_688cd0b417fb40f587ade7edb1485193"], "layout": "IPY_MODEL_1de97f34f20f4d03b0f3e8d74226c14e"}}, "d3346fc6f6ea49d6928bd65d9760c698": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "e95db02b61514cb7b5fb083a97c794e4": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "bar_color": "blue", "description_width": ""}}, "2a9ca6464e434eebb2f522fd35cc7f70": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_d3346fc6f6ea49d6928bd65d9760c698", "max": 22.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_e95db02b61514cb7b5fb083a97c794e4", "value": 22.0}}, "0c72f311fe934dc2b1f6f38ba58c424d": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "5e5965ac88fd42419607223a10d2ea5c": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "db4296fa8afc4db39b56281ddb9b4657": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_0c72f311fe934dc2b1f6f38ba58c424d", "placeholder": "\u200b", "style": "IPY_MODEL_5e5965ac88fd42419607223a10d2ea5c", "value": "chain 2 "}}, "1f1ee4d5bc8e4f9cb14e14a021868d0c": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "a01eeb96a3fc4966b7432dbed00710ad": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "ceff75ec2d204778bf344704b6f4410e": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_1f1ee4d5bc8e4f9cb14e14a021868d0c", "placeholder": "\u200b", "style": "IPY_MODEL_a01eeb96a3fc4966b7432dbed00710ad", "value": " 00:00 Sampling completed"}}, "9b53a844b26a4cec9a988634df46fd83": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "93d962d9a14f4c0abef914e07ba6575e": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_db4296fa8afc4db39b56281ddb9b4657", "IPY_MODEL_2a9ca6464e434eebb2f522fd35cc7f70", "IPY_MODEL_ceff75ec2d204778bf344704b6f4410e"], "layout": "IPY_MODEL_9b53a844b26a4cec9a988634df46fd83"}}, "6b4d7bc7f8384abab737d1c75251efaf": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "b3ed4e1ded604c35abd3d42f3ed8d5dc": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "bar_color": "blue", "description_width": ""}}, "6b10b86ed9794a35a4cde7941acc98f4": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_6b4d7bc7f8384abab737d1c75251efaf", "max": 22.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_b3ed4e1ded604c35abd3d42f3ed8d5dc", "value": 22.0}}, "ffba5a3b709b41629e670951a4b9e257": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "6773327e6661429ba8f67102158ded2d": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "7ff05309180e4ebfab2375b82a296289": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_ffba5a3b709b41629e670951a4b9e257", "placeholder": "\u200b", "style": "IPY_MODEL_6773327e6661429ba8f67102158ded2d", "value": "chain 3 "}}, "d75d8974a5c244068b919c1f8da11a78": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "9593242ed60f458a932d04c60bf3d394": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "1a1d3965b0da4b12b94f7a9639b481aa": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_d75d8974a5c244068b919c1f8da11a78", "placeholder": "\u200b", "style": "IPY_MODEL_9593242ed60f458a932d04c60bf3d394", "value": " 00:00 Sampling completed"}}, "da7a67c5ac7c4b6c9ce6740f1d34649c": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "ac0438df68414059a4d3705fdc921a23": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_7ff05309180e4ebfab2375b82a296289", "IPY_MODEL_6b10b86ed9794a35a4cde7941acc98f4", "IPY_MODEL_1a1d3965b0da4b12b94f7a9639b481aa"], "layout": "IPY_MODEL_da7a67c5ac7c4b6c9ce6740f1d34649c"}}, "b169f1d6a7664ad6910b6db5ffdd8d96": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "0ea8476771c448cbab1e52718e8d1592": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "bar_color": "blue", "description_width": ""}}, "20b72ef197e84387a5a3f4ac04ee1121": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_b169f1d6a7664ad6910b6db5ffdd8d96", "max": 22.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_0ea8476771c448cbab1e52718e8d1592", "value": 22.0}}, "a05715ff34ec479db4c5fa9749af7fb6": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "04664d7258d445be886fb03d0b92e9ea": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "7d0d0b6ee26942c1b2ae34030182d661": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_a05715ff34ec479db4c5fa9749af7fb6", "placeholder": "\u200b", "style": "IPY_MODEL_04664d7258d445be886fb03d0b92e9ea", "value": "chain 4 "}}, "b8f803ed46734d36805d785fad980a87": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "212345d7dbab483c9338dce6800bbc65": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "a71851c3170b490da4d9bc350b359a9e": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_b8f803ed46734d36805d785fad980a87", "placeholder": "\u200b", "style": "IPY_MODEL_212345d7dbab483c9338dce6800bbc65", "value": " 00:00 Sampling completed"}}, "08f96c104ddb43e7befba5709f3176e1": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "da90a322748d4741b9939b6268040669": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_7d0d0b6ee26942c1b2ae34030182d661", "IPY_MODEL_20b72ef197e84387a5a3f4ac04ee1121", "IPY_MODEL_a71851c3170b490da4d9bc350b359a9e"], "layout": "IPY_MODEL_08f96c104ddb43e7befba5709f3176e1"}}, "32189e7e097c4201bbdd1f2e42b9e107": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "719a6aae180a4e1a9b7dd4aff8e9d158": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "bar_color": "blue", "description_width": ""}}, "f73a3ff6d06441f6a5d8b0e15c1176ac": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_32189e7e097c4201bbdd1f2e42b9e107", "max": 22.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_719a6aae180a4e1a9b7dd4aff8e9d158", "value": 22.0}}, "59664e7543804ea9ba6d8ab617664d77": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "9cc4a44d474d489ab2d7b2249f543260": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "6b96cea5a38a4e01bbf4ffb422460f5f": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_59664e7543804ea9ba6d8ab617664d77", "placeholder": "\u200b", "style": "IPY_MODEL_9cc4a44d474d489ab2d7b2249f543260", "value": "chain 1 "}}, "12d90f02ce134517a59444d49014d1b7": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "5f25d7a8d2ff4f109a57a0b05498e210": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "0aa2515279e0496a81fec4b527ef03a2": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_12d90f02ce134517a59444d49014d1b7", "placeholder": "\u200b", "style": "IPY_MODEL_5f25d7a8d2ff4f109a57a0b05498e210", "value": " 00:00 Sampling completed"}}, "8aa3da2739914e03a293cf633fcd8c78": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "087833b98f9d4105ae00ebaefddcbe81": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_6b96cea5a38a4e01bbf4ffb422460f5f", "IPY_MODEL_f73a3ff6d06441f6a5d8b0e15c1176ac", "IPY_MODEL_0aa2515279e0496a81fec4b527ef03a2"], "layout": "IPY_MODEL_8aa3da2739914e03a293cf633fcd8c78"}}, "0d63299bc1dd4357993a6aefbc0a6b48": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "c6a2bb603bca4f88a7c4d304ea3554ff": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "bar_color": "blue", "description_width": ""}}, "6a5560ddd96f4a5da778c74fea80c886": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_0d63299bc1dd4357993a6aefbc0a6b48", "max": 22.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_c6a2bb603bca4f88a7c4d304ea3554ff", "value": 22.0}}, "fdcb10e32980431c9e6c56c9d78274c4": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "14355fa53bf84fa6b45c83a0fbc4e9a1": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "fca74f3f7aee4430a4d97842365417f6": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_fdcb10e32980431c9e6c56c9d78274c4", "placeholder": "\u200b", "style": "IPY_MODEL_14355fa53bf84fa6b45c83a0fbc4e9a1", "value": "chain 2 "}}, "d8ff8111df964046a280c59efaea0f17": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "1829872d53da4013b486b878a956b384": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "fd681ab6149741aa9426e05bf9b8bb76": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_d8ff8111df964046a280c59efaea0f17", "placeholder": "\u200b", "style": "IPY_MODEL_1829872d53da4013b486b878a956b384", "value": " 00:00 Sampling completed"}}, "fdd8a5a526a344dbad3e9cfb4b6e4fbb": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "3ae6318902c1466ab386fd88b02f8100": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_fca74f3f7aee4430a4d97842365417f6", "IPY_MODEL_6a5560ddd96f4a5da778c74fea80c886", "IPY_MODEL_fd681ab6149741aa9426e05bf9b8bb76"], "layout": "IPY_MODEL_fdd8a5a526a344dbad3e9cfb4b6e4fbb"}}, "2b56f03ef6a348aabc750b6653f23413": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "450178d94b9741e1bdc1be013dfc67e8": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "bar_color": "blue", "description_width": ""}}, "f43e56c6c9a44baf9de883e09dba1024": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_2b56f03ef6a348aabc750b6653f23413", "max": 22.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_450178d94b9741e1bdc1be013dfc67e8", "value": 22.0}}, "e7a29b5a3bee4df38d69a3f5a9e0db08": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "507590afc0d445989657880ee5232d88": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "5d7c284f7e3a45f09d9cfc7b63b776fd": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_e7a29b5a3bee4df38d69a3f5a9e0db08", "placeholder": "\u200b", "style": "IPY_MODEL_507590afc0d445989657880ee5232d88", "value": "chain 3 "}}, "f8613daa47b44a779518d36296a96947": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "0c00a9ee72d4485990223aaace0559fb": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "d5ae0c5d3f0c450dbac580218436e65f": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_f8613daa47b44a779518d36296a96947", "placeholder": "\u200b", "style": "IPY_MODEL_0c00a9ee72d4485990223aaace0559fb", "value": " 00:00 Sampling completed"}}, "9a2ba6cae067402d8e21f3393c17c3b8": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "b943342fee164d7aa195d0bcf84fa8cb": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_5d7c284f7e3a45f09d9cfc7b63b776fd", "IPY_MODEL_f43e56c6c9a44baf9de883e09dba1024", "IPY_MODEL_d5ae0c5d3f0c450dbac580218436e65f"], "layout": "IPY_MODEL_9a2ba6cae067402d8e21f3393c17c3b8"}}, "892adf45b92c4b70897fb81c266caba6": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "633de12f28fe4796b6a404dde183f1ca": {"model_name": "ProgressStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "ProgressStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "bar_color": "blue", "description_width": ""}}, "de9dc22d8b8a4bffabc3fb5a15c0a6c7": {"model_name": "FloatProgressModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "FloatProgressModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "ProgressView", "bar_style": "success", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_892adf45b92c4b70897fb81c266caba6", "max": 22.0, "min": 0.0, "orientation": "horizontal", "style": "IPY_MODEL_633de12f28fe4796b6a404dde183f1ca", "value": 22.0}}, "4a944af6fe5240ffa817189d1c99f2a5": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "3f8b82a8d765419fb57ab9b8e1d5f552": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "9b042900175d45ce8e0ba89129cd1f22": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_4a944af6fe5240ffa817189d1c99f2a5", "placeholder": "\u200b", "style": "IPY_MODEL_3f8b82a8d765419fb57ab9b8e1d5f552", "value": "chain 4 "}}, "dea467c91c014f689bf42f315f4c3c01": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "dc6826f512954d97ad33debab5d9839c": {"model_name": "DescriptionStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "DescriptionStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "StyleView", "description_width": ""}}, "1c3f17207fe34532b113f732cb82d4b9": {"model_name": "HTMLModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HTMLModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HTMLView", "description": "", "description_tooltip": null, "layout": "IPY_MODEL_dea467c91c014f689bf42f315f4c3c01", "placeholder": "\u200b", "style": "IPY_MODEL_dc6826f512954d97ad33debab5d9839c", "value": " 00:00 Sampling completed"}}, "8a0ab73f67f74c81975e2e23ea1232bb": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "1.2.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "1.2.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "1.2.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "overflow_x": null, "overflow_y": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "28ddb8ce00984429a7a101f47b27a896": {"model_name": "HBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "1.5.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "1.5.0", "_model_name": "HBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "1.5.0", "_view_name": "HBoxView", "box_style": "", "children": ["IPY_MODEL_9b042900175d45ce8e0ba89129cd1f22", "IPY_MODEL_de9dc22d8b8a4bffabc3fb5a15c0a6c7", "IPY_MODEL_1c3f17207fe34532b113f732cb82d4b9"], "layout": "IPY_MODEL_8a0ab73f67f74c81975e2e23ea1232bb"}}}, "version_major": 2, "version_minor": 0}
+</script></section>
 
 
               </article>

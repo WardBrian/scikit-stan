@@ -35,6 +35,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.githubpages",
     "nbsphinx",
+    "sphinx.ext.mathjax",
 ]
 
 
@@ -50,6 +51,12 @@ napoleon_use_admonition_for_notes = True
 autodoc_typehints = "none"
 napoleon_use_param = True
 napoleon_use_rtype = False
+
+
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

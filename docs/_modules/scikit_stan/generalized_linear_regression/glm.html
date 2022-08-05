@@ -166,7 +166,7 @@
               <article class="bd-article" role="main">
                 
   <h1>Source code for scikit_stan.generalized_linear_regression.glm</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Vectorized BLR model with sk-learn type API&quot;&quot;&quot;</span>
+<span></span><span class="sd">&quot;&quot;&quot;Vectorized GLM model with sk-learn type API&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
@@ -335,6 +335,9 @@
 
 <span class="sd">        .. math:: \beta \sim \text{normal}(0, 2.5)</span>
 
+<span class="sd">        If an empty dictionary {} is passed, no priors are used and</span>
+<span class="sd">        the default Stan uniform(-inf, inf) prior is used for all coefficients.</span>
+
 <span class="sd">        The number of specified prior parameters cannot exceed the number of predictors in</span>
 <span class="sd">        the data as each parameter is associated with a single coefficient.</span>
 <span class="sd">        If the number of specified priors is less than the number of predictors,</span>
@@ -365,6 +368,8 @@
 
 <span class="sd">        .. math:: \alpha \sim \text{normal}(0, 2.5)</span>
 
+<span class="sd">        If an empty dictionary {} is passed, the default Stan uniform(-inf, inf) prior is used.</span>
+
 <span class="sd">        To set this prior explicitly, pass a dictionary with the following keys:</span>
 
 <span class="sd">            + &quot;prior_intercept_dist&quot;: str, distribution of the prior from the list of supported</span>
@@ -392,6 +397,9 @@
 <span class="sd">        Currently supported priors are: &quot;exponential&quot; and &quot;chi2&quot;, which are</span>
 <span class="sd">        both parameterized by a single scalar.</span>
 <span class="sd">        Priors here with more parameters are a future feature.</span>
+
+<span class="sd">        If an empty dictionary {} is passed, the default Stan uniform(-inf, inf) prior is used.</span>
+
 <span class="sd">        For single-parameter priors, this field is a dictionary with the following keys</span>
 
 <span class="sd">            + &quot;prior_aux_dist&quot;: distribution of the prior on this parameter</span>
@@ -453,8 +461,7 @@
         <span class="n">show_console</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CoreEstimator&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Fits current vectorized BLR object to the given data,</span>
-<span class="sd">        with a default set of data.</span>
+<span class="sd">        Fits GLM object to the given data.</span>
 <span class="sd">        This model is considered fit once its alpha, beta,</span>
 <span class="sd">        and sigma parameters are determined via a regression.</span>
 
@@ -601,25 +608,34 @@
         <span class="n">priors_</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="c1"># user did not specify any regression coefficient priors</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">priors</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">priors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">priors_</span> <span class="o">=</span> <span class="n">DEFAULT_SLOPE_PRIOR</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">priors_</span> <span class="o">=</span> <span class="n">validate_prior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">,</span> <span class="s2">&quot;slope&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="p">(</span>
-                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s2">&quot;prior_slope_mu&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">K</span>  <span class="c1"># type: ignore</span>
-                <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s2">&quot;prior_slope_sigma&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">K</span>  <span class="c1"># type: ignore</span>
-            <span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;Length of prior_slope_mu and prior_slope_sigma must be &quot;</span>  <span class="c1"># type: ignore</span>
-                    <span class="s2">&quot;equal to the number of features in X.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s1">&#39;prior_slope_mu&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s1">&#39;prior_slope_sigma&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> respectively.&quot;</span>
-                <span class="p">)</span>
+            <span class="c1"># set slope priors to be default flat as in Stan:</span>
+            <span class="c1"># uniform(-infinity, +infinity)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">priors_</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;prior_slope_dist&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># no prior for intercept</span>
+                    <span class="s2">&quot;prior_slope_mu&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">K</span><span class="p">,</span>
+                    <span class="s2">&quot;prior_slope_sigma&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">K</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">priors_</span> <span class="o">=</span> <span class="n">validate_prior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">,</span> <span class="s2">&quot;slope&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s2">&quot;prior_slope_mu&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">K</span>  <span class="c1"># type: ignore</span>
+                    <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s2">&quot;prior_slope_sigma&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">K</span>  <span class="c1"># type: ignore</span>
+                <span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;Length of prior_slope_mu and prior_slope_sigma must be &quot;</span>  <span class="c1"># type: ignore</span>
+                        <span class="s2">&quot;equal to the number of features in X.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s1">&#39;prior_slope_mu&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">priors</span><span class="p">[</span><span class="s1">&#39;prior_slope_sigma&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> respectively.&quot;</span>
+                    <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">priors_</span> <span class="o">=</span> <span class="n">priors_</span>
 
         <span class="c1"># set up default prior for intercept if not user-specified</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                 <span class="sd">&quot;&quot;&quot;Prior on intercept not specified. Using default prior.</span>
 <span class="sd">                alpha ~ normal(mu(y), 2.5 * sd(y)) if Gaussian family else normal(0, 2.5)&quot;&quot;&quot;</span>
@@ -636,12 +652,23 @@
                 <span class="mf">2.5</span> <span class="o">*</span> <span class="n">sdy</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoscale</span> <span class="k">else</span> <span class="mf">2.5</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept_</span> <span class="o">=</span> <span class="n">validate_prior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept</span><span class="p">,</span> <span class="s2">&quot;intercept&quot;</span><span class="p">)</span>
+            <span class="c1"># set intercept prior to be default flat as in Stan:</span>
+            <span class="c1"># uniform(-infinity, +infinity)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept_</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;prior_intercept_dist&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;prior_intercept_mu&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                    <span class="s2">&quot;prior_intercept_sigma&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept_</span> <span class="o">=</span> <span class="n">validate_prior</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept</span><span class="p">,</span> <span class="s2">&quot;intercept&quot;</span>
+                <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">prior_aux_</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="c1"># validate auxiliary parameter prior</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_aux</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_aux</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_aux</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">prior_aux_</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">&quot;prior_aux_dist&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># exponential</span>
             <span class="p">}</span>
@@ -662,7 +689,15 @@
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">prior_aux_</span><span class="p">[</span><span class="s2">&quot;prior_aux_param&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">prior_aux_</span> <span class="o">=</span> <span class="n">validate_aux_prior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_aux</span><span class="p">)</span>
+            <span class="c1"># set auxiliary parameter prior to be default flat as in Stan:</span>
+            <span class="c1"># uniform(-infinity, +infinity)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_aux</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">prior_aux_</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;prior_aux_dist&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;prior_aux_param&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">prior_aux_</span> <span class="o">=</span> <span class="n">validate_aux_prior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_aux</span><span class="p">)</span>
 
         <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;prior_intercept_dist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept_</span><span class="p">[</span><span class="s2">&quot;prior_intercept_dist&quot;</span><span class="p">]</span>
         <span class="n">dat</span><span class="p">[</span><span class="s2">&quot;prior_intercept_mu&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_intercept_</span><span class="p">[</span><span class="s2">&quot;prior_intercept_mu&quot;</span><span class="p">]</span>

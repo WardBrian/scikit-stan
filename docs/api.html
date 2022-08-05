@@ -35,6 +35,7 @@
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.1/dist/embed-amd.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -334,6 +335,8 @@ By default, all regression coefficient priors are set to</p>
 <p>if Gaussian else</p>
 <div class="math notranslate nohighlight">
 \[\beta \sim \text{normal}(0, 2.5)\]</div>
+<p>If an empty dictionary {} is passed, no priors are used and
+the default Stan uniform(-inf, inf) prior is used for all coefficients.</p>
 <p>The number of specified prior parameters cannot exceed the number of predictors in
 the data as each parameter is associated with a single coefficient.
 If the number of specified priors is less than the number of predictors,
@@ -364,6 +367,7 @@ If this is not specified, the default is</p>
 <p>if Gaussian family else</p>
 <div class="math notranslate nohighlight">
 \[\alpha \sim \text{normal}(0, 2.5)\]</div>
+<p>If an empty dictionary {} is passed, the default Stan uniform(-inf, inf) prior is used.</p>
 <p>To set this prior explicitly, pass a dictionary with the following keys:</p>
 <blockquote>
 <div><ul>
@@ -390,8 +394,9 @@ prior distributions: “normal”, “laplace”</p></li>
 the regression: for example, the std for Gaussian, shape for gamma, etc…
 Currently supported priors are: “exponential” and “chi2”, which are
 both parameterized by a single scalar.
-Priors here with more parameters are a future feature.
-For single-parameter priors, this field is a dictionary with the following keys</p>
+Priors here with more parameters are a future feature.</p>
+<p>If an empty dictionary {} is passed, the default Stan uniform(-inf, inf) prior is used.</p>
+<p>For single-parameter priors, this field is a dictionary with the following keys</p>
 <blockquote>
 <div><ul>
 <li><p>”prior_aux_dist”: distribution of the prior on this parameter</p></li>
@@ -430,8 +435,7 @@ sy.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_stan.GLM.fit">
 <span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_console</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_stan/generalized_linear_regression/glm.html#GLM.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_stan.GLM.fit" title="Permalink to this definition">#</a></dt>
-<dd><p>Fits current vectorized BLR object to the given data,
-with a default set of data.
+<dd><p>Fits GLM object to the given data.
 This model is considered fit once its alpha, beta,
 and sigma parameters are determined via a regression.</p>
 <dl class="field-list simple">
