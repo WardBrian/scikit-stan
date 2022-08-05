@@ -5,6 +5,7 @@ models. The rest of the metadata is in setup.cfg
 
 import os
 import platform
+from ast import literal_eval
 from pathlib import Path
 from shutil import copy, copytree, rmtree
 from typing import Tuple
@@ -132,7 +133,13 @@ class WheelABINone(bdist_wheel):
         return "py3", "none", plat
 
 
+# get version
+VERSIONFILE = "scikit_stan/_version.py"
+with open(VERSIONFILE, "rt") as f:
+    version = literal_eval(f.readline().split("= ")[1])
+
 setup(
+    version=version,
     ext_modules=[Extension("scikit-stan.stan_files", [])],
     cmdclass={"build_ext": BuildModels, "bdist_wheel": WheelABINone},
 )

@@ -71,5 +71,6 @@ jobs:
     - name: Upload
       uses: pypa/gh-action-pypi-publish@v1.4.2
       with:
+        skip_existing: true # only necessary for initial release
         user: __token__
         password: ${{ secrets.PYPI_TOKEN }}

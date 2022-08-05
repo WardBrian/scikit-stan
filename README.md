@@ -9,7 +9,7 @@ Documentation is available at https://brianward.dev/scikit-stan/
 
 ## Installation
 
-Pre-compiled wheels for the package are available for MacOS, Windows, and Linux systems via `pip`.
+Pre-compiled wheels for the package are available for MacOS, Windows, and Linux systems via `pip install scikit_stan`.
 
 Source installation requires a working installation of [CmdStan](https://mc-stan.org/docs/cmdstan-guide/index.html).
 
