@@ -10,6 +10,29 @@ from scikit_stan.generalized_linear_regression import GLM
 from scikit_stan.modelcore import CoreEstimator
 
 
+@pytest.mark.parametrize("alg_args", [
+    {}, 
+    {
+        "iter_warmup": 100, 
+        "iter_sampling": 100, 
+    },
+    {
+        "chains": 2
+    }
+])
+def test_GLM_alg_params_correct(alg_args) -> None: 
+    """
+        Verify that validation occurs from within GLM class correctly. 
+    """
+    glm = GLM(algorithm="sample", algorithm_params=alg_args, family="gamma", link="log", seed=1234)
+
+    gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(
+        family="gamma", link="log", Nsize=100
+    )
+
+    glm.fit(X=gamma_dat_X, y=gamma_dat_Y)
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize("estimator", [GLM()])
 def test_compatible_estimator(estimator: "CoreEstimator") -> None:
@@ -232,7 +255,7 @@ def test_prior_setup_half() -> None:
     assert fitted.priors_["prior_slope_dist"] == 0
 
 
-@pytest.mark.parametrize("algorithm", ["HMC-NUTS", "L-BFGS", "ADVI"])
+@pytest.mark.parametrize("algorithm", ["sample", "optimize", "variational"])
 def test_custom_seed_all_algs(algorithm: str) -> None:
     """Ensure that user-set seed persists for each algorithm."""
     glm = GLM(algorithm=algorithm, seed=999999)
@@ -244,7 +267,7 @@ def test_custom_seed_all_algs(algorithm: str) -> None:
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("algorithm", ["HMC-NUTS", "ADVI", "L-BFGS"])
+@pytest.mark.parametrize("algorithm", ["sample", "variational", "optimize"])
 def test_default_gauss_gen_predictions(algorithm: str) -> None:
     """
     GLM is fitted on randomly generated data with alpha=0.6, beta=0.2, sigma=0.3,

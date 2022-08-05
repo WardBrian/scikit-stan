@@ -23,9 +23,9 @@ STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
 CMDSTAN_VERSION = "2.30.1"
 
 method_dict = {
-    "HMC-NUTS": CmdStanModel.sample,
-    "L-BFGS": CmdStanModel.optimize,
-    "ADVI": CmdStanModel.variational,
+    "sample": CmdStanModel.sample,
+    "optimize": CmdStanModel.optimize,
+    "variational": CmdStanModel.variational,
 }
 
 GLM_FAMILIES = {
@@ -91,9 +91,34 @@ class GLM(CoreEstimator):
     algorithm : str, optional
         Algorithm to be used by the Stan model. The following are supported:
 
-            * HMC-NUTS - runs the HMC-NUTS sampler,
-            * L-BFGS - produces a likelihood estimate of model parameters,
-            * ADVI - runs Stan's variational inference algorithm to compute the posterior.
+            * sample - runs the HMC-NUTS sampler,
+            * optimize - produces a likelihood estimate of model parameters,
+            * variational - runs Stan's variational inference algorithm to compute the posterior.
+
+    algorithm_params : Dict[str, Any], optional 
+        Parameters for the selected algorithm. The key words
+        and values are derived from CmdStanPy's API, 
+        so please refer to 
+        this documentation for more information:
+        https://mc-stan.org/cmdstanpy/api.html#cmdstanmodel
+
+        Customizing these fields occurs as a passed dictionary, which is validated 
+        on the level of CmdStan. As an example, to specify the number of chains for the HMC-NUTS sampler to run,
+        it is sufficient to pass::
+            
+            {
+                "chains": 2
+            }
+        
+        or to specify the number of warmup and sampling 
+        iterations, pass::  
+        
+            {
+                "iter_warmup": 100, 
+                "iter_sampling": 100, 
+            },
+
+        Default Stan parameters are used if nothing is passed.
 
     family : str, optional
         Distribution family used for linear regression. All R Families package are supported:
@@ -265,7 +290,8 @@ class GLM(CoreEstimator):
 
     def __init__(
         self,
-        algorithm: str = "HMC-NUTS",
+        algorithm: str = "sample",
+        algorithm_params: Optional[Dict[str, Any]] = None,
         family: str = "gaussian",
         link: Optional[str] = None,
         seed: Optional[int] = None,
@@ -275,6 +301,7 @@ class GLM(CoreEstimator):
         autoscale: bool = False,
     ):
         self.algorithm = algorithm
+        self.algorithm_params = algorithm_params
 
         self.family = family
         self.link = link
@@ -342,7 +369,7 @@ class GLM(CoreEstimator):
             raise ValueError(
                 f"""Current Linear Regression created with algorithm
                 {self.algorithm!r}, which is not one of the supported
-                methods. Try with one of the following: (HMC-NUTS, L-BFGS, ADVI)."""
+                methods. Try with one of the following: (sample, optimize, variational)."""
             )
 
         self.is_cont_dat_ = self.family in [
@@ -557,13 +584,14 @@ class GLM(CoreEstimator):
             show_console=show_console,
             seed=self.seed_,
             sig_figs=9,
+            **self.algorithm_params if self.algorithm_params else {} 
         )
 
         if self.seed_ is None:
             self.seed_ = self.fitted_samples_.metadata.cmdstan_config["seed"]
 
         stan_vars = self.fitted_samples_.stan_variables()
-        if self.algorithm == "HMC-NUTS":
+        if self.algorithm == "sample":
             self.alpha_ = stan_vars["alpha"].mean(axis=0)
             self.alpha_samples_ = stan_vars["alpha"]
 
@@ -626,7 +654,7 @@ class GLM(CoreEstimator):
 
         # NOTE: in a future Stan release, generate quantities() will not be restricted
         # to requiring an MCMC sample, so the following will be obsolete
-        if self.algorithm != "HMC-NUTS":
+        if self.algorithm != "sample":
             if self.family == "gaussian":
                 return stats.norm.rvs(  # type: ignore
                     self.alpha_ + np.dot(self.beta_, X_clean),  # type: ignore
@@ -666,7 +694,7 @@ class GLM(CoreEstimator):
             "sdy": 1.0,
         }
 
-        # known that fitted with HMC-NUTS, so fitted_samples is not None
+        # known that fitted with sampling, so fitted_samples is not None
         predicGQ = self.model_.generate_quantities(
             dat,
             mcmc_sample=self.fitted_samples_,

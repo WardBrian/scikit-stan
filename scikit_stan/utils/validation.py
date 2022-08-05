@@ -9,6 +9,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
 
+
 """ GENERAL LINK MAP
      identity - 0
      log - 1
