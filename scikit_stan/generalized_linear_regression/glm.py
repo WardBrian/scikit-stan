@@ -95,27 +95,27 @@ class GLM(CoreEstimator):
             * optimize - produces a likelihood estimate of model parameters,
             * variational - runs Stan's variational inference algorithm to compute the posterior.
 
-    algorithm_params : Dict[str, Any], optional 
+    algorithm_params : Dict[str, Any], optional
         Parameters for the selected algorithm. The key words
-        and values are derived from CmdStanPy's API, 
-        so please refer to 
+        and values are derived from CmdStanPy's API,
+        so please refer to
         this documentation for more information:
         https://mc-stan.org/cmdstanpy/api.html#cmdstanmodel
 
-        Customizing these fields occurs as a passed dictionary, which is validated 
-        on the level of CmdStan. As an example, to specify the number of chains for the HMC-NUTS sampler to run,
-        it is sufficient to pass::
-            
+        Customizing these fields occurs as a passed dictionary, which is validated
+        on the level of CmdStan. As an example, to specify the number of chains for
+        the HMC-NUTS sampler to run, it is sufficient to pass::
+
             {
                 "chains": 2
             }
-        
-        or to specify the number of warmup and sampling 
-        iterations, pass::  
-        
+
+        or to specify the number of warmup and sampling
+        iterations, pass::
+
             {
-                "iter_warmup": 100, 
-                "iter_sampling": 100, 
+                "iter_warmup": 100,
+                "iter_sampling": 100,
             },
 
         Default Stan parameters are used if nothing is passed.
@@ -584,7 +584,7 @@ class GLM(CoreEstimator):
             show_console=show_console,
             seed=self.seed_,
             sig_figs=9,
-            **self.algorithm_params if self.algorithm_params else {} 
+            **self.algorithm_params if self.algorithm_params else {},
         )
 
         if self.seed_ is None:

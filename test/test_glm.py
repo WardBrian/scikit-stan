@@ -10,21 +10,28 @@ from scikit_stan.generalized_linear_regression import GLM
 from scikit_stan.modelcore import CoreEstimator
 
 
-@pytest.mark.parametrize("alg_args", [
-    {}, 
-    {
-        "iter_warmup": 100, 
-        "iter_sampling": 100, 
-    },
-    {
-        "chains": 2
-    }
-])
-def test_GLM_alg_params_correct(alg_args) -> None: 
+@pytest.mark.parametrize(
+    "alg_args",
+    [
+        {},
+        {
+            "iter_warmup": 100,
+            "iter_sampling": 100,
+        },
+        {"chains": 2},
+    ],
+)
+def test_GLM_alg_params_correct(alg_args) -> None:
     """
-        Verify that validation occurs from within GLM class correctly. 
+    Verify that validation occurs from within GLM class correctly.
     """
-    glm = GLM(algorithm="sample", algorithm_params=alg_args, family="gamma", link="log", seed=1234)
+    glm = GLM(
+        algorithm="sample",
+        algorithm_params=alg_args,
+        family="gamma",
+        link="log",
+        seed=1234,
+    )
 
     gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(
         family="gamma", link="log", Nsize=100

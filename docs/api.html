@@ -35,7 +35,6 @@
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="https://unpkg.com/@jupyter-widgets/html-manager@^0.20.1/dist/embed-amd.js"></script>
     <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -220,7 +219,7 @@ for developers seeking to add additional models or improve existing models.</p>
 <h2>Generalized Linear Model<a class="headerlink" href="#generalized-linear-model" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="scikit_stan.GLM">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_stan.</span></span><span class="sig-name descname"><span class="pre">GLM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HMC-NUTS'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gaussian'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior_aux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autoscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_stan/generalized_linear_regression/glm.html#GLM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_stan.GLM" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_stan.</span></span><span class="sig-name descname"><span class="pre">GLM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sample'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gaussian'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior_intercept</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prior_aux</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autoscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_stan/generalized_linear_regression/glm.html#GLM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_stan.GLM" title="Permalink to this definition">#</a></dt>
 <dd><p>A generalized linear model estimator with several options for families, links,
 and priors on regression coefficients, the intercept, and error scale,
 done in an sk-learn style.
@@ -233,11 +232,34 @@ passed to Stan computations.</p>
 <li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – <p>Algorithm to be used by the Stan model. The following are supported:</p>
 <blockquote>
 <div><ul>
-<li><p>HMC-NUTS - runs the HMC-NUTS sampler,</p></li>
-<li><p>L-BFGS - produces a likelihood estimate of model parameters,</p></li>
-<li><p>ADVI - runs Stan’s variational inference algorithm to compute the posterior.</p></li>
+<li><p>sample - runs the HMC-NUTS sampler,</p></li>
+<li><p>optimize - produces a likelihood estimate of model parameters,</p></li>
+<li><p>variational - runs Stan’s variational inference algorithm to compute the posterior.</p></li>
 </ul>
 </div></blockquote>
+</p></li>
+<li><p><strong>algorithm_params</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict[str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Any]</span></code>, <em>optional</em>) – <p>Parameters for the selected algorithm. The key words
+and values are derived from CmdStanPy’s API,
+so please refer to
+this documentation for more information:
+<a class="reference external" href="https://mc-stan.org/cmdstanpy/api.html#cmdstanmodel">https://mc-stan.org/cmdstanpy/api.html#cmdstanmodel</a></p>
+<p>Customizing these fields occurs as a passed dictionary, which is validated
+on the level of CmdStan. As an example, to specify the number of chains for
+the HMC-NUTS sampler to run, it is sufficient to pass:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;chains&quot;</span><span class="p">:</span> <span class="mi">2</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>or to specify the number of warmup and sampling
+iterations, pass:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;iter_warmup&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="s2">&quot;iter_sampling&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+<span class="p">},</span>
+</pre></div>
+</div>
+<p>Default Stan parameters are used if nothing is passed.</p>
 </p></li>
 <li><p><strong>family</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <em>optional</em>) – <p>Distribution family used for linear regression. All R Families package are supported:</p>
 <blockquote>
