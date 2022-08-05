@@ -5,7 +5,8 @@ Scikit-Stan is a package of [Stan](mc-stan.org) models wrapped in a
 
 This package is currently under active development and should be treated as beta software.
 
-Documentation is available at https://brianward.dev/scikit-stan/
+Documentation is available at https://brianward.dev/scikit-stan/ or on [ReadTheDocs](https://scikit-stan.readthedocs.io/)
+(older versions and PDFs available).
 
 ## Installation
 
