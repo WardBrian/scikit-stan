@@ -6,15 +6,35 @@
 
 # -- Path setup --------------------------------------------------------------
 import os
+import subprocess
+import sys
+
+# debug info
+print("python exec:", sys.executable)
+print("sys.path:", sys.path)
+print("environment:", os.environ)
+
+if "conda" in sys.executable:
+    print("conda environment:")
+    subprocess.run(["conda", "list"])
+    subprocess.run(["conda", "info"])
+
+else:
+    print("pip environment:")
+    subprocess.run([sys.executable, "-m", "pip", "list"])
+
 
 # hacky for RTD - which doesn't actually call conda activate
 # see: https://github.com/readthedocs/readthedocs.org/issues/5339
 if os.environ.get("READTHEDOCS", False):
     import cmdstanpy
 
-    import scikit_stan
+    if "latest" in os.curdir:
+        version = "latest"
+    else:
+        import scikit_stan
 
-    version = "v" + scikit_stan.__version__
+        version = "v" + scikit_stan.__version__
 
     cmdstanpy.set_cmdstan_path(
         "/home/docs/checkouts/readthedocs.org/user_builds/scikit_stan/"
