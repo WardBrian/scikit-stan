@@ -11,7 +11,7 @@ from scikit_stan.modelcore import CoreEstimator
 
 
 @pytest.mark.slow
-#@pytest.mark.parametrize("estimator", [GLM()])
+# @pytest.mark.parametrize("estimator", [GLM()])
 def test_compatible_estimator() -> None:
     """Ensure that GLM Estimator is sk-learn compatible."""
     check_estimator(GLM())
@@ -359,7 +359,7 @@ def test_gaussian_link_scipy_gen(link: str):
 
 @pytest.mark.parametrize("link", ["identity", "log", "inverse"])
 def test_gamma_link_scipy_gen(link: str) -> None:
-    glm = GLM(family="gamma", link=link, seed=1234)
+    glm = GLM(family="gamma", link=link, seed=1234, algorithm_params={})
 
     gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(
         family="gamma", link=link, Nsize=100

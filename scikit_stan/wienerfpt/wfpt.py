@@ -11,9 +11,9 @@ from numpy.typing import ArrayLike, NDArray
 
 from scikit_stan.modelcore import CoreEstimator
 from scikit_stan.utils.validation import (
-    method_dict, 
     check_array,
     check_is_fitted,
+    method_dict,
     validate_aux_prior,
     validate_family,
     validate_prior,
@@ -23,23 +23,23 @@ STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
 CMDSTAN_VERSION = "2.30.1"
 
 
-class WienerFPT(CoreEstimator): 
+class WienerFPT(CoreEstimator):
     r"""
-    Regression model for first-hitting-time regression based on the Wiener process. 
-    
+    Regression model for first-hitting-time regression based on the Wiener process.
+
     For a Wiener process with positive initial value and negative mean, the time required for
-    the process to reach the zero level for the first time is given by the inverse Gaussian distribution. 
+    the process to reach the zero level for the first time is given by the inverse Gaussian distribution.
 
 
 
     The model returns the first passage time of the accumulation process over the upper
-    boundary only. In order to obtain the result of the lower boundary, use the parameterization with 
+    boundary only. In order to obtain the result of the lower boundary, use the parameterization with
 
     .. math:: \alpha \mapsto \alpha, \tau \mapsto \tau, \beta \mapsto 1 - \beta, \delta \mapsto - \delta
 
     where the mapping is from the default upper boundary parameterization to the lower boundary parameterization.
 
-    Parameters 
+    Parameters
     ----------
     algorithm : str, optional
         Algorithm to be used by the Stan model. The following are supported:
@@ -71,7 +71,7 @@ class WienerFPT(CoreEstimator):
                 "iter_sampling": 100,
             },
 
-        Default Stan parameters are used if nothing is passed.  
+        Default Stan parameters are used if nothing is passed.
 
 
 
@@ -92,15 +92,15 @@ class WienerFPT(CoreEstimator):
     -----
     The usual prior-selection advice holds. See these discussions about prior selection:
         - https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations
-        - http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf    
+        - http://www.stat.columbia.edu/~gelman/research/published/entropy-19-00555-v2.pdf
     """
 
     def __init__(
-        self, 
-        algorithm: str = "sample", 
+        self,
+        algorithm: str = "sample",
         algorithm_params: Optional[Dict[str, Any]] = None,
-        prior_separation: Optional[Dict[str, Any]] = None, 
-        prior_nd_time: Optional[Dict[str, Any]] = None, 
+        prior_separation: Optional[Dict[str, Any]] = None,
+        prior_nd_time: Optional[Dict[str, Any]] = None,
         prior_drift_rate: Optional[Dict[str, Any]] = None,
         seed: Optional[int] = None,
         autoscale: bool = False,
@@ -115,22 +115,22 @@ class WienerFPT(CoreEstimator):
         self.seed = seed
         self.autoscale = autoscale
 
-
-    def fit(self, 
-            X: ArrayLike,
-            y: ArrayLike,
-            bias: float = 0.5, 
-            show_console: bool = False,
-        ) -> "CoreEstimator":
+    def fit(
+        self,
+        X: ArrayLike,
+        y: ArrayLike,
+        bias: float = 0.5,
+        show_console: bool = False,
+    ) -> "CoreEstimator":
         """
-        Fits the Wiener process model. 
-        This model is considered fit once its alpha, tau, and delta 
-        parameters are determined via a regression. 
+        Fits the Wiener process model.
+        This model is considered fit once its alpha, tau, and delta
+        parameters are determined via a regression.
 
-        The a-priori bias is assumed to be 0.5 by default and can be changed at model fitting time. 
+        The a-priori bias is assumed to be 0.5 by default and can be changed at model fitting time.
 
-        Note that by construction of the model, values of the data cannot be negative or 
-        be smaller than the admissible range of values for the non-decision time tau.  
+        Note that by construction of the model, values of the data cannot be negative or
+        be smaller than the admissible range of values for the non-decision time tau.
 
         Parameters
         ----------
@@ -173,17 +173,15 @@ class WienerFPT(CoreEstimator):
                 methods. Try with one of the following: (sample, optimize, variational)."""
             )
 
-        return self 
-
+        return self
 
     def predict(self, X: ArrayLike) -> NDArray:
         """
         Predict the response. This function does not currently have a Stan backend, see
-        this issue in the Stan math library:  
+        this issue in the Stan math library:
         https://github.com/stan-dev/math/issues/2801
         """
         pass
-
 
     def score(self, X: ArrayLike, y: ArrayLike) -> float:
         """

@@ -177,7 +177,6 @@ class CoreEstimator:
 
         return res_X, res_y
 
-    
     def _more_tags(self) -> Dict[str, Any]:
         """
         Sets tags for current model that exclude certain sk-learn estimator

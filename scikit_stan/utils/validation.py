@@ -5,12 +5,10 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tupl
 
 import numpy as np
 import scipy.sparse as sp
+from cmdstanpy import CmdStanModel, set_cmdstan_path
 from numpy.typing import ArrayLike, NDArray
 
-from cmdstanpy import CmdStanModel, set_cmdstan_path
-
 from ..exceptions import NotFittedError
-
 
 """ GENERAL LINK MAP
      identity - 0
@@ -45,9 +43,6 @@ BINOMIAL_LINKS = {"log": 1, "logit": 5, "probit": 6, "cloglog": 7, "cauchit": 8}
 
 
 POISSON_LINKS = {"identity": 0, "log": 1, "sqrt": 3}
-
-
-NEGATIVE_BINOMIAL_LINKS = {}
 
 
 BERNOULLI_LINKS = {"logit": 5, "probit": 6, "cloglog": 7}

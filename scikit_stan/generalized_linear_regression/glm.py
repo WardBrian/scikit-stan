@@ -11,10 +11,10 @@ from numpy.typing import ArrayLike, NDArray
 
 from scikit_stan.modelcore import CoreEstimator
 from scikit_stan.utils.validation import (
-    method_dict,
     FAMILY_LINKS_MAP,
     check_array,
     check_is_fitted,
+    method_dict,
     validate_aux_prior,
     validate_family,
     validate_prior,
@@ -31,7 +31,7 @@ GLM_FAMILIES = {
     "poisson": 3,
     "binomial": 4,
     "negative-binomial": 5,
-    "bernoulli": 6
+    "bernoulli": 6,
 }
 
 # handle pre-compiled models and possibly repackaged cmdstan
@@ -78,7 +78,7 @@ class GLM(CoreEstimator):
     r"""
     A generalized linear model estimator with several options for families, links,
     and priors on regression coefficients, the intercept, and error scale,
-    done in an sk-learn style.
+    done in an scikit-learn style.
     This class also provides an autoscaling feature of the priors.
     For deterministic behavior from this model, the class's seed can be set and is then
     passed to Stan computations.
@@ -99,7 +99,7 @@ class GLM(CoreEstimator):
         this documentation for more information:
         https://mc-stan.org/cmdstanpy/api.html#cmdstanmodel
 
-        Customizing these fields occurs as a passed dictionary, which is validated
+        Customizing these fields is done via a passed dictionary, which is validated
         on the level of CmdStan. As an example, to specify the number of chains for
         the HMC-NUTS sampler to run, it is sufficient to pass::
 
@@ -115,7 +115,7 @@ class GLM(CoreEstimator):
                 "iter_sampling": 100,
             },
 
-        Default Stan parameters are used if nothing is passed.  
+        Default Stan parameters are used if nothing is passed.
 
     family : str, optional
         Distribution family used for linear regression. All R Families package are supported:
@@ -171,7 +171,7 @@ class GLM(CoreEstimator):
         via :class:`numpy.random.RandomState`.
         Specifying this field will yield the same result for multiple uses if
         all other parameters are held the same.
-    
+
     priors : Optional[Dict[str, Union[int, float, List]]], optional
         Dictionary for configuring prior distribution on coefficients.
         By default, all regression coefficient priors are set to
@@ -213,7 +213,7 @@ class GLM(CoreEstimator):
             }
 
         Any unspecified priors will be set to the default.
-    
+
     prior_intercept : Optional[Dict[str, Any]], optional
         Prior for the intercept alpha parameter for GLM.
         If this is not specified, the default is
