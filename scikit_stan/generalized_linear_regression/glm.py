@@ -1,4 +1,4 @@
-"""Vectorized GLM model with sk-learn type API"""
+"""Generalized Linear Model with prior control for regression in sk-learn type API."""
 
 import warnings
 from pathlib import Path
@@ -11,6 +11,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from scikit_stan.modelcore import CoreEstimator
 from scikit_stan.utils.validation import (
+    method_dict,
     FAMILY_LINKS_MAP,
     check_array,
     check_is_fitted,
@@ -22,11 +23,6 @@ from scikit_stan.utils.validation import (
 STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
 CMDSTAN_VERSION = "2.30.1"
 
-method_dict = {
-    "sample": CmdStanModel.sample,
-    "optimize": CmdStanModel.optimize,
-    "variational": CmdStanModel.variational,
-}
 
 GLM_FAMILIES = {
     "gaussian": 0,
@@ -118,7 +114,7 @@ class GLM(CoreEstimator):
                 "iter_sampling": 100,
             },
 
-        Default Stan parameters are used if nothing is passed.
+        Default Stan parameters are used if nothing is passed.  
 
     family : str, optional
         Distribution family used for linear regression. All R Families package are supported:
@@ -174,6 +170,7 @@ class GLM(CoreEstimator):
         via :class:`numpy.random.RandomState`.
         Specifying this field will yield the same result for multiple uses if
         all other parameters are held the same.
+    
     priors : Optional[Dict[str, Union[int, float, List]]], optional
         Dictionary for configuring prior distribution on coefficients.
         By default, all regression coefficient priors are set to
@@ -215,6 +212,7 @@ class GLM(CoreEstimator):
             }
 
         Any unspecified priors will be set to the default.
+    
     prior_intercept : Optional[Dict[str, Any]], optional
         Prior for the intercept alpha parameter for GLM.
         If this is not specified, the default is
@@ -320,7 +318,7 @@ class GLM(CoreEstimator):
         show_console: bool = False,
     ) -> "CoreEstimator":
         """
-        Fits GLM object to the given data.
+        Fits GLM model to the given data.
         This model is considered fit once its alpha, beta,
         and sigma parameters are determined via a regression.
 
@@ -786,24 +784,3 @@ class GLM(CoreEstimator):
         sstot: float = np.sum((y_clean - mean_obs) ** 2)
 
         return 1 - ssreg / sstot
-
-    def _more_tags(self) -> Dict[str, Any]:
-        """
-        Sets tags for current model that exclude certain sk-learn estimator
-        checks that are not applicable to this model.
-        """
-        return {
-            "_xfail_checks": {
-                "check_methods_sample_order_invariance": "check is not applicable.",
-                "check_methods_subset_invariance": "check is not applicable.",
-                "check_fit_idempotent": """model is idempotent, but not to the required degree of
-                    accuracy as this is a probabilistic setting.""",
-                "check_fit1d": """provided automatic cast from 1d to 2d in data validation.""",
-                # NOTE: the expected behavior here is to raise a ValueError, the package intends
-                # to give alternative default behavior in these scenarios!
-                "check_fit2d_predict1d": """provided automatic cast from 1d to 2d in data validation
-                 STILL NEEDS TO BE INVESTIGATED FOR GQ ISSUE""",
-                # NOTE: the expected behavior here is to raise a ValueError,
-                #  the package intends to give alternative default behavior in these scenarios!
-            }
-        }

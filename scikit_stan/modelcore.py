@@ -176,3 +176,25 @@ class CoreEstimator:
             res_X, res_y = check_X_y(X, y, dtype=dtype)  # type:ignore
 
         return res_X, res_y
+
+    
+    def _more_tags(self) -> Dict[str, Any]:
+        """
+        Sets tags for current model that exclude certain sk-learn estimator
+        checks that are not applicable to this model.
+        """
+        return {
+            "_xfail_checks": {
+                "check_methods_sample_order_invariance": "check is not applicable.",
+                "check_methods_subset_invariance": "check is not applicable.",
+                "check_fit_idempotent": """model is idempotent, but not to the required degree of
+                    accuracy as this is a probabilistic setting.""",
+                "check_fit1d": """provided automatic cast from 1d to 2d in data validation.""",
+                # NOTE: the expected behavior here is to raise a ValueError, the package intends
+                # to give alternative default behavior in these scenarios!
+                "check_fit2d_predict1d": """provided automatic cast from 1d to 2d in data validation
+                 STILL NEEDS TO BE INVESTIGATED FOR GQ ISSUE""",
+                # NOTE: the expected behavior here is to raise a ValueError,
+                #  the package intends to give alternative default behavior in these scenarios!
+            }
+        }

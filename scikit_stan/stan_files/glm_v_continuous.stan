@@ -42,10 +42,10 @@ model {
   // default prior selection follows:
   // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
   if (prior_intercept_dist == 0) { // normal prior; has mu and sigma
-      alpha ~ normal(prior_intercept_mu, prior_intercept_sigma);
+    alpha ~ normal(prior_intercept_mu, prior_intercept_sigma);
   }
   else if (prior_intercept_dist == 1) { // laplace prior; has mu and sigma
-      alpha ~ double_exponential(prior_intercept_mu, prior_intercept_sigma);
+    alpha ~ double_exponential(prior_intercept_mu, prior_intercept_sigma);
   }
 
   // NOTE: these operations are vectorized 

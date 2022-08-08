@@ -7,6 +7,8 @@ import numpy as np
 import scipy.sparse as sp
 from numpy.typing import ArrayLike, NDArray
 
+from cmdstanpy import CmdStanModel, set_cmdstan_path
+
 from ..exceptions import NotFittedError
 
 
@@ -43,6 +45,13 @@ POISSON_LINKS = {"identity": 0, "log": 1, "sqrt": 3}
 
 
 INVERSE_GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2, "inverse-square": 4}
+
+
+method_dict = {
+    "sample": CmdStanModel.sample,
+    "optimize": CmdStanModel.optimize,
+    "variational": CmdStanModel.variational,
+}
 
 
 FAMILY_LINKS_MAP = {
