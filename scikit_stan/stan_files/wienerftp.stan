@@ -17,16 +17,17 @@ parameters {
     real alpha; // intercept
     vector[K] beta; // coefficients
 }
-transformed parameters { 
-    
-}
-model { 
-    // default prior selection follows:
-    // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
-
-
-}
+//transformed parameters { 
+//    
+//}
+//model { 
+//    // default prior selection follows:
+//    // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
+//
+//
+//}
 // model cannot currently support generated quantities since Stan core does not have an rng for this distribution 
+// see this issue in the Stan math library:  https://github.com/stan-dev/math/issues/2801
 // generated quantities {
 // 
 // }

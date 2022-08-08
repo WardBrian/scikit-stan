@@ -21,7 +21,6 @@ data {
   vector[K] prior_slope_mu;             // mean of the prior for each regression coefficient
   vector[K] prior_slope_sigma;          // error scale of the prior for each  regression coefficient
   int<lower=-1> prior_aux_dist;          // distribution for auxiliary parameter (sigma): 0 is exponential, 1 is chi2
-
   real<lower=0> prior_aux_param;      // distribution parameter for the prior for sigma
   real sdy;
 }

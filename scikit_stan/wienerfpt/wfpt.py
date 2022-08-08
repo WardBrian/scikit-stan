@@ -166,7 +166,6 @@ class WienerFPT(CoreEstimator):
             dtype=np.float64 if self.is_cont_dat_ else np.int64,
         )
 
-
         if self.algorithm not in method_dict.keys():
             raise ValueError(
                 f"""Current Linear Regression created with algorithm
@@ -174,15 +173,14 @@ class WienerFPT(CoreEstimator):
                 methods. Try with one of the following: (sample, optimize, variational)."""
             )
 
-        
-        
-
         return self 
 
 
     def predict(self, X: ArrayLike) -> NDArray:
         """
-        Predict the response.
+        Predict the response. This function does not currently have a Stan backend, see
+        this issue in the Stan math library:  
+        https://github.com/stan-dev/math/issues/2801
         """
         pass
 

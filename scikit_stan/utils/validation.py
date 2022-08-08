@@ -29,9 +29,6 @@ from ..exceptions import NotFittedError
 GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2}
 
 
-# corresponding to logistic, normal and Cauchy CDFs respectively
-BINOMIAL_LINKS = {"log": 1, "logit": 5, "probit": 6, "cloglog": 7, "cauchit": 8}
-
 # NOTE: the Gamma regression is on parameterized Gamma(mu, alpha)
 # where alpha is considered fixed as linear models all assume constant variance
 GAMMA_LINKS = {
@@ -41,10 +38,19 @@ GAMMA_LINKS = {
 }
 
 
+INVERSE_GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2, "inverse-square": 4}
+
+
+BINOMIAL_LINKS = {"log": 1, "logit": 5, "probit": 6, "cloglog": 7, "cauchit": 8}
+
+
 POISSON_LINKS = {"identity": 0, "log": 1, "sqrt": 3}
 
 
-INVERSE_GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2, "inverse-square": 4}
+NEGATIVE_BINOMIAL_LINKS = {}
+
+
+BERNOULLI_LINKS = {"logit": 5, "probit": 6, "cloglog": 7}
 
 
 method_dict = {
@@ -61,7 +67,9 @@ FAMILY_LINKS_MAP = {
     "poisson": POISSON_LINKS,
     "inverse-gaussian": INVERSE_GAUSSIAN_LINKS,
     # "binomial" : BINOMIAL_LINKS
+    "bernoulli": BERNOULLI_LINKS,
 }
+
 
 SLOPE_PRIOR_DEFAULTS_INFO = {
     "normal": "normal(0, 2.5 * sd(y) / sd(X)) if Gaussian else normal(0, 2.5)",
@@ -69,11 +77,13 @@ SLOPE_PRIOR_DEFAULTS_INFO = {
     "laplace": "laplace(0, 2.5)",
 }
 
+
 INTERCEPT_PRIOR_DEFAULTS_INFO = {
     "normal": "normal(mu(y), 2.5 * sd(y)) if Gaussian else normal(0, 2.5)",
     # NOTE: the laplace distribution is translation invariant
     "laplace": "double_exponential(0, 2.5)",
 }
+
 
 PRIORS_MAP = {
     "normal": 0,  # normal distribution, requires location (mu) and scale (sigma)
@@ -84,6 +94,7 @@ PRIORS_MAP = {
     # for suggestions on this prior, refer to:
     #  https://www.jstor.org/stable/1403571#metadata_info_tab_contents
 }
+
 
 PRIORS_AUX_MAP = {
     "exponential": 0,  # exponential distribution, requires only beta parameter

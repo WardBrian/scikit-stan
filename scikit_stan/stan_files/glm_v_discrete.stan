@@ -17,12 +17,12 @@ data {
 
   // set up for user-defineable priors
   // TODO lengths of these set by ternary based on whether priors are default?
-  int<lower=-1> prior_intercept_dist;    // distribution for intercept
-  real prior_intercept_mu;              // mean of the prior for intercept
-  real prior_intercept_sigma;           // error scale of the prior for intercept
-  int<lower=-1> prior_slope_dist;        // distribution for regression coefficients
-  vector[K] prior_slope_mu;             // mean of the prior for regression coefficients
-  vector[K] prior_slope_sigma;          // error regression coefficients
+  int<lower=-1> prior_intercept_dist;       // distribution for intercept
+  real prior_intercept_mu;                  // mean of the prior for intercept
+  real prior_intercept_sigma;               // error scale of the prior for intercept
+  int<lower=-1> prior_slope_dist;           // distribution for regression coefficients
+  vector[K] prior_slope_mu;                 // mean of the prior for regression coefficients
+  vector[K] prior_slope_sigma;              // error regression coefficients
   real sdy;
 }
 parameters {
@@ -42,7 +42,7 @@ model {
         alpha ~ double_exponential(prior_intercept_mu, prior_intercept_sigma);
     }
 
-    // NOTE these are vectorized operations 
+    // NOTE: these are vectorized operations 
     if (prior_slope_dist == 0) { // normal prior
         beta ~ normal(prior_slope_mu, prior_slope_sigma);
     }
@@ -56,6 +56,15 @@ model {
     else if (family == 4) { // binomial
         target += binomial_llh(y, trials, mu, link);
     }
+    else if (family == 6) { // bernoulli  
+        if (link == 5) { // logit  
+            // this lets us use the more efficient Stan function for this family-link combination
+            y ~ bernoulli_logit(mu);
+        }
+        else { 
+            y ~ bernoulli(common_invert_link(mu, link));
+        }
+    }
 }
 generated quantities {
     array[predictor * N] real y_sim;
@@ -68,6 +77,9 @@ generated quantities {
         }
         else if (family == 4) { // binomial
             y_sim = binomial_rng(trials, mu_unlinked);
+        }
+        else if (family == 6) { // bernoulli 
+            y_sim = bernoulli_rng(mu_unlinked);
         }
     }
 }

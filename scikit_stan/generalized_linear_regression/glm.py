@@ -1,4 +1,4 @@
-"""Generalized Linear Model with prior control for regression in sk-learn type API."""
+"""Generalized Linear Model with prior control for regression in scikit-learn type API."""
 
 import warnings
 from pathlib import Path
@@ -31,6 +31,7 @@ GLM_FAMILIES = {
     "poisson": 3,
     "binomial": 4,
     "negative-binomial": 5,
+    "bernoulli": 6
 }
 
 # handle pre-compiled models and possibly repackaged cmdstan
@@ -407,6 +408,7 @@ class GLM(CoreEstimator):
 
         validate_family(self.family, self.link_)
 
+        # ensure that identiy link function is not used for discrete regressions
         if not self.is_cont_dat_ and self.link_ == "identity":
             self.link_ = "logit" if self.family == "bernoulli" else "log"
 
