@@ -7,21 +7,23 @@ data {
   int<lower=0> N;   // number of data items
   int<lower=0> K;   // number of predictors/features
   int<lower=0, upper=1> predictor; // 0: fitting run, 1: prediction run
+  int<lower=0, upper=1> fit_intercept; // 0: no intercept, 1: intercept
   matrix[N, K] X;   // predictor matrix
   vector[(predictor > 0) ? 0 : N] y;      // outcome vector; change to N*(1-predictor)
+  
   // assume validation performed externally to Stan
   int<lower=0, upper=2> family; // family of the model
   int<lower=0, upper=4> link; // link function of the model
 
   // set up for user-defineable priors
-  int<lower=-1> prior_intercept_dist;    // distribution for intercept
-  real prior_intercept_mu;              // mean of the prior for intercept
-  real prior_intercept_sigma;           // error scale of the prior for intercept
-  int<lower=-1> prior_slope_dist;        // distribution for regression coefficients
-  vector[K] prior_slope_mu;             // mean of the prior for each regression coefficient
-  vector[K] prior_slope_sigma;          // error scale of the prior for each  regression coefficient
-  int<lower=-1> prior_aux_dist;          // distribution for auxiliary parameter (sigma): 0 is exponential, 1 is chi2
-  real<lower=0> prior_aux_param;      // distribution parameter for the prior for sigma
+  int<lower=-1> prior_intercept_dist;     // distribution for intercept
+  real prior_intercept_mu;                // mean of the prior for intercept
+  real prior_intercept_sigma;             // error scale of the prior for intercept
+  int<lower=-1> prior_slope_dist;         // distribution for regression coefficients
+  vector[K] prior_slope_mu;               // mean of the prior for each regression coefficient
+  vector[K] prior_slope_sigma;            // error scale of the prior for each  regression coefficient
+  int<lower=-1> prior_aux_dist;           // distribution for auxiliary parameter (sigma): 0 is exponential, 1 is chi2
+  real<lower=0> prior_aux_param;          // distribution parameter for the prior for sigma
   real sdy;
 }
 transformed data {
@@ -29,13 +31,18 @@ transformed data {
   vector[rows(y)] sqrt_y = sqrt(y);
 }
 parameters {
-  real alpha;           // intercept
-  vector[K] beta;       // coefficients for predictors
-  real<lower=0> sigma;  // error scale OR variance of the error distribution
+  real alpha[fit_intercept];            // intercept
+  vector[K] beta;                       // coefficients for predictors
+  real<lower=0> sigma;                  // error scale OR variance of the error distribution
 }
 transformed parameters {
-  vector[N] mu = alpha + X * beta; // expected values / linear predictor
-  vector[N] mu_unlinked = common_invert_link(mu, link);
+  vector[N] mu = X * beta;              // expected values / linear predictor
+
+  if (fit_intercept) { 
+    mu = mu + alpha[1];
+  }
+
+  vector[N] mu_unlinked = common_invert_link(mu, link); // reverse link function
 }
 model {
   // default prior selection follows:
@@ -65,8 +72,6 @@ model {
   }
 
   if (family == 0) { // Gaussian
-    //Increment target log probability density with
-    // normal_lpdf( y | mu, sigma) dropping constant additive terms.
     y ~ normal(mu_unlinked, sigma);
   }
   else if (family == 1) { // Gamma
@@ -76,7 +81,7 @@ model {
    {
     target += inv_gaussian_llh(y, s_log_y, mu_unlinked, sigma, sqrt_y);
   }
-  // add additional families here
+  // add additional continuous families here
 }
 generated quantities {
   array[predictor * N] real y_sim;

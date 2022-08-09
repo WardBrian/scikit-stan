@@ -117,6 +117,14 @@ class GLM(CoreEstimator):
 
         Default Stan parameters are used if nothing is passed.
 
+    fit_intercept : bool, optional
+        Whether the GLM should fit a global intercept. Some hierarchical models operate
+        without an intercept, so setting this to False will fill the first column of the
+        predictor matrix with ones.
+
+        By default, the GLM has an intercept term -- the first column of the predictor
+        matrix X is used for inference of the intercept.
+
     family : str, optional
         Distribution family used for linear regression. All R Families package are supported:
 
@@ -291,6 +299,7 @@ class GLM(CoreEstimator):
         self,
         algorithm: str = "sample",
         algorithm_params: Optional[Dict[str, Any]] = None,
+        fit_intercept: bool = True,
         family: str = "gaussian",
         link: Optional[str] = None,
         seed: Optional[int] = None,
@@ -301,6 +310,8 @@ class GLM(CoreEstimator):
     ):
         self.algorithm = algorithm
         self.algorithm_params = algorithm_params
+
+        self.fit_intercept = fit_intercept
 
         self.family = family
         self.link = link
@@ -408,7 +419,7 @@ class GLM(CoreEstimator):
 
         validate_family(self.family, self.link_)
 
-        # ensure that identiy link function is not used for discrete regressions
+        # ensure that identity link function is not used for discrete regressions
         if not self.is_cont_dat_ and self.link_ == "identity":
             self.link_ = "logit" if self.family == "bernoulli" else "log"
 
@@ -427,6 +438,7 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 0,
+            "fit_intercept": self.fit_intercept,
             "prior_intercept_dist": None,
             "prior_intercept_mu": None,
             "prior_intercept_sigma": None,
@@ -592,8 +604,9 @@ class GLM(CoreEstimator):
 
         stan_vars = self.fitted_samples_.stan_variables()
         if self.algorithm == "sample":
-            self.alpha_ = stan_vars["alpha"].mean(axis=0)
-            self.alpha_samples_ = stan_vars["alpha"]
+            if self.fit_intercept:
+                self.alpha_ = stan_vars["alpha"].mean(axis=0)
+                self.alpha_samples_ = stan_vars["alpha"]
 
             self.beta_ = stan_vars["beta"].mean(axis=0)
             self.beta_samples_ = stan_vars["beta"]
@@ -603,7 +616,9 @@ class GLM(CoreEstimator):
                 self.sigma_ = stan_vars["sigma"].mean(axis=0)
                 self.sigma_samples_ = stan_vars["sigma"]
         else:
-            self.alpha_ = stan_vars["alpha"]
+            if self.fit_intercept:
+                self.alpha_ = stan_vars["alpha"]
+
             self.beta_ = stan_vars["beta"]
 
             if self.is_cont_dat_:
@@ -683,6 +698,7 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 1,
+            "fit_intercept": self.fit_intercept,
             "prior_intercept_dist": 0,
             "prior_intercept_mu": 1.0,
             "prior_intercept_sigma": 2.5,

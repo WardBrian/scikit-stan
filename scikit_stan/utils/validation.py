@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tupl
 
 import numpy as np
 import scipy.sparse as sp
-from cmdstanpy import CmdStanModel, set_cmdstan_path
+from cmdstanpy import CmdStanModel
 from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
