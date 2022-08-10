@@ -10,6 +10,7 @@ data {
     int<lower=0, upper=1> predictor;  // 0: fitting run, 1: prediction run
     array[(predictor > 0) ? 0 : N] int<lower=0, upper=1> y;   // outcome vector
     array[N] int<lower=0> trials;           // number of trials
+    int<lower=0, upper=1> fit_intercept; // 0: no intercept, 1: intercept
 
     // assume validation performed externally
     int<lower=3, upper=6> family;     // family of the model
@@ -25,11 +26,15 @@ data {
     real sdy;
 }
 parameters {
-    real alpha;           // intercept
-    vector[K] beta;       // coefficients for predictors
-}
+    real alpha[fit_intercept];           // intercept
+    vector[K] beta;                      // coefficients for predictors
+}   
 transformed parameters {
-    vector[N] mu = alpha + X * beta; // linear predictor
+    vector[N] mu = X * beta; // linear predictor
+
+    if (fit_intercept) { 
+        mu + mu + alpha[1]; 
+    }
 }
 model {
     // default prior selection follows:
