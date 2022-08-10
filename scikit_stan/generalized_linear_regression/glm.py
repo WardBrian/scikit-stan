@@ -2,7 +2,7 @@
 
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.stats as stats
@@ -182,6 +182,8 @@ class GLM(CoreEstimator):
 
     priors : Optional[Dict[str, Union[int, float, List]]], optional
         Dictionary for configuring prior distribution on coefficients.
+        Currently supported priors are: "normal", and "laplace".
+
         By default, all regression coefficient priors are set to
 
         .. math:: \beta \sim \text{normal}(0, 2.5 \cdot \text{sd}(y) / \text{sd}(X))
@@ -222,6 +224,9 @@ class GLM(CoreEstimator):
 
         Any unspecified priors will be set to the default.
 
+        Also note that choosing a Laplace prior is equivalent to L1 regularization:
+        https://stats.stackexchange.com/questions/177210/why-is-laplace-prior-producing-sparse-solutions/177217#177217
+
     prior_intercept : Optional[Dict[str, Any]], optional
         Prior for the intercept alpha parameter for GLM.
         If this is not specified, the default is
@@ -254,6 +259,9 @@ class GLM(CoreEstimator):
         .. math:: \alpha \sim \text{normal}(0, 1)
 
         by default (without autoscaling, see below).
+
+        Also note that choosing a Laplace prior is equivalent to L1 regularization:
+        https://stats.stackexchange.com/questions/177210/why-is-laplace-prior-producing-sparse-solutions/177217#177217
 
     prior_aux : Optional[Dict[str, Any]], optional
         Prior on the auxiliary parameter for the family used in
@@ -724,8 +732,14 @@ class GLM(CoreEstimator):
     def predict(
         self,
         X: ArrayLike,
+        return_std: bool = False,
         show_console: bool = False,
-    ) -> NDArray[np.float64]:
+    ) -> Union[
+        NDArray[Union[np.float64, np.int64]],
+        Tuple[
+            NDArray[Union[np.float64, np.int64]], NDArray[Union[np.float64, np.int64]]
+        ],
+    ]:
         """Compute predictions from supplied data using a fitted model.
             This computes the mean of the predicted distribution,
             given by y_sim in predict_distribution().
@@ -739,13 +753,21 @@ class GLM(CoreEstimator):
         ----------
         X : ArrayLike
             Predictor matrix or array of data to use for prediction.
-        show_console : bool, optional
+
+        return_std : bool, optional, default=False
+            If True, return standard deviation of predictions.
+
+        show_console : bool, optional, default=False
             Printing output of default CmdStanPy console during Stan operations.
 
         Returns
         -------
         NDArray[np.float64]
             Array of predictions of shape (n_samples, 1) made by fitted model.
+
+        NDArray[np.float64]
+            Standard deviation of predictive distribution points.
+
         """
         check_is_fitted(self)
 
@@ -757,10 +779,20 @@ class GLM(CoreEstimator):
 
         X_clean, _ = self._validate_data(X=X, ensure_X_2d=True)
 
-        return self.predict_distribution(  # type: ignore
+        y_predict_mean = self.predict_distribution(
             X_clean,
             show_console=show_console,
         ).mean(axis=0, dtype=np.float64)
+
+        if return_std:
+            sigmas_squared_data = (np.dot(X_clean, self.sigma_) * X_clean).sum(  # type: ignore
+                axis=1
+            )
+            y_std = np.sqrt(sigmas_squared_data + (1.0 / self.alpha_))
+
+            return y_predict_mean, y_std
+        else:
+            return y_predict_mean  # type: ignore
 
     def score(
         self,
