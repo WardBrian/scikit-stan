@@ -33,7 +33,7 @@ transformed parameters {
     vector[N] mu = X * beta; // linear predictor
 
     if (fit_intercept) { 
-        mu + mu + alpha[1]; 
+        mu = mu + alpha[1]; 
     }
 }
 model {
