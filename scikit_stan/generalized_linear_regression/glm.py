@@ -266,8 +266,10 @@ class GLM(CoreEstimator):
     prior_aux : Optional[Dict[str, Any]], optional
         Prior on the auxiliary parameter for the family used in
         the regression: for example, the std for Gaussian, shape for gamma, etc...
-        Currently supported priors are: "exponential" and "chi2", which are
-        both parameterized by a single scalar.
+        Currently supported priors are: "exponential", "chi2", "gamma", and "inv_gamma".
+        These are parameterized by the following distribution parameters:
+        "beta", "nu", "alpha" and "beta", and "alpha" and "beta", respectively.
+
         Priors here with more parameters are a future feature.
 
         If an empty dictionary {} is passed, the default Stan uniform(-inf, inf) prior is used.
@@ -276,13 +278,14 @@ class GLM(CoreEstimator):
 
             + "prior_aux_dist": distribution of the prior on this parameter
             + "prior_aux_param": parameter of the prior on this parameter
+                                - see above for admissible tags
 
         For example, to specify a chi2 prior with nu=2.5, pass::
 
             {
                 "prior_aux_dist": "chi2",
 
-                "prior_aux_param": 2.5
+                "nu": 2.5
             }
 
         The default un-scaled prior is ``exponential(1)``, the default scaled prior is
@@ -549,6 +552,7 @@ class GLM(CoreEstimator):
         # validate auxiliary parameter prior
         if self.prior_aux is None:
             self.prior_aux_ = {
+                "num_prior_aux_params": 1,
                 "prior_aux_dist": 0,  # exponential
             }
 
@@ -558,7 +562,7 @@ class GLM(CoreEstimator):
                         sigma ~ exponential(1 / sd(y))
                     """
                 )
-                self.prior_aux_["prior_aux_param"] = 1.0 / sdy
+                self.prior_aux_["prior_aux_params"] = [1.0 / sdy]
             else:
                 warnings.warn(
                     """Prior on auxiliary parameter not specified. Using default unscaled prior
@@ -566,14 +570,15 @@ class GLM(CoreEstimator):
                     """
                 )
 
-                self.prior_aux_["prior_aux_param"] = 1.0
+                self.prior_aux_["prior_aux_params"] = [1.0]
         else:
             # set auxiliary parameter prior to be default flat as in Stan:
             # uniform(-infinity, +infinity)
             if len(self.prior_aux) == 0:
                 self.prior_aux_ = {
+                    "num_prior_aux_params": 1,
                     "prior_aux_dist": -1,
-                    "prior_aux_param": 0.0,
+                    "prior_aux_params": [0.0],
                 }
             else:
                 self.prior_aux_ = validate_aux_prior(self.prior_aux)
@@ -588,7 +593,8 @@ class GLM(CoreEstimator):
         dat["prior_slope_sigma"] = self.priors_["prior_slope_sigma"]
 
         dat["prior_aux_dist"] = self.prior_aux_["prior_aux_dist"]
-        dat["prior_aux_param"] = self.prior_aux_["prior_aux_param"]
+        dat["num_prior_aux_params"] = self.prior_aux_["num_prior_aux_params"]
+        dat["prior_aux_params"] = self.prior_aux_["prior_aux_params"]
 
         if self.is_cont_dat_:
             self.model_ = GLM_CONTINUOUS_STAN
@@ -717,6 +723,9 @@ class GLM(CoreEstimator):
             "prior_aux_param": 1.0,  # these don't affect anything when generating predictions
             "sdy": 1.0,
         }
+
+        dat["num_prior_aux_params"] = self.prior_aux_["num_prior_aux_params"]
+        dat["prior_aux_params"] = self.prior_aux_["prior_aux_params"]
 
         # known that fitted with sampling, so fitted_samples is not None
         predicGQ = self.model_.generate_quantities(

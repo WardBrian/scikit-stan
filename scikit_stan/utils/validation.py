@@ -90,10 +90,12 @@ PRIORS_MAP = {
     #  https://www.jstor.org/stable/1403571#metadata_info_tab_contents
 }
 
-
+# NOTE: these must be positive-valued distributions only
 PRIORS_AUX_MAP = {
     "exponential": 0,  # exponential distribution, requires only beta parameter
     "chi2": 1,  # chi-squared distribution, requires only nu parameter
+    "gamma": 2,  # gamma distribution, requires only alpha and beta parameters
+    "inv_gamma": 3,  # inverse gamma distribution, requires only alpha and beta parameters
 }
 
 
@@ -483,6 +485,21 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
     Validates passed configuration for prior on auxiliary parameters.
     This does not perform parameter autoscaling.
 
+    This validation method returns the following fields in the dictionary:
+
+        * "prior_aux_dist": distribution of the prior on auxiliary parameters from this mapping:
+            PRIORS_AUX_MAP = {
+                        "exponential": 0,  # exponential distribution, requires only beta parameter
+                        "chi2": 1,  # chi-squared distribution, requires only nu parameter
+                        "gamma": 2,  # gamma distribution, requires only alpha and beta parameters
+                        "inv_gamma": 3,
+                        # inverse gamma distribution, requires only alpha and beta parameters
+                        }
+        * "num_prior_aux_params": number of parameters in the prior on auxiliary parameters,
+            determined by the number of parameters in the distribution.
+        * "prior_aux_params": list of parameters in the prior on auxiliary parameters;
+                            this must be a list even if the distribution only has one parameter
+
     Parameters
     ----------
     aux_prior_spec : Dict[str, Any]
@@ -528,25 +545,51 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
             f"Prior {dist_key} in auxiliary prior specification {aux_prior_spec} not supported."
         )
 
-    prior_aux_clean = {
+    prior_aux_clean: Dict[str, Any] = {
         "prior_aux_dist": PRIORS_AUX_MAP[dist_key],
     }
 
     if dist_key == "exponential":
-        if "prior_aux_param" not in config_keys:
+        if "beta" not in config_keys:
             raise ValueError(
-                f"""prior_aux_param must be specified in
-                exponential auxiliary prior given by {aux_prior_spec}."""
+                f"""beta must be specified in
+                exponential auxiliary parameter prior given by {aux_prior_spec}."""
             )
 
-        prior_aux_clean["prior_aux_param"] = aux_prior_spec["prior_aux_param"]
+        prior_aux_clean["num_prior_aux_params"] = 1
+        prior_aux_clean["prior_aux_params"] = [aux_prior_spec["beta"]]
     elif dist_key == "chi2":
-        if "prior_aux_param" not in config_keys:
+        if "nu" not in config_keys:
             raise ValueError(
-                f"""prior_aux_param must be specified in
-                chi2 auxiliary prior given by {aux_prior_spec}."""
+                f"""nu must be specified in
+                chi2 auxiliary parameter prior given by {aux_prior_spec}."""
             )
 
-        prior_aux_clean["prior_aux_param"] = aux_prior_spec["prior_aux_param"]
+        prior_aux_clean["num_prior_aux_params"] = 1
+        prior_aux_clean["prior_aux_params"] = [aux_prior_spec["nu"]]
+    elif dist_key == "gamma":
+        if not ("beta" in config_keys and "alpha" in config_keys):
+            raise ValueError(
+                f"""alpha and beta must be specified in
+                gamma auxiliary parameter prior given by {aux_prior_spec}."""
+            )
+
+        prior_aux_clean["num_prior_aux_params"] = 2
+        prior_aux_clean["prior_aux_params"] = [
+            aux_prior_spec["alpha"],
+            aux_prior_spec["beta"],
+        ]
+    elif dist_key == "inv_gamma":
+        if not ("beta" in config_keys and "alpha" in config_keys):
+            raise ValueError(
+                f"""alpha and beta must be specified in
+                gamma auxiliary parameter prior given by {aux_prior_spec}."""
+            )
+
+        prior_aux_clean["num_prior_aux_params"] = 2
+        prior_aux_clean["prior_aux_params"] = [
+            aux_prior_spec["alpha"],
+            aux_prior_spec["beta"],
+        ]
 
     return prior_aux_clean

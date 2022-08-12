@@ -22,8 +22,12 @@ data {
   int<lower=-1> prior_slope_dist;         // distribution for regression coefficients
   vector[K] prior_slope_mu;               // mean of the prior for each regression coefficient
   vector[K] prior_slope_sigma;            // error scale of the prior for each  regression coefficient
-  int<lower=-1> prior_aux_dist;           // distribution for auxiliary parameter (sigma): 0 is exponential, 1 is chi2
-  real<lower=0> prior_aux_param;          // distribution parameter for the prior for sigma
+  
+  // validation on parameters for each distribution occurs Python-side 
+  int<lower=-1> prior_aux_dist;           // distribution for auxiliary parameter (sigma): 
+                                          // -1 is default uniform(-inf, inf), 0 is exponential, 1 is chi2
+  int<lower=1> num_prior_aux_params;      // number of parameters in the prior for auxiliary parameter
+  real<lower=0> prior_aux_params[num_prior_aux_params];         // distribution parameter for the prior for sigma
   real sdy;
 }
 transformed data {
@@ -31,8 +35,8 @@ transformed data {
   vector[rows(y)] sqrt_y = sqrt(y);
 }
 parameters {
-  real alpha[fit_intercept];            // intercept
-  vector[K] beta;                       // coefficients for predictors
+  real alpha[fit_intercept];            // regression intercept alpha; empty if fit_intercept = 0
+  vector[K] beta;                       // regression coefficients beta 
   real<lower=0> sigma;                  // error scale OR variance of the error distribution
 }
 transformed parameters {
@@ -54,7 +58,6 @@ model {
     alpha ~ double_exponential(prior_intercept_mu, prior_intercept_sigma);
   }
 
-  // NOTE: these operations are vectorized 
   if (prior_slope_dist == 0) { // normal prior, has mu and sigma vectors 
     beta ~ normal(prior_slope_mu, prior_slope_sigma);
   }
@@ -62,14 +65,21 @@ model {
     beta ~ double_exponential(prior_slope_mu, prior_slope_sigma); 
   }
 
-  // NOTE: prior_aux_param is a placeholder value and this
-  // should be a loop once more general prior distributions are supported
   if (prior_aux_dist == 0) { // exponential
-    sigma ~ exponential(prior_aux_param);
+    sigma ~ exponential(prior_aux_params[1]);
   }
   else if (prior_aux_dist == 1) { // chi2
-    sigma ~ chi_square(prior_aux_param);
+    sigma ~ chi_square(prior_aux_params[1]);
   }
+  else if (prior_aux_dist == 2) { // gamma, alpha & beta  
+    sigma ~ gamma(prior_aux_params[1], prior_aux_params[2]);
+  }
+  else if (prior_aux_dist == 3) { // inverse gamma, alpha & beta 
+    sigma ~ inv_gamma(prior_aux_params[1], prior_aux_params[2]);
+  }
+  // additional auxiliary parameter priors go here
+  // NOTE: the current set up shows how to add multivariable priors, 
+  // ones with more parameters just need to index the prior_aux_params array as needed 
 
   if (family == 0) { // Gaussian
     y ~ normal(mu_unlinked, sigma);

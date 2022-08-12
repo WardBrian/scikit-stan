@@ -1,0 +1,290 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Comparison of Linear Bayesian Regressors "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "As an example of the interoperability of scikit-stan with scikit-learn, we will compare the performance of the following Bayesian regressors: automatic Relevance Determination (ARD), Bayesian Ridge Regression (BRR), and the Generalized (Bayesian) Linear Model (GLM) from scikit-stan. \n",
+    "\n",
+    "These examples are based on this scikit-learn example: https://scikit-learn.org/stable/auto_examples/linear_model/plot_ard.html"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "nbsphinx": "hidden",
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "from scikit_stan import GLM\n",
+    "\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "\n",
+    "import matplotlib as mpl\n",
+    "import matplotlib.pyplot as plt"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "nbsphinx": "hidden",
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "mpl.rc('axes.spines', top=True, bottom=True, left=True, right=True)\n",
+    "#mpl.rc('axes', facecolor='white')\n",
+    "mpl.rc(\"xtick\", bottom=True, labelbottom=True)\n",
+    "mpl.rc(\"ytick\", left=True, labelleft=True)\n",
+    "mpl.style.use('ggplot')\n",
+    "\n",
+    "\n",
+    "# center images\n",
+    "from IPython.core.display import HTML\n",
+    "HTML(\"\"\"\n",
+    "<style>\n",
+    ".jp-RenderedImage, .output_png{\n",
+    "    display: table-cell;\n",
+    "    text-align: center;\n",
+    "    vertical-align: middle;\n",
+    "}\n",
+    "</style>\n",
+    "\"\"\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We create an artificial dataset where ``X`` and ``y`` are linearly linked but in such a way that only ``10`` features ``X`` are used to generate ``y``. Since there are ``100`` features, other features are irrelevant for establishing a relationship with ``y``. \n",
+    "\n",
+    "This problem is made even more difficult for a linear regression by generating a dataset where the number of samples is equal to the number of features as this may lead to unreasonably large weights. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.datasets import make_regression\n",
+    "\n",
+    "X, y, true_weights = make_regression(\n",
+    "    n_samples=100,\n",
+    "    n_features=100,\n",
+    "    n_informative=10,\n",
+    "    noise=8,\n",
+    "    coef=True,\n",
+    "    random_state=42,\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.linear_model import ARDRegression, LinearRegression, BayesianRidge\n",
+    "\n",
+    "olr = LinearRegression().fit(X, y)\n",
+    "brr = BayesianRidge(compute_score=True, n_iter=30).fit(X, y)\n",
+    "ard = ARDRegression(compute_score=True, n_iter=30).fit(X, y)\n",
+    "glm = GLM().fit(X, y)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "To assess the performance of the different regressors, we compare the coefficients of each of the model against the generative model."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import seaborn as sns\n",
+    "from matplotlib.colors import SymLogNorm\n",
+    "\n",
+    "df = pd.DataFrame(\n",
+    "    {\n",
+    "        \"True Process Weights\": true_weights,\n",
+    "        \"ARDRegression\": ard.coef_,\n",
+    "        \"BayesianRidge\": brr.coef_,\n",
+    "        \"LinearRegression\": olr.coef_,\n",
+    "        \"scikit-stan GLM\": glm.beta_\n",
+    "    }\n",
+    ")\n",
+    "\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "ax = sns.heatmap(\n",
+    "    df.T,\n",
+    "    norm=SymLogNorm(linthresh=10e-4, vmin=-80, vmax=80),\n",
+    "    cbar_kws={\"label\": \"coefficients' values\"},\n",
+    "    cmap=\"seismic_r\",\n",
+    ")\n",
+    "plt.ylabel(\"Model Name\")\n",
+    "plt.xlabel(\"Coefficients\")\n",
+    "plt.tight_layout(rect=(0, 0, 1, 0.95))\n",
+    "_ = plt.title(\"Model Coefficients\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The additive noise and the probabilistic setting ensures that that none of the models obtain the generative model's true weights. For a discussion of the first three models, please refer to the original ``scikit-learn`` example linked above. We observe, however, that unlike the Bayesian Ridge and OLS models, the regression coefficients of the ``scikit-stan`` GLM are not as skewed to the upper throes of the interval ``[-10, 10]`` and are instead, on average, closer to the midpoint of the interval. That being said, the ARD model produces a sparser solution as it retains some non-informative coefficients of the true generative process.  "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Regression with Polynomial Feature Expansion"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We now provide an example with a target that is a non-linear function of the input feature, and as usual, has noise that follows a standard uniform distribution. This example also shows a non-trivial ``Pipeline`` of ``scikit-learn`` models into which the ``scikit-stan`` model is embedded seamlessly, while also illustrating an important shortcoming of polynomial extrapolation. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.pipeline import make_pipeline\n",
+    "from sklearn.preprocessing import PolynomialFeatures, StandardScaler\n",
+    "\n",
+    "rng = np.random.RandomState(0)\n",
+    "n_samples = 110\n",
+    "\n",
+    "# sort the data to make plotting easier later\n",
+    "X = np.sort(-10 * rng.rand(n_samples) + 10)\n",
+    "noise = rng.normal(0, 1, n_samples) * 1.35\n",
+    "y = np.sqrt(X) * np.sin(X) + noise\n",
+    "full_data = pd.DataFrame({\"Input Feature\": X, \"Target\": y})\n",
+    "X = X.reshape((-1, 1))\n",
+    "\n",
+    "# extrapolation\n",
+    "X_plot = np.linspace(10, 10.4, 10)\n",
+    "y_plot = np.sqrt(X_plot) * np.sin(X_plot)\n",
+    "X_plot = np.concatenate((X, X_plot.reshape((-1, 1))))\n",
+    "y_plot = np.concatenate((y - noise, y_plot))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The regressors are fit under a 10th degree polynomial as an attempt to induce overfitting. Note that the Bayesian models regularize the size of the polynomial's coefficients. \n",
+    "\n",
+    "We also demonstrate the similarity in the API for the ``predict()`` method of ``scikit-stan`` models as the ``return_std=True`` option returns the standard deviation of the posterior distribution for model parameters analogously to ``scikit-learn`` models."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ard_poly = make_pipeline(\n",
+    "    PolynomialFeatures(degree=10, include_bias=False),\n",
+    "    StandardScaler(),\n",
+    "    ARDRegression(),\n",
+    ").fit(X, y)\n",
+    "y_ard, y_ard_std = ard_poly.predict(X_plot, return_std=True)\n",
+    "\n",
+    "glm_poly = make_pipeline(\n",
+    "    PolynomialFeatures(degree=10, include_bias=False),\n",
+    "    StandardScaler(),\n",
+    "    GLM()\n",
+    ").fit(X, y)\n",
+    "\n",
+    "y_glm, y_glm_std = glm_poly.predict(X_plot, return_std=True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We now visually show the failure of extrapolation of these models due to the inherent restrictions of polynomial regressions. The error bars represent one standard deviation of the predicted Gaussian distribution of sample points.  "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plt.figure(figsize=(10, 6))\n",
+    "ax = sns.scatterplot(\n",
+    "    data=full_data, x=\"Input Feature\", y=\"Target\", color=\"black\", alpha=0.75\n",
+    ")\n",
+    "ax.plot(X_plot, y_plot, color=\"black\", label=\"Ground Truth\")\n",
+    "ax.plot(X_plot, y_glm, color=\"red\", label=\"scikit_stan GLM with Polynomial Features\")\n",
+    "ax.plot(X_plot, y_ard, color=\"navy\", label=\"ARD with Polynomial Features\")\n",
+    "ax.fill_between(\n",
+    "    X_plot.ravel(),\n",
+    "    y_ard - y_ard_std,\n",
+    "    y_ard + y_ard_std,\n",
+    "    color=\"navy\",\n",
+    "    alpha=0.3,\n",
+    ")\n",
+    "ax.fill_between(\n",
+    "    X_plot.ravel(),\n",
+    "    y_glm - y_glm_std,\n",
+    "    y_glm + y_glm_std,\n",
+    "    color=\"red\",\n",
+    "    alpha=0.3,\n",
+    ")\n",
+    "ax.legend(loc=\"lower left\")\n",
+    "_ = ax.set_title(\"Polynomial Fit of a Non-linear Feature\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.13"
+  },
+  "orig_nbformat": 4,
+  "vscode": {
+   "interpreter": {
+    "hash": "160f8a19148fea9a7cf8ea4744d98c012bbc4693e4d32de3466f175967d43183"
+   }
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

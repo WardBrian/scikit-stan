@@ -10,7 +10,7 @@ data {
     int<lower=0, upper=1> predictor;  // 0: fitting run, 1: prediction run
     array[(predictor > 0) ? 0 : N] int<lower=0, upper=1> y;   // outcome vector
     array[N] int<lower=0> trials;           // number of trials
-    int<lower=0, upper=1> fit_intercept; // 0: no intercept, 1: intercept
+    int<lower=0, upper=1> fit_intercept;    // 0: no intercept, 1: intercept
 
     // assume validation performed externally
     int<lower=3, upper=6> family;     // family of the model
@@ -62,7 +62,7 @@ model {
     }
     else if (family == 6) { // bernoulli  
         if (link == 5) { // logit  
-            // this lets us use the more efficient Stan function for this family-link combination
+            // efficient Stan function for this family-link combination
             y ~ bernoulli_logit(mu);
         }
         else { 

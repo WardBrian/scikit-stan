@@ -452,8 +452,8 @@ def test_invgaussian_link_scipy_gen(link: str):
     [
         None,
         {},
-        {"prior_aux_dist": "exponential", "prior_aux_param": 0.5},
-        {"prior_aux_dist": "chi2", "prior_aux_param": 2.5},
+        {"prior_aux_dist": "exponential", "beta": 0.5},
+        {"prior_aux_dist": "chi2", "nu": 2.5},
     ],
 )
 def test_glm_prior_aux_setup(prior_aux) -> None:
@@ -468,14 +468,30 @@ def test_glm_prior_aux_setup(prior_aux) -> None:
 
     if prior_aux is None:
         """Default unscaled prior."""
-        assert glm.prior_aux_ == {"prior_aux_dist": 0, "prior_aux_param": 1.0}
+        assert glm.prior_aux_ == {
+            "num_prior_aux_params": 1,
+            "prior_aux_dist": 0,
+            "prior_aux_params": [1.0],
+        }
     elif len(prior_aux) == 0:
-        assert glm.prior_aux_ == {"prior_aux_dist": -1, "prior_aux_param": 0.0}
+        assert glm.prior_aux_ == {
+            "num_prior_aux_params": 1,
+            "prior_aux_dist": -1,
+            "prior_aux_params": [0.0],
+        }
     else:
         if prior_aux["prior_aux_dist"] == "exponential":
-            assert glm.prior_aux_ == {"prior_aux_dist": 0, "prior_aux_param": 0.5}
+            assert glm.prior_aux_ == {
+                "num_prior_aux_params": 1,
+                "prior_aux_dist": 0,
+                "prior_aux_params": [0.5],
+            }
         else:
-            assert glm.prior_aux_ == {"prior_aux_dist": 1, "prior_aux_param": 2.5}
+            assert glm.prior_aux_ == {
+                "num_prior_aux_params": 1,
+                "prior_aux_dist": 1,
+                "prior_aux_params": [2.5],
+            }
 
 
 # NOTE: for the identity link, the generated data may lead to a negative lambda
