@@ -12,6 +12,7 @@ from numpy.typing import ArrayLike, NDArray
 from scikit_stan.modelcore import CoreEstimator
 from scikit_stan.utils.validation import (
     FAMILY_LINKS_MAP,
+    GLM_FAMILIES,
     check_array,
     check_is_fitted,
     method_dict,
@@ -22,17 +23,6 @@ from scikit_stan.utils.validation import (
 
 STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
 CMDSTAN_VERSION = "2.30.1"
-
-
-GLM_FAMILIES = {
-    "gaussian": 0,
-    "gamma": 1,
-    "inverse-gaussian": 2,
-    "poisson": 3,
-    "binomial": 4,
-    "negative-binomial": 5,
-    "bernoulli": 6,
-}
 
 # handle pre-compiled models and possibly repackaged cmdstan
 

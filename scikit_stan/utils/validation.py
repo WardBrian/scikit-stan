@@ -10,6 +10,16 @@ from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
 
+GLM_FAMILIES = {
+    "gaussian": 0,
+    "gamma": 1,
+    "inverse-gaussian": 2,
+    "poisson": 3,
+    "binomial": 4,
+    "negative-binomial": 5,
+    "bernoulli": 6,
+}
+
 """ GENERAL LINK MAP
      identity - 0
      log - 1
