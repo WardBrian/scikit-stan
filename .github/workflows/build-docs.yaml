@@ -66,7 +66,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add .
           git commit -m "Rebuild docs"
-          git branch -M gh-pages
+          git branch -m gh-pages
 
       - name: Push changes
         uses: ad-m/github-push-action@master
