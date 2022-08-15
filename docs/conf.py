@@ -132,7 +132,7 @@ html_context = {
     "github_user": "WardBrian",
     "github_repo": "scikit-stan",
     "github_version": "main",
-    "doc_path": "docsrc",
+    "doc_path": "docs",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

@@ -6,4 +6,4 @@ build:
 formats:
     - pdf
 conda:
-    environment: docsrc/env.yml
+    environment: docs/env.yml
