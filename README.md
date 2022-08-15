@@ -1,6 +1,6 @@
 # scikit-stan
 
-Scikit-Stan is a package of [Stan](mc-stan.org) models wrapped in a
+Scikit-Stan is a package of [Stan](https://mc-stan.org/) models wrapped in a
 [Scikit-Learn](https://scikit-learn.org/stable/) style interface.
 
 This package is currently under active development and should be treated as beta software.

@@ -7,3 +7,5 @@ Examples
     :titlesonly:
 
     examples/Gamma Bloodclotting.ipynb
+
+    examples/Comparing Linear Bayesian Regressors.ipynb

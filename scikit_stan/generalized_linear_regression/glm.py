@@ -1,8 +1,8 @@
-"""Vectorized GLM model with sk-learn type API"""
+"""Generalized Linear Model with prior control for regression in scikit-learn type API."""
 
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.stats as stats
@@ -12,8 +12,10 @@ from numpy.typing import ArrayLike, NDArray
 from scikit_stan.modelcore import CoreEstimator
 from scikit_stan.utils.validation import (
     FAMILY_LINKS_MAP,
+    GLM_FAMILIES,
     check_array,
     check_is_fitted,
+    method_dict,
     validate_aux_prior,
     validate_family,
     validate_prior,
@@ -21,21 +23,6 @@ from scikit_stan.utils.validation import (
 
 STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
 CMDSTAN_VERSION = "2.30.1"
-
-method_dict = {
-    "sample": CmdStanModel.sample,
-    "optimize": CmdStanModel.optimize,
-    "variational": CmdStanModel.variational,
-}
-
-GLM_FAMILIES = {
-    "gaussian": 0,
-    "gamma": 1,
-    "inverse-gaussian": 2,
-    "poisson": 3,
-    "binomial": 4,
-    "negative-binomial": 5,
-}
 
 # handle pre-compiled models and possibly repackaged cmdstan
 
@@ -81,7 +68,7 @@ class GLM(CoreEstimator):
     r"""
     A generalized linear model estimator with several options for families, links,
     and priors on regression coefficients, the intercept, and error scale,
-    done in an sk-learn style.
+    done in an scikit-learn style.
     This class also provides an autoscaling feature of the priors.
     For deterministic behavior from this model, the class's seed can be set and is then
     passed to Stan computations.
@@ -102,7 +89,7 @@ class GLM(CoreEstimator):
         this documentation for more information:
         https://mc-stan.org/cmdstanpy/api.html#cmdstanmodel
 
-        Customizing these fields occurs as a passed dictionary, which is validated
+        Customizing these fields is done via a passed dictionary, which is validated
         on the level of CmdStan. As an example, to specify the number of chains for
         the HMC-NUTS sampler to run, it is sufficient to pass::
 
@@ -119,6 +106,14 @@ class GLM(CoreEstimator):
             },
 
         Default Stan parameters are used if nothing is passed.
+
+    fit_intercept : bool, optional
+        Whether the GLM should fit a global intercept. Some hierarchical models operate
+        without an intercept, so setting this to False will fill the first column of the
+        predictor matrix with ones.
+
+        By default, the GLM has an intercept term -- the first column of the predictor
+        matrix X is used for inference of the intercept.
 
     family : str, optional
         Distribution family used for linear regression. All R Families package are supported:
@@ -174,8 +169,11 @@ class GLM(CoreEstimator):
         via :class:`numpy.random.RandomState`.
         Specifying this field will yield the same result for multiple uses if
         all other parameters are held the same.
+
     priors : Optional[Dict[str, Union[int, float, List]]], optional
         Dictionary for configuring prior distribution on coefficients.
+        Currently supported priors are: "normal", and "laplace".
+
         By default, all regression coefficient priors are set to
 
         .. math:: \beta \sim \text{normal}(0, 2.5 \cdot \text{sd}(y) / \text{sd}(X))
@@ -215,6 +213,10 @@ class GLM(CoreEstimator):
             }
 
         Any unspecified priors will be set to the default.
+
+        Also note that choosing a Laplace prior is equivalent to L1 regularization:
+        https://stats.stackexchange.com/questions/177210/why-is-laplace-prior-producing-sparse-solutions/177217#177217
+
     prior_intercept : Optional[Dict[str, Any]], optional
         Prior for the intercept alpha parameter for GLM.
         If this is not specified, the default is
@@ -248,11 +250,16 @@ class GLM(CoreEstimator):
 
         by default (without autoscaling, see below).
 
+        Also note that choosing a Laplace prior is equivalent to L1 regularization:
+        https://stats.stackexchange.com/questions/177210/why-is-laplace-prior-producing-sparse-solutions/177217#177217
+
     prior_aux : Optional[Dict[str, Any]], optional
         Prior on the auxiliary parameter for the family used in
         the regression: for example, the std for Gaussian, shape for gamma, etc...
-        Currently supported priors are: "exponential" and "chi2", which are
-        both parameterized by a single scalar.
+        Currently supported priors are: "exponential", "chi2", "gamma", and "inv_gamma".
+        These are parameterized by the following distribution parameters:
+        "beta", "nu", "alpha" and "beta", and "alpha" and "beta", respectively.
+
         Priors here with more parameters are a future feature.
 
         If an empty dictionary {} is passed, the default Stan uniform(-inf, inf) prior is used.
@@ -261,13 +268,14 @@ class GLM(CoreEstimator):
 
             + "prior_aux_dist": distribution of the prior on this parameter
             + "prior_aux_param": parameter of the prior on this parameter
+                                - see above for admissible tags
 
         For example, to specify a chi2 prior with nu=2.5, pass::
 
             {
                 "prior_aux_dist": "chi2",
 
-                "prior_aux_param": 2.5
+                "nu": 2.5
             }
 
         The default un-scaled prior is ``exponential(1)``, the default scaled prior is
@@ -292,6 +300,7 @@ class GLM(CoreEstimator):
         self,
         algorithm: str = "sample",
         algorithm_params: Optional[Dict[str, Any]] = None,
+        fit_intercept: bool = True,
         family: str = "gaussian",
         link: Optional[str] = None,
         seed: Optional[int] = None,
@@ -302,6 +311,8 @@ class GLM(CoreEstimator):
     ):
         self.algorithm = algorithm
         self.algorithm_params = algorithm_params
+
+        self.fit_intercept = fit_intercept
 
         self.family = family
         self.link = link
@@ -320,7 +331,7 @@ class GLM(CoreEstimator):
         show_console: bool = False,
     ) -> "CoreEstimator":
         """
-        Fits GLM object to the given data.
+        Fits GLM model to the given data.
         This model is considered fit once its alpha, beta,
         and sigma parameters are determined via a regression.
 
@@ -409,6 +420,7 @@ class GLM(CoreEstimator):
 
         validate_family(self.family, self.link_)
 
+        # ensure that identity link function is not used for discrete regressions
         if not self.is_cont_dat_ and self.link_ == "identity":
             self.link_ = "logit" if self.family == "bernoulli" else "log"
 
@@ -427,6 +439,7 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 0,
+            "fit_intercept": self.fit_intercept,
             "prior_intercept_dist": None,
             "prior_intercept_mu": None,
             "prior_intercept_sigma": None,
@@ -529,6 +542,7 @@ class GLM(CoreEstimator):
         # validate auxiliary parameter prior
         if self.prior_aux is None:
             self.prior_aux_ = {
+                "num_prior_aux_params": 1,
                 "prior_aux_dist": 0,  # exponential
             }
 
@@ -538,7 +552,7 @@ class GLM(CoreEstimator):
                         sigma ~ exponential(1 / sd(y))
                     """
                 )
-                self.prior_aux_["prior_aux_param"] = 1.0 / sdy
+                self.prior_aux_["prior_aux_params"] = [1.0 / sdy]
             else:
                 warnings.warn(
                     """Prior on auxiliary parameter not specified. Using default unscaled prior
@@ -546,14 +560,15 @@ class GLM(CoreEstimator):
                     """
                 )
 
-                self.prior_aux_["prior_aux_param"] = 1.0
+                self.prior_aux_["prior_aux_params"] = [1.0]
         else:
             # set auxiliary parameter prior to be default flat as in Stan:
             # uniform(-infinity, +infinity)
             if len(self.prior_aux) == 0:
                 self.prior_aux_ = {
+                    "num_prior_aux_params": 1,
                     "prior_aux_dist": -1,
-                    "prior_aux_param": 0.0,
+                    "prior_aux_params": [0.0],
                 }
             else:
                 self.prior_aux_ = validate_aux_prior(self.prior_aux)
@@ -568,7 +583,8 @@ class GLM(CoreEstimator):
         dat["prior_slope_sigma"] = self.priors_["prior_slope_sigma"]
 
         dat["prior_aux_dist"] = self.prior_aux_["prior_aux_dist"]
-        dat["prior_aux_param"] = self.prior_aux_["prior_aux_param"]
+        dat["num_prior_aux_params"] = self.prior_aux_["num_prior_aux_params"]
+        dat["prior_aux_params"] = self.prior_aux_["prior_aux_params"]
 
         if self.is_cont_dat_:
             self.model_ = GLM_CONTINUOUS_STAN
@@ -592,8 +608,9 @@ class GLM(CoreEstimator):
 
         stan_vars = self.fitted_samples_.stan_variables()
         if self.algorithm == "sample":
-            self.alpha_ = stan_vars["alpha"].mean(axis=0)
-            self.alpha_samples_ = stan_vars["alpha"]
+            if self.fit_intercept:
+                self.alpha_ = stan_vars["alpha"].mean(axis=0)
+                self.alpha_samples_ = stan_vars["alpha"]
 
             self.beta_ = stan_vars["beta"].mean(axis=0)
             self.beta_samples_ = stan_vars["beta"]
@@ -603,7 +620,9 @@ class GLM(CoreEstimator):
                 self.sigma_ = stan_vars["sigma"].mean(axis=0)
                 self.sigma_samples_ = stan_vars["sigma"]
         else:
-            self.alpha_ = stan_vars["alpha"]
+            if self.fit_intercept:
+                self.alpha_ = stan_vars["alpha"]
+
             self.beta_ = stan_vars["beta"]
 
             if self.is_cont_dat_:
@@ -683,6 +702,7 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 1,
+            "fit_intercept": self.fit_intercept,
             "prior_intercept_dist": 0,
             "prior_intercept_mu": 1.0,
             "prior_intercept_sigma": 2.5,
@@ -693,6 +713,9 @@ class GLM(CoreEstimator):
             "prior_aux_param": 1.0,  # these don't affect anything when generating predictions
             "sdy": 1.0,
         }
+
+        dat["num_prior_aux_params"] = self.prior_aux_["num_prior_aux_params"]
+        dat["prior_aux_params"] = self.prior_aux_["prior_aux_params"]
 
         # known that fitted with sampling, so fitted_samples is not None
         predicGQ = self.model_.generate_quantities(
@@ -708,8 +731,14 @@ class GLM(CoreEstimator):
     def predict(
         self,
         X: ArrayLike,
+        return_std: bool = False,
         show_console: bool = False,
-    ) -> NDArray[np.float64]:
+    ) -> Union[
+        NDArray[Union[np.float64, np.int64]],
+        Tuple[
+            NDArray[Union[np.float64, np.int64]], NDArray[Union[np.float64, np.int64]]
+        ],
+    ]:
         """Compute predictions from supplied data using a fitted model.
             This computes the mean of the predicted distribution,
             given by y_sim in predict_distribution().
@@ -723,13 +752,21 @@ class GLM(CoreEstimator):
         ----------
         X : ArrayLike
             Predictor matrix or array of data to use for prediction.
-        show_console : bool, optional
+
+        return_std : bool, optional, default=False
+            If True, return standard deviation of predictions.
+
+        show_console : bool, optional, default=False
             Printing output of default CmdStanPy console during Stan operations.
 
         Returns
         -------
         NDArray[np.float64]
             Array of predictions of shape (n_samples, 1) made by fitted model.
+
+        NDArray[np.float64]
+            Standard deviation of predictive distribution points.
+
         """
         check_is_fitted(self)
 
@@ -741,10 +778,20 @@ class GLM(CoreEstimator):
 
         X_clean, _ = self._validate_data(X=X, ensure_X_2d=True)
 
-        return self.predict_distribution(  # type: ignore
+        y_predict_mean = self.predict_distribution(
             X_clean,
             show_console=show_console,
         ).mean(axis=0, dtype=np.float64)
+
+        if return_std:
+            sigmas_squared_data = (np.dot(X_clean, self.sigma_) * X_clean).sum(  # type: ignore
+                axis=1
+            )
+            y_std = np.sqrt(sigmas_squared_data + (1.0 / self.alpha_))
+
+            return y_predict_mean, y_std
+        else:
+            return y_predict_mean  # type: ignore
 
     def score(
         self,
@@ -786,24 +833,3 @@ class GLM(CoreEstimator):
         sstot: float = np.sum((y_clean - mean_obs) ** 2)
 
         return 1 - ssreg / sstot
-
-    def _more_tags(self) -> Dict[str, Any]:
-        """
-        Sets tags for current model that exclude certain sk-learn estimator
-        checks that are not applicable to this model.
-        """
-        return {
-            "_xfail_checks": {
-                "check_methods_sample_order_invariance": "check is not applicable.",
-                "check_methods_subset_invariance": "check is not applicable.",
-                "check_fit_idempotent": """model is idempotent, but not to the required degree of
-                    accuracy as this is a probabilistic setting.""",
-                "check_fit1d": """provided automatic cast from 1d to 2d in data validation.""",
-                # NOTE: the expected behavior here is to raise a ValueError, the package intends
-                # to give alternative default behavior in these scenarios!
-                "check_fit2d_predict1d": """provided automatic cast from 1d to 2d in data validation
-                 STILL NEEDS TO BE INVESTIGATED FOR GQ ISSUE""",
-                # NOTE: the expected behavior here is to raise a ValueError,
-                #  the package intends to give alternative default behavior in these scenarios!
-            }
-        }

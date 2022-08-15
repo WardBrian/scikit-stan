@@ -10,6 +10,42 @@ vector inv_cauchit(vector mu) {
     return atan(mu) / pi() + 0.5; 
 }
 
+
+/* EXPERIMENTAL REFACTORING: Common method to extract parameters for priors and add to log likelihood computation */
+
+/** 
+
+
+@param prior_params: vector of parameters for the prior
+@param prior_dist: tag for distribution for the prior. This is one of 
+* TODO: insert the available priors here and the corresponding tags
+
+* NOTE: priors for regression coefficients and the auxiliary parameter are different
+* here are the priors that are available for the auxiliary parameter: 
+
+@param is_aux: int indicating whether the distributions are to be taken from the auxillary or main parameter 
+                set of available priors; 0: not auxiliary parameter prior, 1: auxiliary parameter prior 
+*/ 
+//vector extract_prior_params(vector prior_params, int prior_dist, int is_aux) {
+//    if (is_aux == 0) {  // not auxiliary parameter prior; prior for one of the regression coefficients or for intercept 
+//        if (prior_dist == 0) { // normal prior; has mu and sigma -- prior_params = [mu, sigma] 
+//            return normal(prior_params[1], prior_params[2]); 
+//        }
+//        //else if (prior_dist == 1) { // laplace/double exponential prior; has mu and sigma 
+//        //    return prior_
+//        //}
+//
+//    } 
+//    //else { // prior distribution is for auxiliary parameter 
+//    //    if (prior_dist == 0) { // exponential prior for auxiliary parameter  
+////
+//    //    }
+//    //    else if (prior_dist == 1) { // chi2 prior for auxiliary parameter
+//    //    
+//    //    }
+//    //}
+//}
+//
 /*   GENERAL LINK MAP 
      
      identity - 0

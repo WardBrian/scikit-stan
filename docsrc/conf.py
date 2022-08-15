@@ -84,6 +84,9 @@ napoleon_use_param = True
 napoleon_use_rtype = False
 
 
+nbsphinx_execute = "always"  # make sure that notebooks are always executed
+
+
 nbsphinx_execute_arguments = [
     "--InlineBackend.figure_formats={'svg', 'pdf'}",
     "--InlineBackend.rc={'figure.dpi': 96}",

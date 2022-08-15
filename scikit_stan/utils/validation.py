@@ -5,10 +5,20 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tupl
 
 import numpy as np
 import scipy.sparse as sp
+from cmdstanpy import CmdStanModel
 from numpy.typing import ArrayLike, NDArray
 
 from ..exceptions import NotFittedError
 
+GLM_FAMILIES = {
+    "gaussian": 0,
+    "gamma": 1,
+    "inverse-gaussian": 2,
+    "poisson": 3,
+    "binomial": 4,
+    "negative-binomial": 5,
+    "bernoulli": 6,
+}
 
 """ GENERAL LINK MAP
      identity - 0
@@ -27,9 +37,6 @@ from ..exceptions import NotFittedError
 GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2}
 
 
-# corresponding to logistic, normal and Cauchy CDFs respectively
-BINOMIAL_LINKS = {"log": 1, "logit": 5, "probit": 6, "cloglog": 7, "cauchit": 8}
-
 # NOTE: the Gamma regression is on parameterized Gamma(mu, alpha)
 # where alpha is considered fixed as linear models all assume constant variance
 GAMMA_LINKS = {
@@ -39,10 +46,23 @@ GAMMA_LINKS = {
 }
 
 
+INVERSE_GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2, "inverse-square": 4}
+
+
+BINOMIAL_LINKS = {"log": 1, "logit": 5, "probit": 6, "cloglog": 7, "cauchit": 8}
+
+
 POISSON_LINKS = {"identity": 0, "log": 1, "sqrt": 3}
 
 
-INVERSE_GAUSSIAN_LINKS = {"identity": 0, "log": 1, "inverse": 2, "inverse-square": 4}
+BERNOULLI_LINKS = {"logit": 5, "probit": 6, "cloglog": 7}
+
+
+method_dict = {
+    "sample": CmdStanModel.sample,
+    "optimize": CmdStanModel.optimize,
+    "variational": CmdStanModel.variational,
+}
 
 
 FAMILY_LINKS_MAP = {
@@ -52,7 +72,9 @@ FAMILY_LINKS_MAP = {
     "poisson": POISSON_LINKS,
     "inverse-gaussian": INVERSE_GAUSSIAN_LINKS,
     # "binomial" : BINOMIAL_LINKS
+    "bernoulli": BERNOULLI_LINKS,
 }
+
 
 SLOPE_PRIOR_DEFAULTS_INFO = {
     "normal": "normal(0, 2.5 * sd(y) / sd(X)) if Gaussian else normal(0, 2.5)",
@@ -60,11 +82,13 @@ SLOPE_PRIOR_DEFAULTS_INFO = {
     "laplace": "laplace(0, 2.5)",
 }
 
+
 INTERCEPT_PRIOR_DEFAULTS_INFO = {
     "normal": "normal(mu(y), 2.5 * sd(y)) if Gaussian else normal(0, 2.5)",
     # NOTE: the laplace distribution is translation invariant
     "laplace": "double_exponential(0, 2.5)",
 }
+
 
 PRIORS_MAP = {
     "normal": 0,  # normal distribution, requires location (mu) and scale (sigma)
@@ -76,9 +100,12 @@ PRIORS_MAP = {
     #  https://www.jstor.org/stable/1403571#metadata_info_tab_contents
 }
 
+# NOTE: these must be positive-valued distributions only
 PRIORS_AUX_MAP = {
     "exponential": 0,  # exponential distribution, requires only beta parameter
     "chi2": 1,  # chi-squared distribution, requires only nu parameter
+    "gamma": 2,  # gamma distribution, requires only alpha and beta parameters
+    "inv_gamma": 3,  # inverse gamma distribution, requires only alpha and beta parameters
 }
 
 
@@ -468,6 +495,21 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
     Validates passed configuration for prior on auxiliary parameters.
     This does not perform parameter autoscaling.
 
+    This validation method returns the following fields in the dictionary:
+
+        * "prior_aux_dist": distribution of the prior on auxiliary parameters from this mapping:
+            PRIORS_AUX_MAP = {
+                        "exponential": 0,  # exponential distribution, requires only beta parameter
+                        "chi2": 1,  # chi-squared distribution, requires only nu parameter
+                        "gamma": 2,  # gamma distribution, requires only alpha and beta parameters
+                        "inv_gamma": 3,
+                        # inverse gamma distribution, requires only alpha and beta parameters
+                        }
+        * "num_prior_aux_params": number of parameters in the prior on auxiliary parameters,
+            determined by the number of parameters in the distribution.
+        * "prior_aux_params": list of parameters in the prior on auxiliary parameters;
+                            this must be a list even if the distribution only has one parameter
+
     Parameters
     ----------
     aux_prior_spec : Dict[str, Any]
@@ -513,25 +555,51 @@ def validate_aux_prior(aux_prior_spec: Dict[str, Any]) -> Dict[str, Any]:
             f"Prior {dist_key} in auxiliary prior specification {aux_prior_spec} not supported."
         )
 
-    prior_aux_clean = {
+    prior_aux_clean: Dict[str, Any] = {
         "prior_aux_dist": PRIORS_AUX_MAP[dist_key],
     }
 
     if dist_key == "exponential":
-        if "prior_aux_param" not in config_keys:
+        if "beta" not in config_keys:
             raise ValueError(
-                f"""prior_aux_param must be specified in
-                exponential auxiliary prior given by {aux_prior_spec}."""
+                f"""beta must be specified in
+                exponential auxiliary parameter prior given by {aux_prior_spec}."""
             )
 
-        prior_aux_clean["prior_aux_param"] = aux_prior_spec["prior_aux_param"]
+        prior_aux_clean["num_prior_aux_params"] = 1
+        prior_aux_clean["prior_aux_params"] = [aux_prior_spec["beta"]]
     elif dist_key == "chi2":
-        if "prior_aux_param" not in config_keys:
+        if "nu" not in config_keys:
             raise ValueError(
-                f"""prior_aux_param must be specified in
-                chi2 auxiliary prior given by {aux_prior_spec}."""
+                f"""nu must be specified in
+                chi2 auxiliary parameter prior given by {aux_prior_spec}."""
             )
 
-        prior_aux_clean["prior_aux_param"] = aux_prior_spec["prior_aux_param"]
+        prior_aux_clean["num_prior_aux_params"] = 1
+        prior_aux_clean["prior_aux_params"] = [aux_prior_spec["nu"]]
+    elif dist_key == "gamma":
+        if not ("beta" in config_keys and "alpha" in config_keys):
+            raise ValueError(
+                f"""alpha and beta must be specified in
+                gamma auxiliary parameter prior given by {aux_prior_spec}."""
+            )
+
+        prior_aux_clean["num_prior_aux_params"] = 2
+        prior_aux_clean["prior_aux_params"] = [
+            aux_prior_spec["alpha"],
+            aux_prior_spec["beta"],
+        ]
+    elif dist_key == "inv_gamma":
+        if not ("beta" in config_keys and "alpha" in config_keys):
+            raise ValueError(
+                f"""alpha and beta must be specified in
+                gamma auxiliary parameter prior given by {aux_prior_spec}."""
+            )
+
+        prior_aux_clean["num_prior_aux_params"] = 2
+        prior_aux_clean["prior_aux_params"] = [
+            aux_prior_spec["alpha"],
+            aux_prior_spec["beta"],
+        ]
 
     return prior_aux_clean
