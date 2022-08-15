@@ -67,7 +67,6 @@ jobs:
           git add .
           git commit -m "Rebuild docs"
           git branch -M gh-pages
-          git push https://github.com/WardBrian/scikit-stan.git gh-pages -f
 
       - name: Push changes
         uses: ad-m/github-push-action@master
@@ -75,4 +74,4 @@ jobs:
           ssh: true
           branch: gh-pages
           force: true
-          
+
