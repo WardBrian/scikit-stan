@@ -179,6 +179,7 @@ def check_array(
     X: ArrayLike,
     ensure_2d: bool = True,
     allow_nd: bool = False,
+    allow_sparse: bool = False,
     dtype: type = np.float64,
 ) -> Union[NDArray[Union[np.float64, np.int64]], sp.csr_matrix]:
     """Input validation on an array, list, sparse matrix or similar.
@@ -217,8 +218,14 @@ def check_array(
         raise ValueError("Complex data not supported.")
 
     if sp.issparse(X):
-        res = sp.csr_matrix(X)
-        check_data = res.data
+        if allow_sparse:
+            res = sp.csr_matrix(X)
+            check_data = res.data
+        else:
+            raise ValueError(
+                """Estimator does not currently support sparse data
+             entry; consider extracting with .todense()"""
+            )
     else:
         check_data = np.asarray(X, dtype=dtype)
         res = check_data
@@ -284,7 +291,9 @@ def check_X_y(
     allow_nd: bool = False,
     dtype: type = np.float64,
 ) -> Tuple[NDArray[Union[np.float64, np.int64]], NDArray[Union[np.float64, np.int64]]]:
-    X_checked = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd, dtype=dtype)
+    X_checked = check_array(
+        X, ensure_2d=ensure_X_2d, allow_nd=allow_nd, dtype=dtype, allow_sparse=True
+    )
     y_checked = _check_y(y, dtype=dtype)
 
     return X_checked, y_checked

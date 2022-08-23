@@ -341,6 +341,7 @@ class GLM(CoreEstimator):
         X : ArrayLike
             NxK matrix of predictors, where K >= 0. If K = 1,
             then X is automatically reshaped to being 2D and raises a warning.
+            X can be sparse. It will be converted to CSR format if it is not already.
         y : ArrayLike
             Nx1 outcome vector where each row is a response corresponding to
             the same row of predictors in X.
@@ -466,7 +467,6 @@ class GLM(CoreEstimator):
 
             sdx = np.std(X_clean)
 
-        print(dat)
         if self.familyid_ == 0:  # gaussian
             my = np.mean(y_clean) if self.linkid_ == 0 else 0.0
             sdy = np.std(y_clean)
@@ -664,6 +664,7 @@ class GLM(CoreEstimator):
         ----------
         X : NDArray[Union[np.float64, np.int64]]
             Predictor matrix or array of data to use for prediction.
+            X can be sparse. It will be converted to CSR format if it is not already.
         show_console : bool, optional
             Printing output of default CmdStanPy console during Stan operations.
 
@@ -785,6 +786,7 @@ class GLM(CoreEstimator):
         ----------
         X : ArrayLike
             Predictor matrix or array of data to use for prediction.
+            X can be sparse. It will be converted to CSR format if it is not already.
 
         return_std : bool, optional, default=False
             If True, return standard deviation of predictions.
@@ -840,6 +842,8 @@ class GLM(CoreEstimator):
         X : ArrayLike
             Matrix or array of predictors having shape (n_samples, n_predictors)
             that consists of test data.
+
+            X can be sparse. It will be converted to CSR format if it is not already.
         y : ArrayLike
             Array of shape (n_samples,) containing the target values
             corresponding to given test dat X.

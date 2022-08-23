@@ -167,6 +167,7 @@ class CoreEstimator:
                 ensure_2d=ensure_X_2d,
                 allow_nd=allow_X_nd,
                 dtype=dtype,
+                allow_sparse=True,
             )
             res_y = None
         elif no_X and not no_y:
