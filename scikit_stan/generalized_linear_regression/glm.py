@@ -787,10 +787,8 @@ class GLM(CoreEstimator):
         X : ArrayLike
             Predictor matrix or array of data to use for prediction.
             X can be sparse. It will be converted to CSR format if it is not already.
-
         return_std : bool, optional, default=False
             If True, return standard deviation of predictions.
-
         show_console : bool, optional, default=False
             Printing output of default CmdStanPy console during Stan operations.
 
@@ -842,7 +840,6 @@ class GLM(CoreEstimator):
         X : ArrayLike
             Matrix or array of predictors having shape (n_samples, n_predictors)
             that consists of test data.
-
             X can be sparse. It will be converted to CSR format if it is not already.
         y : ArrayLike
             Array of shape (n_samples,) containing the target values
