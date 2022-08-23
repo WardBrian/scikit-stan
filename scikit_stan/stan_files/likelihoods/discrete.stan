@@ -1,4 +1,4 @@
-#include "./common.stan"
+#include "/common/functions.stan"
 /* Log-likelihood functions for different discrete families. */
 
 real bernoulli_llh(vector y, real p) {

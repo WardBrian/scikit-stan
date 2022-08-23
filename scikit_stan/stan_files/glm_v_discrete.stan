@@ -1,16 +1,13 @@
 // GLM for Binomial, Bernoulli, and Poisson regressions
 functions {
     #include /likelihoods/discrete.stan
-    //#include ./common.stan
 }
 data {
-    int<lower=0> N;                   // number of data items
-    int<lower=0> K;                   // number of predictors
-    matrix[N, K] X;                   // predictor matrix
-    int<lower=0, upper=1> predictor;  // 0: fitting run, 1: prediction run
-    array[(predictor > 0) ? 0 : N] int<lower=0, upper=1> y;   // outcome vector
+    // control flags and X_data
+    #include /common/glm_data.stan
+
+    array[(predictor > 0) ? 0 : N] int<lower=0> y;   // outcome vector
     array[N] int<lower=0> trials;           // number of trials
-    int<lower=0, upper=1> fit_intercept;    // 0: no intercept, 1: intercept
 
     // assume validation performed externally
     int<lower=3, upper=6> family;     // family of the model
@@ -26,15 +23,12 @@ data {
     real sdy;
 }
 parameters {
-    real alpha[fit_intercept];           // intercept
+    array[fit_intercept] real alpha;           // intercept
     vector[K] beta;                      // coefficients for predictors
 }
 model {
-    vector[N] mu = X * beta; // linear predictor
-
-    if (fit_intercept) {
-        mu = mu + alpha[1];
-    }
+    // expected values / linear predictor
+    #include /common/make_mu.stan
 
     // default prior selection follows:
     // https://cran.r-project.org/web/packages/rstanarm/vignettes/priors.html
@@ -73,10 +67,8 @@ generated quantities {
     array[predictor * N] real y_sim;
     {
         if (predictor) {
-            vector[N] mu = X * beta;              // expected values / linear predictor
-            if (fit_intercept) {
-            mu = mu + alpha[1];
-            }
+            // expected values / linear predictor
+            #include /common/make_mu.stan
             vector[N] mu_unlinked = common_invert_link(mu, link); // reverse link function
 
             if (family == 3) { // Poisson

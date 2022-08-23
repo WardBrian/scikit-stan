@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+import scipy.sparse as sp
 import scipy.stats as stats
 from cmdstanpy import CmdStanModel, set_cmdstan_path
 from numpy.typing import ArrayLike, NDArray
@@ -432,7 +433,6 @@ class GLM(CoreEstimator):
 
         # data common to all prior choices for intercept and coefficients
         dat = {
-            "X": X_clean,
             "y": y_clean,
             "N": X_clean.shape[0],
             "K": K,
@@ -447,8 +447,26 @@ class GLM(CoreEstimator):
             "prior_slope_mu": [None] * K,
             "prior_slope_sigma": [None] * K,
         }
+        if sp.issparse(X_clean):
+            dat["X_dense"] = 0
+            dat["X"] = []
+            dat["X_data"] = X_clean.data
+            dat["X_nz"] = X_clean.nnz
+            dat["X_idxs"] = X_clean.indices + 1
+            dat["X_indptr"] = X_clean.indptr + 1
 
-        sdx = np.std(X_clean)
+            sdx = np.sqrt((X_clean.power(2)).mean() - np.square(X_clean.mean()))
+        else:
+            dat["X_dense"] = 1
+            dat["X"] = X_clean
+            dat["X_nz"] = 0
+            dat["X_data"] = []
+            dat["X_idxs"] = []
+            dat["X_indptr"] = []
+
+            sdx = np.std(X_clean)
+
+        print(dat)
         if self.familyid_ == 0:  # gaussian
             my = np.mean(y_clean) if self.linkid_ == 0 else 0.0
             sdy = np.std(y_clean)
@@ -693,10 +711,9 @@ class GLM(CoreEstimator):
                     random_state=self.seed_,
                 )
 
-        dat = {
+        dat: Dict[str, Any] = {
             "N": X_clean.shape[0],
             "K": X_clean.shape[1],
-            "X": X_clean,
             "y": [],
             "trials": [],
             "family": self.familyid_,
@@ -713,6 +730,22 @@ class GLM(CoreEstimator):
             "prior_aux_param": 1.0,  # these don't affect anything when generating predictions
             "sdy": 1.0,
         }
+
+        if sp.issparse(X_clean):
+            assert isinstance(X_clean, sp.csr_matrix)
+            dat["X_dense"] = 0
+            dat["X"] = []
+            dat["X_data"] = X_clean.data
+            dat["X_nz"] = X_clean.nnz
+            dat["X_idxs"] = X_clean.indices + 1
+            dat["X_indptr"] = X_clean.indptr + 1
+        else:
+            dat["X_dense"] = 1
+            dat["X"] = X_clean
+            dat["X_nz"] = 0
+            dat["X_data"] = []
+            dat["X_idxs"] = []
+            dat["X_indptr"] = []
 
         dat["num_prior_aux_params"] = self.prior_aux_["num_prior_aux_params"]
         dat["prior_aux_params"] = self.prior_aux_["prior_aux_params"]

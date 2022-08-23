@@ -1,14 +1,12 @@
 // GLM for Gaussian, Gamma, inverse Gaussian, and Beta models
 functions {
   #include /likelihoods/continuous.stan
-  #include ./common.stan
+  #include /common/functions.stan
 }
 data {
-  int<lower=0> N;   // number of data items
-  int<lower=0> K;   // number of predictors/features
-  int<lower=0, upper=1> predictor; // 0: fitting run, 1: prediction run
-  int<lower=0, upper=1> fit_intercept; // 0: no intercept, 1: intercept
-  matrix[N, K] X;   // predictor matrix
+  // control flags and X_data
+  #include /common/glm_data.stan
+
   vector[(predictor > 0) ? 0 : N] y;      // outcome vector; change to N*(1-predictor)
 
   // assume validation performed externally to Stan
@@ -27,7 +25,7 @@ data {
   int<lower=-1> prior_aux_dist;           // distribution for auxiliary parameter (sigma):
                                           // -1 is default uniform(-inf, inf), 0 is exponential, 1 is chi2
   int<lower=1> num_prior_aux_params;      // number of parameters in the prior for auxiliary parameter
-  real<lower=0> prior_aux_params[num_prior_aux_params];         // distribution parameter for the prior for sigma
+  array[num_prior_aux_params] real<lower=0> prior_aux_params;         // distribution parameter for the prior for sigma
   real sdy;
 }
 transformed data {
@@ -35,16 +33,12 @@ transformed data {
   vector[rows(y)] sqrt_y = sqrt(y);
 }
 parameters {
-  real alpha[fit_intercept];            // regression intercept alpha; empty if fit_intercept = 0
+  array[fit_intercept] real alpha;            // regression intercept alpha; empty if fit_intercept = 0
   vector[K] beta;                       // regression coefficients beta
   real<lower=0> sigma;                  // error scale OR variance of the error distribution
 }
 model {
-  vector[N] mu = X * beta;              // expected values / linear predictor
-
-  if (fit_intercept) {
-    mu = mu + alpha[1];
-  }
+  #include /common/make_mu.stan
 
   vector[N] mu_unlinked = common_invert_link(mu, link); // reverse link function
 
@@ -97,10 +91,8 @@ generated quantities {
 
   {
     if (predictor) {
-        vector[N] mu = X * beta;              // expected values / linear predictor
-        if (fit_intercept) {
-          mu = mu + alpha[1];
-        }
+        #include /common/make_mu.stan
+
         vector[N] mu_unlinked = common_invert_link(mu, link); // reverse link function
 
         if (family == 0) { // Gaussian
