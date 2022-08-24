@@ -448,25 +448,14 @@ class GLM(CoreEstimator):
             "prior_slope_mu": [None] * K,
             "prior_slope_sigma": [None] * K,
         }
-        if sp.issparse(X_clean):
-            dat["X_dense"] = 0
-            dat["X"] = []
-            dat["X_data"] = X_clean.data
-            dat["X_nz"] = X_clean.nnz
-            dat["X_idxs"] = X_clean.indices + 1
-            dat["X_indptr"] = X_clean.indptr + 1
 
+        prepare_X_data(dat, X_clean)
+
+        if sp.issparse(X_clean):
+            # .std does not work on sparse matrices, so do this instead
             sdx = np.sqrt((X_clean.power(2)).mean() - np.square(X_clean.mean()))
         else:
-            dat["X_dense"] = 1
-            dat["X"] = X_clean
-            dat["X_nz"] = 0
-            dat["X_data"] = []
-            dat["X_idxs"] = []
-            dat["X_indptr"] = []
-
-            sdx = np.std(X_clean)
-
+            sdx = X_clean.std()
         if self.familyid_ == 0:  # gaussian
             my = np.mean(y_clean) if self.linkid_ == 0 else 0.0
             sdy = np.std(y_clean)
@@ -476,8 +465,6 @@ class GLM(CoreEstimator):
 
         if sdy == 0.0:
             sdy = 1.0
-
-        dat["sdy"] = sdy
 
         DEFAULT_SLOPE_PRIOR = {
             "prior_slope_dist": 0,
@@ -729,24 +716,9 @@ class GLM(CoreEstimator):
             "prior_slope_sigma": [0.0] * X_clean.shape[1],
             "prior_aux_dist": 0,  # these don't affect anything when generating predictions
             "prior_aux_param": 1.0,  # these don't affect anything when generating predictions
-            "sdy": 1.0,
         }
 
-        if sp.issparse(X_clean):
-            assert isinstance(X_clean, sp.csr_matrix)
-            dat["X_dense"] = 0
-            dat["X"] = []
-            dat["X_data"] = X_clean.data
-            dat["X_nz"] = X_clean.nnz
-            dat["X_idxs"] = X_clean.indices + 1
-            dat["X_indptr"] = X_clean.indptr + 1
-        else:
-            dat["X_dense"] = 1
-            dat["X"] = X_clean
-            dat["X_nz"] = 0
-            dat["X_data"] = []
-            dat["X_idxs"] = []
-            dat["X_indptr"] = []
+        prepare_X_data(dat, X_clean)
 
         dat["num_prior_aux_params"] = self.prior_aux_["num_prior_aux_params"]
         dat["prior_aux_params"] = self.prior_aux_["prior_aux_params"]
@@ -867,3 +839,27 @@ class GLM(CoreEstimator):
         sstot: float = np.sum((y_clean - mean_obs) ** 2)
 
         return 1 - ssreg / sstot
+
+
+def prepare_X_data(
+    data: Dict[str, Any],
+    X: Union[NDArray[np.int64], NDArray[np.float64], sp.csr_matrix],
+) -> None:
+    """
+    Populate data dictionary with the (possibly sparse) X matrix.
+    """
+    if sp.issparse(X):
+        assert isinstance(X, sp.csr_matrix)
+        data["X_dense"] = 0
+        data["X"] = []
+        data["X_data"] = X.data
+        data["X_nz"] = X.nnz
+        data["X_idxs"] = X.indices + 1
+        data["X_indptr"] = X.indptr + 1
+    else:
+        data["X_dense"] = 1
+        data["X"] = X
+        data["X_nz"] = 0
+        data["X_data"] = []
+        data["X_idxs"] = []
+        data["X_indptr"] = []

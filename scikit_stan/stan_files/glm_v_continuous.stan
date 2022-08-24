@@ -14,19 +14,13 @@ data {
   int<lower=0, upper=4> link; // link function of the model
 
   // set up for user-defineable priors
-  int<lower=-1> prior_intercept_dist;     // distribution for intercept
-  real prior_intercept_mu;                // mean of the prior for intercept
-  real prior_intercept_sigma;             // error scale of the prior for intercept
-  int<lower=-1> prior_slope_dist;         // distribution for regression coefficients
-  vector[K] prior_slope_mu;               // mean of the prior for each regression coefficient
-  vector[K] prior_slope_sigma;            // error scale of the prior for each  regression coefficient
+  #include /common/glm_priors.stan
 
   // validation on parameters for each distribution occurs Python-side
   int<lower=-1> prior_aux_dist;           // distribution for auxiliary parameter (sigma):
                                           // -1 is default uniform(-inf, inf), 0 is exponential, 1 is chi2
   int<lower=1> num_prior_aux_params;      // number of parameters in the prior for auxiliary parameter
   array[num_prior_aux_params] real<lower=0> prior_aux_params;         // distribution parameter for the prior for sigma
-  real sdy;
 }
 transformed data {
   real s_log_y = sum(log(y));

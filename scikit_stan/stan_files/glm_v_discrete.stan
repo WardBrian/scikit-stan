@@ -14,13 +14,7 @@ data {
     int<lower=0> link;                // link function of the model
 
     // set up for user-defineable priors
-    int<lower=-1> prior_intercept_dist;       // distribution for intercept
-    real prior_intercept_mu;                  // mean of the prior for intercept
-    real prior_intercept_sigma;               // error scale of the prior for intercept
-    int<lower=-1> prior_slope_dist;           // distribution for regression coefficients
-    vector[K] prior_slope_mu;                 // mean of the prior for regression coefficients
-    vector[K] prior_slope_sigma;              // error regression coefficients
-    real sdy;
+    #include /common/glm_priors.stan
 }
 parameters {
     array[fit_intercept] real alpha;           // intercept
