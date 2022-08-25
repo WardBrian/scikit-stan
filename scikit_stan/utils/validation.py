@@ -179,8 +179,9 @@ def check_array(
     X: ArrayLike,
     ensure_2d: bool = True,
     allow_nd: bool = False,
+    allow_sparse: bool = False,
     dtype: type = np.float64,
-) -> NDArray[Union[np.float64, np.int64]]:
+) -> Union[NDArray[Union[np.float64, np.int64]], sp.csr_matrix]:
     """Input validation on an array, list, sparse matrix or similar.
     By default, the input is checked to be a non-empty 2D array containing
     only finite values.
@@ -212,61 +213,67 @@ def check_array(
 
     """
     # NOTE: cmdstanpy automatically deals with Pandas dataframes
-    if sp.issparse(X):
-        raise ValueError(
-            """Estimator does not currently support sparse data
-             entry; consider extracting with .data."""
-        )
 
     if np.any(np.iscomplex(X)):  # type: ignore
-        raise ValueError("""Complex data not supported.""")
+        raise ValueError("Complex data not supported.")
 
-    array_res: NDArray[Union[np.float64, np.int64]] = np.asarray(X, dtype=dtype)
+    if sp.issparse(X):
+        if allow_sparse:
+            res = sp.csr_matrix(X)
+            check_data = res.data
+        else:
+            raise ValueError(
+                """Estimator does not currently support sparse data
+             entry; consider extracting with .todense()"""
+            )
+    else:
+        check_data = np.asarray(X, dtype=dtype)
+        res = check_data
 
-    if np.isnan(array_res).any():
+    if np.isnan(check_data).any():
         raise ValueError("Input contains NaN.")
 
-    if not np.isfinite(array_res).all():
+    if not np.isfinite(check_data).all():
         raise ValueError(
             "Input contains infinity or a value too large for this estimator."
         )
 
     if ensure_2d:
         # input cannot be scalar
-        shape = array_res.shape
+        shape = res.shape
         if shape is None or len(shape) == 0 or shape[0] == 0:
             raise ValueError(
                 "Singleton array or empty array cannot be considered a valid collection."
             )
 
-        if array_res.size == 0:
+        if res.size == 0:
             raise ValueError(
                 f"0 feature(s) (shape=({shape[0]}, 0)) while a minimum of 1 "
                 "is required."
             )
 
-        if array_res.ndim == 0:
+        if res.ndim == 0:
             raise ValueError(
                 f"""Expected 2D array, got scalar array instead:\narray={X!r}.\n
                     Reshape your data either using array.reshape(-1, 1) if
                     your data has a single feature or array.reshape(1, -1)
                     if it contains a single sample."""
             )
-        if array_res.ndim == 1:
+        if res.ndim == 1:
             warnings.warn(
                 """Passed data is one-dimensional, while estimator expects"""
                 + """ it to be at at least two-dimensional."""
             )
-            array_res = np.asanyarray(X)[:, None]
+            res = np.asanyarray(X)[:, None]
 
-    if not allow_nd and array_res.ndim > 2:
+    if not allow_nd and res.ndim > 2:
         raise ValueError(
             f"""
-            Passed array with {array_res.ndim!r} dimensions. Estimator expected <= 2.
+            Passed array with {res.ndim!r} dimensions. Estimator expected <= 2.
             """
         )
 
-    return array_res
+    return res
 
 
 def _check_y(
@@ -284,7 +291,9 @@ def check_X_y(
     allow_nd: bool = False,
     dtype: type = np.float64,
 ) -> Tuple[NDArray[Union[np.float64, np.int64]], NDArray[Union[np.float64, np.int64]]]:
-    X_checked = check_array(X, ensure_2d=ensure_X_2d, allow_nd=allow_nd, dtype=dtype)
+    X_checked = check_array(
+        X, ensure_2d=ensure_X_2d, allow_nd=allow_nd, dtype=dtype, allow_sparse=True
+    )
     y_checked = _check_y(y, dtype=dtype)
 
     return X_checked, y_checked

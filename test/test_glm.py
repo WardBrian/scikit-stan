@@ -2,11 +2,47 @@
 
 import numpy as np
 import pytest
+import scipy.sparse as sp
 import scipy.stats as stats  # type: ignore
 from data import _gen_fam_dat_continuous, _gen_fam_dat_discrete, bcdata_dict
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
 from scikit_stan.generalized_linear_regression import GLM
+
+
+def test_sparse() -> None:
+    """Test sparse X"""
+
+    glm = GLM(family="gaussian", seed=1234)
+
+    gaussian_dat_X, gaussian_dat_Y = _gen_fam_dat_continuous(
+        family="gaussian", link="identity"
+    )
+
+    glm.fit(X=sp.csr_matrix(gaussian_dat_X[:, np.newaxis]), y=gaussian_dat_Y)
+
+    reg_coeffs = np.array([])
+    for val in [glm.alpha_, glm.beta_]:
+        reg_coeffs = np.append(reg_coeffs, val)
+
+    np.testing.assert_allclose(reg_coeffs, np.array([0.6, 0.2]), rtol=1e-1, atol=1e-1)
+
+    glm = GLM(family="poisson", link="log", seed=1234)
+
+    poisson_dat_X, poisson_dat_Y = _gen_fam_dat_discrete(family="poisson", link="log")
+
+    fitted = glm.fit(X=poisson_dat_X, y=poisson_dat_Y)
+
+    assert (
+        fitted.fitted_samples_.summary()["5%"]["alpha[1]"]
+        <= 0.6
+        <= fitted.fitted_samples_.summary()["95%"]["alpha[1]"]
+    )
+    assert (
+        fitted.fitted_samples_.summary()["5%"]["beta[1]"]
+        <= 0.2
+        <= fitted.fitted_samples_.summary()["95%"]["beta[1]"]
+    )
 
 
 def test_no_intercept_regression() -> None:
@@ -496,7 +532,6 @@ def test_glm_prior_aux_setup(prior_aux) -> None:
 
 # NOTE: for the identity link, the generated data may lead to a negative lambda
 @pytest.mark.parametrize("link", ["identity", "log", "sqrt"])
-@pytest.mark.skip()
 def test_poisson_link_scipy_gen(link: str):
     if link == "identity":
         pytest.skip(
@@ -532,7 +567,6 @@ def test_poisson_link_scipy_gen(link: str):
 # confirming that coefficients of regression line up with
 # https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.PoissonRegressor.html
 # this uses the canonical log link
-@pytest.mark.skip()
 def test_poisson_sklearn_poissonregressor():
     glm_poisson = GLM(family="poisson", link="log", seed=1234)
 

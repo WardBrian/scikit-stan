@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+import scipy.sparse as sp
 import scipy.stats as stats
 from cmdstanpy import CmdStanModel, set_cmdstan_path
 from numpy.typing import ArrayLike, NDArray
@@ -340,6 +341,7 @@ class GLM(CoreEstimator):
         X : ArrayLike
             NxK matrix of predictors, where K >= 0. If K = 1,
             then X is automatically reshaped to being 2D and raises a warning.
+            X can be sparse. It will be converted to CSR format if it is not already.
         y : ArrayLike
             Nx1 outcome vector where each row is a response corresponding to
             the same row of predictors in X.
@@ -432,7 +434,6 @@ class GLM(CoreEstimator):
 
         # data common to all prior choices for intercept and coefficients
         dat = {
-            "X": X_clean,
             "y": y_clean,
             "N": X_clean.shape[0],
             "K": K,
@@ -448,7 +449,13 @@ class GLM(CoreEstimator):
             "prior_slope_sigma": [None] * K,
         }
 
-        sdx = np.std(X_clean)
+        prepare_X_data(dat, X_clean)
+
+        if sp.issparse(X_clean):
+            # .std does not work on sparse matrices, so do this instead
+            sdx = np.sqrt((X_clean.power(2)).mean() - np.square(X_clean.mean()))
+        else:
+            sdx = X_clean.std()
         if self.familyid_ == 0:  # gaussian
             my = np.mean(y_clean) if self.linkid_ == 0 else 0.0
             sdy = np.std(y_clean)
@@ -458,8 +465,6 @@ class GLM(CoreEstimator):
 
         if sdy == 0.0:
             sdy = 1.0
-
-        dat["sdy"] = sdy
 
         DEFAULT_SLOPE_PRIOR = {
             "prior_slope_dist": 0,
@@ -646,6 +651,7 @@ class GLM(CoreEstimator):
         ----------
         X : NDArray[Union[np.float64, np.int64]]
             Predictor matrix or array of data to use for prediction.
+            X can be sparse. It will be converted to CSR format if it is not already.
         show_console : bool, optional
             Printing output of default CmdStanPy console during Stan operations.
 
@@ -693,10 +699,9 @@ class GLM(CoreEstimator):
                     random_state=self.seed_,
                 )
 
-        dat = {
+        dat: Dict[str, Any] = {
             "N": X_clean.shape[0],
             "K": X_clean.shape[1],
-            "X": X_clean,
             "y": [],
             "trials": [],
             "family": self.familyid_,
@@ -711,8 +716,9 @@ class GLM(CoreEstimator):
             "prior_slope_sigma": [0.0] * X_clean.shape[1],
             "prior_aux_dist": 0,  # these don't affect anything when generating predictions
             "prior_aux_param": 1.0,  # these don't affect anything when generating predictions
-            "sdy": 1.0,
         }
+
+        prepare_X_data(dat, X_clean)
 
         dat["num_prior_aux_params"] = self.prior_aux_["num_prior_aux_params"]
         dat["prior_aux_params"] = self.prior_aux_["prior_aux_params"]
@@ -752,10 +758,9 @@ class GLM(CoreEstimator):
         ----------
         X : ArrayLike
             Predictor matrix or array of data to use for prediction.
-
+            X can be sparse. It will be converted to CSR format if it is not already.
         return_std : bool, optional, default=False
             If True, return standard deviation of predictions.
-
         show_console : bool, optional, default=False
             Printing output of default CmdStanPy console during Stan operations.
 
@@ -807,6 +812,7 @@ class GLM(CoreEstimator):
         X : ArrayLike
             Matrix or array of predictors having shape (n_samples, n_predictors)
             that consists of test data.
+            X can be sparse. It will be converted to CSR format if it is not already.
         y : ArrayLike
             Array of shape (n_samples,) containing the target values
             corresponding to given test dat X.
@@ -833,3 +839,27 @@ class GLM(CoreEstimator):
         sstot: float = np.sum((y_clean - mean_obs) ** 2)
 
         return 1 - ssreg / sstot
+
+
+def prepare_X_data(
+    data: Dict[str, Any],
+    X: Union[NDArray[np.int64], NDArray[np.float64], sp.csr_matrix],
+) -> None:
+    """
+    Populate data dictionary with the (possibly sparse) X matrix.
+    """
+    if sp.issparse(X):
+        assert isinstance(X, sp.csr_matrix)
+        data["X_dense"] = 0
+        data["X"] = []
+        data["X_data"] = X.data
+        data["X_nz"] = X.nnz
+        data["X_idxs"] = X.indices + 1
+        data["X_indptr"] = X.indptr + 1
+    else:
+        data["X_dense"] = 1
+        data["X"] = X
+        data["X_nz"] = 0
+        data["X_data"] = []
+        data["X_idxs"] = []
+        data["X_indptr"] = []
