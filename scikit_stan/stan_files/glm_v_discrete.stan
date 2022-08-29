@@ -49,9 +49,6 @@ model {
     else if (family == 4) { // binomial
         target += binomial_llh(y, trials, mu, link);
     }
-
-    // TODO neg_binomial family
-
     else if (family == 6) { // bernoulli
         if (link == 5) { // logit
             // efficient Stan function for this family-link combination
