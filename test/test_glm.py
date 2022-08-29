@@ -398,7 +398,7 @@ def test_gaussian_link_scipy_gen(link: str):
     glm = GLM(family="gaussian", link=link, seed=1234)
 
     gaussian_dat_X, gaussian_dat_Y = _gen_fam_dat_continuous(
-        family="gaussian", link=link
+        family="gaussian", link=link, Nsize=1000
     )
 
     glm.fit(X=gaussian_dat_X, y=gaussian_dat_Y)
@@ -409,13 +409,19 @@ def test_gaussian_link_scipy_gen(link: str):
 
     np.testing.assert_allclose(reg_coeffs, np.array([0.6, 0.2]), rtol=1e-1, atol=1e-1)
 
+    # very rough posterior predictive
+    out_y = glm.predict(gaussian_dat_X)
+    np.testing.assert_allclose(
+        gaussian_dat_Y.mean(), out_y.mean(), rtol=1e-1, atol=1e-1
+    )
+
 
 @pytest.mark.parametrize("link", ["identity", "log", "inverse"])
 def test_gamma_link_scipy_gen(link: str) -> None:
     glm = GLM(family="gamma", link=link, seed=1234, algorithm_params={})
 
     gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(
-        family="gamma", link=link, Nsize=100
+        family="gamma", link=link, Nsize=1000
     )
 
     fitted = glm.fit(X=gamma_dat_X, y=gamma_dat_Y)
@@ -430,6 +436,10 @@ def test_gamma_link_scipy_gen(link: str) -> None:
         <= 0.2
         <= fitted.fitted_samples_.summary()["95%"]["beta[1]"] + 0.1
     )
+
+    # very rough posterior predictive
+    out_y = glm.predict(gamma_dat_X)
+    np.testing.assert_allclose(gamma_dat_Y.mean(), out_y.mean(), rtol=1e-1, atol=1e-1)
 
 
 @pytest.mark.parametrize("lotnumber", ["lot1", "lot2"])

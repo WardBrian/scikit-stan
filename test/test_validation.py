@@ -1,5 +1,4 @@
 """Tests for validation behavior."""
-import sys
 from typing import Generator, Tuple
 
 import pytest
@@ -35,7 +34,3 @@ def test_valid_fam_invalid_links(fam: str, link: str) -> None:
     """Test that validate_family raises an error when the family is not supported."""
     with pytest.raises(ValueError):
         validate_family(fam, link)
-
-
-if __name__ == "__main__":
-    sys.exit(pytest.main(["-qq"]))

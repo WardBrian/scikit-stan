@@ -1,6 +1,4 @@
 """The global configuration for the test suite"""
-import atexit
-import shutil
 
 import pytest
 
@@ -23,16 +21,3 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "slow" in item.keywords:
             item.add_marker(skip_slow)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def cleanup_test_files():  # type: ignore
-
-    import cmdstanpy  # type: ignore
-
-    # see https://github.com/pytest-dev/pytest/issues/5502
-    atexit.unregister(cmdstanpy._cleanup_tmpdir)
-
-    yield
-
-    shutil.rmtree(cmdstanpy._TMPDIR, ignore_errors=True)

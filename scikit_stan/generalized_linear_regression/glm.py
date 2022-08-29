@@ -555,6 +555,9 @@ class GLM(CoreEstimator):
             self.model_ = GLM_CONTINUOUS_STAN
         else:
             self.model_ = GLM_DISCRETE_STAN
+            # XXX this seems like mostly nonsense?
+            # needs to be separate keyword argument or make Y 2d?
+            # binomial should be its own model class
             dat["trials"] = np.repeat(y_clean.shape[0], X_clean.shape[0])
 
         self.seed_ = self.seed
@@ -663,6 +666,7 @@ class GLM(CoreEstimator):
             "N": X_clean.shape[0],
             "K": X_clean.shape[1],
             "y": [],
+            # XXX: setting empty breaks discrete GQ
             "trials": [],
             "family": self.familyid_,
             "link": self.linkid_,
