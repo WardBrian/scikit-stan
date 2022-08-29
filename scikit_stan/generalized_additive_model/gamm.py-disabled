@@ -12,10 +12,6 @@ from scikit_stan.utils.validation import (
     validate_prior,
 )
 
-STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
-CMDSTAN_VERSION = "2.30.1"
-
-
 class GAMM(CoreEstimator):
     """
     Generalized linear additive model with flexible priors.

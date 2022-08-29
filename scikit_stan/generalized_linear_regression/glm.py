@@ -1,16 +1,15 @@
 """Generalized Linear Model with prior control for regression in scikit-learn type API."""
 
 import warnings
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
 import scipy.stats as stats
-from cmdstanpy import CmdStanModel, set_cmdstan_path
 from numpy.typing import ArrayLike, NDArray
 
 from scikit_stan.modelcore import CoreEstimator
+from scikit_stan.utils.stan import load_stan_model
 from scikit_stan.utils.validation import (
     FAMILY_LINKS_MAP,
     GLM_FAMILIES,
@@ -22,47 +21,8 @@ from scikit_stan.utils.validation import (
     validate_prior,
 )
 
-STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
-CMDSTAN_VERSION = "2.30.1"
-
-# handle pre-compiled models and possibly repackaged cmdstan
-
-local_cmdstan = STAN_FILES_FOLDER / f"cmdstan-{CMDSTAN_VERSION}"
-if local_cmdstan.exists():
-    set_cmdstan_path(str(local_cmdstan.resolve()))
-
-try:
-    GLM_CONTINUOUS_STAN = CmdStanModel(
-        exe_file=STAN_FILES_FOLDER / "glm_v_continuous.exe",
-        stan_file=STAN_FILES_FOLDER / "glm_v_continuous.stan",
-        compile=False,
-    )
-
-    GLM_DISCRETE_STAN = CmdStanModel(
-        exe_file=STAN_FILES_FOLDER / "glm_v_discrete.exe",
-        stan_file=STAN_FILES_FOLDER / "glm_v_discrete.stan",
-        compile=False,
-    )
-except ValueError:
-    import shutil
-
-    warnings.warn("Failed to load pre-built models, compiling")
-    GLM_CONTINUOUS_STAN = CmdStanModel(
-        stan_file=STAN_FILES_FOLDER / "glm_v_continuous.stan",
-        stanc_options={"O1": True},
-    )
-    GLM_DISCRETE_STAN = CmdStanModel(
-        stan_file=STAN_FILES_FOLDER / "glm_v_discrete.stan",
-        stanc_options={"O1": True},
-    )
-    shutil.copy(
-        GLM_CONTINUOUS_STAN.exe_file,  # type: ignore
-        STAN_FILES_FOLDER / "glm_v_continuous.exe",
-    )
-    shutil.copy(
-        GLM_DISCRETE_STAN.exe_file,  # type: ignore
-        STAN_FILES_FOLDER / "glm_v_discrete.exe",
-    )
+GLM_CONTINUOUS_STAN = load_stan_model("glm_v_continuous")
+GLM_DISCRETE_STAN = load_stan_model("glm_v_discrete")
 
 
 class GLM(CoreEstimator):

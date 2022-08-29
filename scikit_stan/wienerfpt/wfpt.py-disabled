@@ -6,10 +6,10 @@ from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import scipy.stats as stats
-from cmdstanpy import CmdStanModel, set_cmdstan_path
 from numpy.typing import ArrayLike, NDArray
 
 from scikit_stan.modelcore import CoreEstimator
+from scikit_stan.utils.stan import load_stan_model
 from scikit_stan.utils.validation import (
     check_array,
     check_is_fitted,
@@ -18,9 +18,6 @@ from scikit_stan.utils.validation import (
     validate_family,
     validate_prior,
 )
-
-STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
-CMDSTAN_VERSION = "2.30.1"
 
 
 class WienerFPT(CoreEstimator):

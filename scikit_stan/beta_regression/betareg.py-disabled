@@ -8,13 +8,13 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.stats as stats
-from cmdstanpy import CmdStanModel, set_cmdstan_path
 from numpy.typing import ArrayLike, NDArray
 
 from scikit_stan.modelcore import CoreEstimator
+from scikit_stan.utils.stan import load_stan_model
 from scikit_stan.utils.validation import (
     FAMILY_LINKS_MAP,
-    GLM_FAMILIES, 
+    GLM_FAMILIES,
     check_array,
     check_is_fitted,
     method_dict,
@@ -23,86 +23,43 @@ from scikit_stan.utils.validation import (
     validate_prior,
 )
 
-STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
-CMDSTAN_VERSION = "2.30.1"
 
-
-# handle pre-compiled models and possibly repackaged cmdstan
-
-local_cmdstan = STAN_FILES_FOLDER / f"cmdstan-{CMDSTAN_VERSION}"
-if local_cmdstan.exists():
-    set_cmdstan_path(str(local_cmdstan.resolve()))
-
-try:
-    GLM_CONTINUOUS_STAN = CmdStanModel(
-        exe_file=STAN_FILES_FOLDER / "glm_v_continuous.exe",
-        stan_file=STAN_FILES_FOLDER / "glm_v_continuous.stan",
-        compile=False,
-    )
-
-    GLM_DISCRETE_STAN = CmdStanModel(
-        exe_file=STAN_FILES_FOLDER / "glm_v_discrete.exe",
-        stan_file=STAN_FILES_FOLDER / "glm_v_discrete.stan",
-        compile=False,
-    )
-except ValueError:
-    import shutil
-
-    warnings.warn("Failed to load pre-built models, compiling")
-    GLM_CONTINUOUS_STAN = CmdStanModel(
-        stan_file=STAN_FILES_FOLDER / "glm_v_continuous.stan",
-        stanc_options={"O1": True},
-    )
-    GLM_DISCRETE_STAN = CmdStanModel(
-        stan_file=STAN_FILES_FOLDER / "glm_v_discrete.stan",
-        stanc_options={"O1": True},
-    )
-    shutil.copy(
-        GLM_CONTINUOUS_STAN.exe_file,  # type: ignore
-        STAN_FILES_FOLDER / "glm_v_continuous.exe",
-    )
-    shutil.copy(
-        GLM_DISCRETE_STAN.exe_file,  # type: ignore
-        STAN_FILES_FOLDER / "glm_v_discrete.exe",
-    )
-
-
-class BetaReg(CoreEstimator) : 
+class BetaReg(CoreEstimator) :
     r"""
-    Beta regression model following the original statement by Ferrari and Cribari-Neto (2004) 
-    and the extension by Simas, Barreto-Souza, and Rocha (2010). The utility of this model lies 
-    in problems with continuous dependent variables that are restricted to the unit interval, 
-    especially resulting from rates or proportions. 
+    Beta regression model following the original statement by Ferrari and Cribari-Neto (2004)
+    and the extension by Simas, Barreto-Souza, and Rocha (2010). The utility of this model lies
+    in problems with continuous dependent variables that are restricted to the unit interval,
+    especially resulting from rates or proportions.
 
-    The model is beta-distributed using a parameterization of mu and precision parameter phi. 
+    The model is beta-distributed using a parameterization of mu and precision parameter phi.
     As with the GLM in this package, the mean is linked to responses via a link function and
-    linear predictor. Analogously, the precision parameter phi can be linked to another 
-    possibly overlapping set of regressors through an additional link function, which 
-    leads to a model with variable dispersion. 
+    linear predictor. Analogously, the precision parameter phi can be linked to another
+    possibly overlapping set of regressors through an additional link function, which
+    leads to a model with variable dispersion.
 
-    The default link is "log" unless no precision model is specified, in which case 
-    the "identity" link is used. 
-    
-    link : str, optional 
+    The default link is "log" unless no precision model is specified, in which case
+    the "identity" link is used.
+
+    link : str, optional
         Specifies the link function used in the model for mu through the values in the design matrix.
-        The following links are supported: 
+        The following links are supported:
 
-            * "logit", "probit", "cloglog", "cauchit", "log", and "loglog" 
+            * "logit", "probit", "cloglog", "cauchit", "log", and "loglog"
 
-    link_phi : Optional[str], optional 
-        Specifies the link funtion used in the model for phi, the precision parameter, through the values in z, 
-        which is passed to fit() alongside the exogenous data. 
+    link_phi : Optional[str], optional
+        Specifies the link funtion used in the model for phi, the precision parameter, through the values in z,
+        which is passed to fit() alongside the exogenous data.
 
-        The following links are supported: 
+        The following links are supported:
 
             * "identity", "log" (default) and "sqrt"
 
-        Note that the "sqrt" link function is notoriously unstable, so it is advisable to use an alternative. 
+        Note that the "sqrt" link function is notoriously unstable, so it is advisable to use an alternative.
 
     phi_regression : bool, optional
-        Whether or not to have a linear predictor on phi, the precision parameter of the model. 
-        If this is False, then phi is streated as a scalar parameter. Otherwise, as is by default, 
-        with this being True, there is a linear predictor for phi based on the value of z passed to fit(). 
+        Whether or not to have a linear predictor on phi, the precision parameter of the model.
+        If this is False, then phi is streated as a scalar parameter. Otherwise, as is by default,
+        with this being True, there is a linear predictor for phi based on the value of z passed to fit().
 
     priors : Optional[Dict[str, Union[int, float, List]]], optional
         Dictionary for configuring prior distribution on coefficients.
@@ -186,14 +143,14 @@ class BetaReg(CoreEstimator) :
 
         Also note that choosing a Laplace prior is equivalent to L1 regularization:
         https://stats.stackexchange.com/questions/177210/why-is-laplace-prior-producing-sparse-solutions/177217#177217
-    
+
     priors_z : Optional[Dict[str, Union[int, float, List]]], optional
-    
-        Works the same as priors field described above. Defaults and autoscaling are the same. 
+
+        Works the same as priors field described above. Defaults and autoscaling are the same.
 
     prior_intercept_z : Optional[Dict[str, Any]], optional
 
-        Works the same as priors field described above. Defaults and autoscaling are the same. 
+        Works the same as priors field described above. Defaults and autoscaling are the same.
     """
 
 

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 import scipy.sparse as sp
-import scipy.stats as stats  # type: ignore
+import scipy.stats as stats
 from data import _gen_fam_dat_continuous, _gen_fam_dat_discrete, bcdata_dict
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
 
@@ -597,17 +597,25 @@ def test_poisson_sklearn_poissonregressor():
     )
 
 
-@pytest.mark.skip(reason="Inconsistency with R regression; TBI")
-# TODO: this should have 4 regression coefficients?
 def test_poisson_rstanarm_data():
     # NOTE: this data comes from rstanarm tests
     X = np.array(
-        [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
+        [
+            [1, 1, 1],
+            [1, 2, 1],
+            [1, 3, 1],
+            [1, 1, 2],
+            [1, 2, 2],
+            [1, 3, 2],
+            [1, 1, 3],
+            [1, 2, 3],
+            [1, 3, 3],
+        ]
     )
 
-    y = [18, 17, 15, 20, 10, 20, 25, 13, 12]
+    y = np.array([18, 17, 15, 20, 10, 20, 25, 13, 12])
 
-    glm_poisson = GLM(family="poisson", link="log", seed=1234, algorithm="MLE")
+    glm_poisson = GLM(family="poisson", link="log", seed=1234, algorithm="optimize")
 
     glm_poisson.fit(X=X, y=y)
 
