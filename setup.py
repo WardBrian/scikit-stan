@@ -16,7 +16,7 @@ from setuptools.command.build_ext import build_ext
 from wheel.bdist_wheel import bdist_wheel
 
 MODEL_DIR = "scikit_stan/stan_files"
-MODELS = ["glm_v_continuous", "glm_v_discrete"]
+MODELS = ["glm_continuous", "glm_discrete", "glm_binomial"]
 
 
 CMDSTAN_VERSION = "2.30.1"
