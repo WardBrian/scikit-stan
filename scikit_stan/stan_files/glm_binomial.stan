@@ -43,14 +43,18 @@ model {
 }
 generated quantities {
     array[predictor * N] real y_sim;
+    vector[(predictor > 0) ? 0 : N] log_lik;
     {
+        // expected values / linear predictor
+        #include /common/make_mu.stan
+
         if (predictor) {
-            // expected values / linear predictor
-            #include /common/make_mu.stan
             vector[N] mu_unlinked = common_invert_link(mu, link); // reverse link function
-
             y_sim = binomial_rng(trials, mu_unlinked);
-
+        } else {
+            for (n in 1 : N) {
+                log_lik[n] = binomial_llh(y[n:n+1], trials[n:n+1], mu[n:n+1], link);
+            }
         }
     }
 }
