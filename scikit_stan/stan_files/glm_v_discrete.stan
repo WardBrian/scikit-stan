@@ -7,7 +7,7 @@ data {
     #include /common/glm_data.stan
 
     array[(predictor > 0) ? 0 : N] int<lower=0> y;   // outcome vector
-    array[N] int<lower=0> trials;           // number of trials
+    // array[N] int<lower=0> trials;           // number of trials
 
     // assume validation performed externally
     int<lower=3, upper=6> family;     // family of the model
@@ -45,14 +45,13 @@ model {
         y ~ poisson(common_invert_link(mu, link));
     }
 
-    // TODO binomial should be separate model since it uses different data
-    else if (family == 4) { // binomial
-        target += binomial_llh(y, trials, mu, link);
+    else if (family == 4) {
+        // TODO neg_binomial family
+        // TODO aux parameter and priors
+        // y ~ neg_binomial_2(common_invert_link(mu, link), aux);
     }
 
-    // TODO neg_binomial family
-
-    else if (family == 6) { // bernoulli
+    else if (family == 5) { // bernoulli
         if (link == 5) { // logit
             // efficient Stan function for this family-link combination
             y ~ bernoulli_logit(mu);
@@ -61,6 +60,11 @@ model {
             y ~ bernoulli(common_invert_link(mu, link));
         }
     }
+
+    // TODO binomial should be separate model since it uses different data
+    // else if (family == 6) { // binomial
+    //     target += binomial_llh(y, trials, mu, link);
+    // }
 }
 generated quantities {
     array[predictor * N] real y_sim;
@@ -73,12 +77,16 @@ generated quantities {
             if (family == 3) { // Poisson
                 y_sim = poisson_rng(mu_unlinked);
             }
-            else if (family == 4) { // binomial
-                y_sim = binomial_rng(trials, mu_unlinked);
+            if (family == 4) { // neg_binomial_2
+                // y_sim = neg_binomial_2_rng(mu_unlinked, aux);
             }
-            else if (family == 6) { // bernoulli
+            else if (family == 5) { // bernoulli
                 y_sim = bernoulli_rng(mu_unlinked);
             }
+            // else if (family == 6) { // binomial
+            //     y_sim = binomial_rng(trials, mu_unlinked);
+            // }
+
         }
     }
 }
