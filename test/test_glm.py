@@ -573,6 +573,12 @@ def test_poisson_link_scipy_gen(link: str):
         <= fitted.fitted_samples_.summary()["95%"]["beta[1]"]
     )
 
+    # very rough posterior predictive
+    out_y = np.median(glm.predict_distribution(poisson_dat_X), axis=0)
+    np.testing.assert_array_almost_equal(
+        np.median(poisson_dat_Y), np.median(out_y), decimal=0
+    )
+
 
 # confirming that coefficients of regression line up with
 # https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.PoissonRegressor.html

@@ -15,9 +15,9 @@ GLM_FAMILIES = {
     "gamma": 1,
     "inverse-gaussian": 2,
     "poisson": 3,
-    "binomial": 4,
-    "negative-binomial": 5,
-    "bernoulli": 6,
+    "negative-binomial": 4,
+    "bernoulli": 5,
+    "binomial": 6,
 }
 
 """ GENERAL LINK MAP

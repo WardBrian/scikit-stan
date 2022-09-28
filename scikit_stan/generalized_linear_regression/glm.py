@@ -21,8 +21,9 @@ from scikit_stan.utils.validation import (
     validate_prior,
 )
 
-GLM_CONTINUOUS_STAN = load_stan_model("glm_v_continuous")
-GLM_DISCRETE_STAN = load_stan_model("glm_v_discrete")
+GLM_CONTINUOUS_STAN = load_stan_model("glm_continuous")
+GLM_DISCRETE_STAN = load_stan_model("glm_discrete")
+GLM_BINOMIAL_STAN = load_stan_model("glm_binomial")
 
 
 class GLM(CoreEstimator):
@@ -554,11 +555,12 @@ class GLM(CoreEstimator):
         if self.is_cont_dat_:
             self.model_ = GLM_CONTINUOUS_STAN
         else:
-            self.model_ = GLM_DISCRETE_STAN
-            # XXX this seems like mostly nonsense?
-            # needs to be separate keyword argument or make Y 2d?
-            # binomial should be its own model class
-            dat["trials"] = np.repeat(y_clean.shape[0], X_clean.shape[0])
+            if self.family == "binomial":
+                self.model_ = GLM_BINOMIAL_STAN
+                dat["trials"] = dat["y"].sum(axis=0)
+                dat["y"] = dat["y"][0]
+            else:
+                self.model_ = GLM_DISCRETE_STAN
 
         self.seed_ = self.seed
 
@@ -666,8 +668,6 @@ class GLM(CoreEstimator):
             "N": X_clean.shape[0],
             "K": X_clean.shape[1],
             "y": [],
-            # XXX: setting empty breaks discrete GQ
-            "trials": [],
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 1,
