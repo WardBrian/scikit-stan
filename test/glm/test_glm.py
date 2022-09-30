@@ -229,14 +229,14 @@ def test_priors_erroneous(unsupported_prior):
 
 
 @pytest.mark.parametrize(
-    "prior_intercept_config,prior_slope_config",
+    "prior_slope_config,prior_intercept_config",
     [
         (
             {},
             {
                 "prior_intercept_dist": "normal",
-                "prior_intercept_mu": [0.0],
-                "prior_intercept_sigma": [1.0],
+                "prior_intercept_mu": 0.0,
+                "prior_intercept_sigma": 1.0,
             },
         ),
         ({}, {}),
@@ -244,12 +244,7 @@ def test_priors_erroneous(unsupported_prior):
 )
 def test_prior_config_custom_normal(prior_slope_config, prior_intercept_config) -> None:
     """Test that partial & full set-up of priors with all-normal priors."""
-    if prior_slope_config == {
-        "prior_intercept_dist": "normal",
-        "prior_intercept_mu": [0.0],
-        "prior_intercept_sigma": [1.0],
-    }:
-        pytest.skip(reason="pytest misconfiguration ")
+
     glm = GLM(
         family="gamma",
         link="log",
@@ -259,16 +254,16 @@ def test_prior_config_custom_normal(prior_slope_config, prior_intercept_config) 
     )
     X, y = _gen_fam_dat_continuous(family="gamma", link="log", seed=1234321)
 
-    fitted = glm.fit(X=X, y=y)
+    glm.fit(X=X, y=y)
 
-    if len(prior_slope_config) == 0:
-        assert fitted.prior_intercept_["prior_intercept_dist"] == -1
-    else:
-        assert fitted.prior_intercept_["prior_intercept_dist"] == 0
     if len(prior_intercept_config) == 0:
-        assert fitted.priors_["prior_slope_dist"] == -1
+        assert glm.prior_intercept_["prior_intercept_dist"] == -1
     else:
-        assert fitted.priors_["prior_slope_dist"] == 0
+        assert glm.prior_intercept_["prior_intercept_dist"] == 0
+    if len(prior_slope_config) == 0:
+        assert glm.priors_["prior_slope_dist"] == -1
+    else:
+        assert glm.priors_["prior_slope_dist"] == 0
 
 
 def test_prior_setup_full() -> None:
@@ -471,11 +466,9 @@ def test_gamma_bloodclotting(lotnumber: str) -> None:
         )
 
 
-@pytest.mark.skip(reason="Inverse Gaussian LLH computation may be unstable")
-@pytest.mark.slow
 @pytest.mark.parametrize("link", ["identity", "log", "inverse", "inverse-square"])
 def test_invgaussian_link_scipy_gen(link: str):
-    if link == "identity":
+    if link == "identity" or link == "inverse-square":
         pytest.skip(reason="Inverse Gaussian needs special data generation")
 
     glm = GLM(family="inverse-gaussian", link=link, seed=1234, autoscale=True)
@@ -545,7 +538,6 @@ def test_glm_prior_aux_setup(prior_aux) -> None:
             }
 
 
-# NOTE: for the identity link, the generated data may lead to a negative lambda
 @pytest.mark.parametrize("link", ["identity", "log", "sqrt"])
 def test_poisson_link_scipy_gen(link: str):
     if link == "identity":
@@ -638,11 +630,11 @@ def test_poisson_rstanarm_data():
 
     y = np.array([18, 17, 15, 20, 10, 20, 25, 13, 12])
 
-    glm_poisson = GLM(family="poisson", link="log", seed=1234, algorithm="optimize")
+    glm_poisson = GLM(family="poisson", link="log", seed=1234, save_log_lik=True)
 
     glm_poisson.fit(X=X, y=y)
 
-    assert True
+    assert_log_lik(glm_poisson, X, y, "log", "poisson")
 
 
 ### TODO: Test against the MLE of known models with flat priors. Either from rstanarm
