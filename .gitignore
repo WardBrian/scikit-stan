@@ -145,3 +145,5 @@ scripts/
 
 # docs
 _build/
+
+.vscode/

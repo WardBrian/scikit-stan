@@ -3,6 +3,29 @@ import scipy.stats as stats  # type: ignore
 from scipy.special import expit
 
 
+def _link_mu(link: str, mu: np.ndarray):
+    if link == "identity":
+        return mu
+    elif link == "log":
+        return np.exp(mu)
+    elif link == "inverse":
+        return 1 / (mu)
+    elif link == "inverse-square":
+        return 1 / (mu**2)
+    elif link == "logit":
+        return expit(mu)
+    elif link == "probit":
+        return stats.norm.cdf(mu)
+    elif link == "cloglog":
+        pass
+    elif link == "cauchit":
+        return np.atan(mu) / np.pi + 0.5
+    elif link == "sqrt":
+        return np.square(mu)
+    else:
+        raise ValueError(f"bad link {link}")
+
+
 # TODO: make multidimensional size input & output
 def _gen_fam_dat_continuous(
     family: str,
@@ -21,34 +44,19 @@ def _gen_fam_dat_continuous(
 
     X = stats.norm.rvs(0, 1, size=Nsize, random_state=rng)
 
+    mu = alpha + beta * X
+    mu_linked = _link_mu(link, mu)
+
     if family == "gaussian":
-        if link == "identity":
-            Y = stats.norm.rvs(alpha + beta * X, sigma, random_state=rng)
-        elif link == "log":
-            Y = stats.norm.rvs(np.exp(alpha + beta * X), sigma, random_state=seed)
-        elif link == "inverse":
-            Y = stats.norm.rvs(1 / (alpha + beta * X), sigma, random_state=rng)
+        y = stats.norm.rvs(mu_linked, sigma, random_state=rng)
     elif family == "gamma":
-        # NOTE: for the identity or inverse link, the generated data may lead to a negative lambda
-        if link == "identity":
-            Y = rng.gamma(alpha + beta * X)
-        elif link == "log":
-            Y = rng.gamma(np.exp(alpha + beta * X))
-        elif link == "inverse":
-            Y = rng.gamma(1 / (alpha + beta * X))
+        y = rng.gamma(mu_linked)
     elif family == "inverse-gaussian":
-        if link == "identity":
-            Y = stats.invgauss.rvs(alpha + beta * X, random_state=rng)
-        elif link == "log":
-            Y = stats.invgauss.rvs(np.exp(alpha + beta * X), random_state=rng)
-        elif link == "inverse":
-            Y = stats.invgauss.rvs(1 / (alpha + beta * X), random_state=rng)
-        elif link == "inverse-square":
-            Y = stats.invgauss.rvs(1 / (alpha + beta * X) ** 2, random_state=rng)
+        y = stats.invgauss.rvs(mu_linked, random_state=rng)
     else:
         raise ValueError(f"Family {family} not supported.")
 
-    return X, Y
+    return X, y
 
 
 # TODO: make this multimdimensional, the number of trials
@@ -56,7 +64,6 @@ def _gen_fam_dat_continuous(
 def _gen_fam_dat_discrete(
     family: str,
     link: str,
-    num_yn=1000,
     alpha=0.6,
     beta=0.2,
     sample_size: int = 30,
@@ -68,26 +75,11 @@ def _gen_fam_dat_discrete(
     rng = np.random.default_rng(seed=seed)
     X = np.linspace(-10, 20, sample_size)
 
-    if family == "binomial":
-        if link == "log":
-            y = stats.binom.rvs(num_yn, np.exp(alpha + beta * X))
-        elif link == "logit":
-            y = stats.binom.rvs(num_yn, expit(alpha + beta * X))
-        elif link == "probit":
-            y = stats.binom.rvs(num_yn, stats.norm.cdf(alpha + beta * X))
-        elif link == "cloglog":
-            pass
-        elif link == "cauchit":
-            pass
-    elif family == "poisson":
-        if link == "identity":
-            y = rng.poisson(alpha + beta * X, size=sample_size)
-        elif link == "log":
-            y = rng.poisson(np.exp(alpha + beta * X), size=sample_size)
-        # NOTE: using sqrt as link is dangerous, results in multimodal distribution
-        elif link == "sqrt":
-            y = rng.poisson(np.square(alpha + beta * X), size=sample_size)
+    mu = alpha + beta * X
+    mu_linked = _link_mu(link, mu)
 
+    if family == "poisson":
+        y = rng.poisson(mu_linked, size=sample_size)
         # data gen follows sklearn example
         # https://scikit-learn.org/stable/auto_examples/release_highlights/plot_release_highlights_0_23_0.html#sphx-glr-auto-examples-release-highlights-plot-release-highlights-0-23-0-py
         # rng = np.random.RandomState(0)

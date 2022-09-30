@@ -142,7 +142,7 @@ def test_prior_config_default_gaussian(prior_config) -> None:
     glm = GLM(
         family="gaussian", link="log", seed=1234, priors=prior_config, autoscale=True
     )
-    X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234321)
+    X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234)
 
     fitted = glm.fit(X=X, y=y)
 
@@ -636,3 +636,10 @@ def test_poisson_rstanarm_data():
     glm_poisson.fit(X=X, y=y)
 
     assert True
+
+
+### TODO: Test against the MLE of known models with flat priors. Either from rstanarm
+### or vanilla stan, saved to disk somehow.
+
+
+### TODO split into various test files
