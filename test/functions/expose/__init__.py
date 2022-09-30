@@ -1,7 +1,6 @@
 # See original repo https://github.com/WardBrian/pybind_expose_stan_fns
 
 import importlib
-import os
 import platform
 import subprocess
 import sys
@@ -22,7 +21,6 @@ else:  # Presumed linux
 
 
 def expose(file: str):
-    model, _ = os.path.splitext(os.path.basename(file))
     file_path = Path(file)
     subprocess.run(
         [
@@ -47,4 +45,4 @@ def expose(file: str):
         check=True,
     )
     sys.path.append(str(file_path.parent))
-    return importlib.import_module(model)
+    return importlib.import_module(file_path.stem)
