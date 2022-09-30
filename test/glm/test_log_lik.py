@@ -1,6 +1,7 @@
 import numpy as np
+import pytest
 import scipy.stats as stats
-from data import _link_mu
+from data import _gen_fam_dat_continuous, _link_mu
 
 from scikit_stan import GLM
 
@@ -31,3 +32,18 @@ def assert_log_lik(model: GLM, X: np.ndarray, y: np.ndarray, link: str, family: 
     computed_log_lik = family_log_lik(family, y, mu_linked, sigma)
 
     np.testing.assert_allclose(loglik, computed_log_lik.T, rtol=1e-5, atol=0.01)
+
+
+def test_log_lik_flag():
+    X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234321)
+
+    glm = GLM(family="gaussian", link="log", seed=1234)
+    glm_log_lik = GLM(family="gaussian", link="log", seed=1234, save_log_lik=True)
+    glm.fit(X, y)
+    glm_log_lik.fit(X, y)
+
+    with pytest.raises(AttributeError):
+        glm.fitted_samples_.log_lik
+
+    glm_log_lik.fitted_samples_.log_lik
+    assert_log_lik(glm_log_lik, X, y, "log", "gaussian")
