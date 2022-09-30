@@ -17,7 +17,7 @@ def test_sparse() -> None:
     glm = GLM(family="gaussian", seed=1234)
 
     gaussian_dat_X, gaussian_dat_Y = _gen_fam_dat_continuous(
-        family="gaussian", link="identity"
+        family="gaussian", link="identity", seed=12345
     )
 
     glm.fit(X=sp.csr_matrix(gaussian_dat_X[:, np.newaxis]), y=gaussian_dat_Y)
