@@ -1,5 +1,6 @@
 // GLM for Binomial, Bernoulli, and Poisson regressions
 functions {
+  #include /common/functions.stan
   #include /likelihoods/discrete.stan
 }
 data {

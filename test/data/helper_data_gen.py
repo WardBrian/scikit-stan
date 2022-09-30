@@ -19,7 +19,7 @@ def _link_mu(link: str, mu: np.ndarray):
     elif link == "cloglog":
         pass
     elif link == "cauchit":
-        return np.atan(mu) / np.pi + 0.5
+        return np.arctan(mu) / np.pi + 0.5
     elif link == "sqrt":
         return np.square(mu)
     else:
