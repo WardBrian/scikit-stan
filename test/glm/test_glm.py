@@ -6,6 +6,7 @@ import scipy.sparse as sp
 import scipy.stats as stats
 from data import _gen_fam_dat_continuous, _gen_fam_dat_discrete, bcdata_dict
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
+from test_log_lik import assert_log_lik
 
 from scikit_stan.generalized_linear_regression import GLM
 
@@ -16,7 +17,7 @@ def test_sparse() -> None:
     glm = GLM(family="gaussian", seed=1234)
 
     gaussian_dat_X, gaussian_dat_Y = _gen_fam_dat_continuous(
-        family="gaussian", link="identity"
+        family="gaussian", link="identity", seed=12345
     )
 
     glm.fit(X=sp.csr_matrix(gaussian_dat_X[:, np.newaxis]), y=gaussian_dat_Y)
@@ -142,7 +143,7 @@ def test_prior_config_default_gaussian(prior_config) -> None:
     glm = GLM(
         family="gaussian", link="log", seed=1234, priors=prior_config, autoscale=True
     )
-    X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234321)
+    X, y = _gen_fam_dat_continuous(family="gaussian", link="log", seed=1234)
 
     fitted = glm.fit(X=X, y=y)
 
@@ -228,14 +229,14 @@ def test_priors_erroneous(unsupported_prior):
 
 
 @pytest.mark.parametrize(
-    "prior_intercept_config,prior_slope_config",
+    "prior_slope_config,prior_intercept_config",
     [
         (
             {},
             {
                 "prior_intercept_dist": "normal",
-                "prior_intercept_mu": [0.0],
-                "prior_intercept_sigma": [1.0],
+                "prior_intercept_mu": 0.0,
+                "prior_intercept_sigma": 1.0,
             },
         ),
         ({}, {}),
@@ -243,12 +244,7 @@ def test_priors_erroneous(unsupported_prior):
 )
 def test_prior_config_custom_normal(prior_slope_config, prior_intercept_config) -> None:
     """Test that partial & full set-up of priors with all-normal priors."""
-    if prior_slope_config == {
-        "prior_intercept_dist": "normal",
-        "prior_intercept_mu": [0.0],
-        "prior_intercept_sigma": [1.0],
-    }:
-        pytest.skip(reason="pytest misconfiguration ")
+
     glm = GLM(
         family="gamma",
         link="log",
@@ -258,16 +254,16 @@ def test_prior_config_custom_normal(prior_slope_config, prior_intercept_config) 
     )
     X, y = _gen_fam_dat_continuous(family="gamma", link="log", seed=1234321)
 
-    fitted = glm.fit(X=X, y=y)
+    glm.fit(X=X, y=y)
 
-    if len(prior_slope_config) == 0:
-        assert fitted.prior_intercept_["prior_intercept_dist"] == -1
-    else:
-        assert fitted.prior_intercept_["prior_intercept_dist"] == 0
     if len(prior_intercept_config) == 0:
-        assert fitted.priors_["prior_slope_dist"] == -1
+        assert glm.prior_intercept_["prior_intercept_dist"] == -1
     else:
-        assert fitted.priors_["prior_slope_dist"] == 0
+        assert glm.prior_intercept_["prior_intercept_dist"] == 0
+    if len(prior_slope_config) == 0:
+        assert glm.priors_["prior_slope_dist"] == -1
+    else:
+        assert glm.priors_["prior_slope_dist"] == 0
 
 
 def test_prior_setup_full() -> None:
@@ -395,13 +391,15 @@ def test_gaussian_link_scipy_gen(link: str):
             reason="Gaussian + inverse is known not to work with default priors"
         )
 
-    glm = GLM(family="gaussian", link=link, seed=1234)
+    glm = GLM(family="gaussian", link=link, seed=1234, save_log_lik=True)
 
     gaussian_dat_X, gaussian_dat_Y = _gen_fam_dat_continuous(
         family="gaussian", link=link, Nsize=1000
     )
 
     glm.fit(X=gaussian_dat_X, y=gaussian_dat_Y)
+
+    assert_log_lik(glm, gaussian_dat_X, gaussian_dat_Y, link, "gaussian")
 
     reg_coeffs = np.array([])
     for val in [glm.alpha_, glm.beta_]:
@@ -418,7 +416,9 @@ def test_gaussian_link_scipy_gen(link: str):
 
 @pytest.mark.parametrize("link", ["identity", "log", "inverse"])
 def test_gamma_link_scipy_gen(link: str) -> None:
-    glm = GLM(family="gamma", link=link, seed=1234, algorithm_params={})
+    glm = GLM(
+        family="gamma", link=link, seed=1234, algorithm_params={}, save_log_lik=True
+    )
 
     gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(
         family="gamma", link=link, Nsize=1000
@@ -444,7 +444,7 @@ def test_gamma_link_scipy_gen(link: str) -> None:
 
 @pytest.mark.parametrize("lotnumber", ["lot1", "lot2"])
 def test_gamma_bloodclotting(lotnumber: str) -> None:
-    glm_gamma = GLM(family="gamma", link="inverse", seed=1234)
+    glm_gamma = GLM(family="gamma", link="inverse", seed=1234, save_log_lik=True)
 
     bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict[lotnumber]
 
@@ -466,11 +466,9 @@ def test_gamma_bloodclotting(lotnumber: str) -> None:
         )
 
 
-@pytest.mark.skip(reason="Inverse Gaussian LLH computation may be unstable")
-@pytest.mark.slow
 @pytest.mark.parametrize("link", ["identity", "log", "inverse", "inverse-square"])
 def test_invgaussian_link_scipy_gen(link: str):
-    if link == "identity":
+    if link == "identity" or link == "inverse-square":
         pytest.skip(reason="Inverse Gaussian needs special data generation")
 
     glm = GLM(family="inverse-gaussian", link=link, seed=1234, autoscale=True)
@@ -540,7 +538,6 @@ def test_glm_prior_aux_setup(prior_aux) -> None:
             }
 
 
-# NOTE: for the identity link, the generated data may lead to a negative lambda
 @pytest.mark.parametrize("link", ["identity", "log", "sqrt"])
 def test_poisson_link_scipy_gen(link: str):
     if link == "identity":
@@ -548,7 +545,7 @@ def test_poisson_link_scipy_gen(link: str):
             reason="""Poisson + identity is known not to work with default priors;
              also, identity link leads to potentially negative lambda..."""
         )
-    glm = GLM(family="poisson", link=link, seed=1234)
+    glm = GLM(family="poisson", link=link, seed=1234, save_log_lik=True)
 
     if link == "identity":
         rng = np.random.default_rng(seed=9999)
@@ -561,6 +558,8 @@ def test_poisson_link_scipy_gen(link: str):
         )
 
     fitted = glm.fit(X=poisson_dat_X, y=poisson_dat_Y)
+
+    assert_log_lik(glm, poisson_dat_X, poisson_dat_Y, link, "poisson")
 
     assert (
         fitted.fitted_samples_.summary()["5%"]["alpha[1]"]
@@ -631,8 +630,15 @@ def test_poisson_rstanarm_data():
 
     y = np.array([18, 17, 15, 20, 10, 20, 25, 13, 12])
 
-    glm_poisson = GLM(family="poisson", link="log", seed=1234, algorithm="optimize")
+    glm_poisson = GLM(family="poisson", link="log", seed=1234, save_log_lik=True)
 
     glm_poisson.fit(X=X, y=y)
 
-    assert True
+    assert_log_lik(glm_poisson, X, y, "log", "poisson")
+
+
+### TODO: Test against the MLE of known models with flat priors. Either from rstanarm
+### or vanilla stan, saved to disk somehow.
+
+
+### TODO split into various test files

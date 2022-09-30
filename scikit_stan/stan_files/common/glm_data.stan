@@ -1,4 +1,5 @@
   int<lower=0, upper=1> predictor; // 0: fitting run, 1: prediction run
+  int<lower=0, upper=1> save_log_lik; // 0: Skip log_lik, 1: save log_lik
   int<lower=0, upper=1> fit_intercept; // 0: no intercept, 1: intercept
 
   int<lower=0, upper=1> X_dense;
