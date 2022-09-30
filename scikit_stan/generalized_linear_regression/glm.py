@@ -251,6 +251,12 @@ class GLM(CoreEstimator):
 
         This procedure does not happen by default.
 
+    save_log_lik: bool, optional
+        Should the log likelihood be re-calculated and stored. Useful
+        for performing leave-one-out analysis on the fitted model.
+
+        This does not happen by default.
+
     Notes
     -----
     The usual prior-selection advice holds. See these discussions about prior selection:
@@ -270,6 +276,7 @@ class GLM(CoreEstimator):
         prior_intercept: Optional[Dict[str, Any]] = None,
         prior_aux: Optional[Dict[str, Any]] = None,
         autoscale: bool = False,
+        save_log_lik: bool = False,
     ):
         self.algorithm = algorithm
         self.algorithm_params = algorithm_params
@@ -285,6 +292,7 @@ class GLM(CoreEstimator):
         self.autoscale = autoscale
 
         self.seed = seed
+        self.save_log_lik = save_log_lik
 
     def fit(
         self,
@@ -401,6 +409,7 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 0,
+            "save_log_lik": int(self.save_log_lik),
             "fit_intercept": self.fit_intercept,
             "prior_intercept_dist": None,
             "prior_intercept_mu": None,
@@ -671,6 +680,7 @@ class GLM(CoreEstimator):
             "family": self.familyid_,
             "link": self.linkid_,
             "predictor": 1,
+            "save_log_lik": 0,
             "fit_intercept": self.fit_intercept,
             "prior_intercept_dist": 0,
             "prior_intercept_mu": 1.0,

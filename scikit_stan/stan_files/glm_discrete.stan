@@ -64,36 +64,39 @@ generated quantities {
   array[predictor * N] real y_sim;
   vector[(predictor > 0) ? 0 : N] log_lik;
   {
-    // expected values / linear predictor
-    #include /common/make_mu.stan
-    
-    vector[N] mu_unlinked = common_invert_link(mu, link); // reverse link function
-    
-    if (family == 3) {
-      // Poisson
-      if (predictor) {
-        y_sim = poisson_rng(mu_unlinked);
-      } else {
-        for (n in 1 : N) {
-          log_lik[n] = poisson_lpmf(y[n] | mu_unlinked[n]);
+    if (predictor || save_log_lik) {
+      // expected values / linear predictor
+      #include /common/make_mu.stan
+      
+      vector[N] mu_unlinked = common_invert_link(mu, link); // reverse link function
+      
+      if (family == 3) {
+        // Poisson
+        if (predictor) {
+          y_sim = poisson_rng(mu_unlinked);
         }
-      }
-    }
-    if (family == 4) {
-      // neg_binomial_2
-      // y_sim = neg_binomial_2_rng(mu_unlinked, aux);
-    } else if (family == 5) {
-      // bernoulli
-      if (predictor) {
-        y_sim = bernoulli_rng(mu_unlinked);
-      } else {
-        if (link == 5) {
+        if (save_log_lik) {
           for (n in 1 : N) {
-            log_lik[n] = bernoulli_logit_lpmf(y[n] | mu[n]);
+            log_lik[n] = poisson_lpmf(y[n] | mu_unlinked[n]);
           }
-        } else {
-          for (n in 1 : N) {
-            log_lik[n] = bernoulli_lpmf(y[n] | mu_unlinked[n]);
+        }
+      } else if (family == 4) {
+        // neg_binomial_2
+        // y_sim = neg_binomial_2_rng(mu_unlinked, aux);
+      } else if (family == 5) {
+        // bernoulli
+        if (predictor) {
+          y_sim = bernoulli_rng(mu_unlinked);
+        }
+        if (save_log_lik) {
+          if (link == 5) {
+            for (n in 1 : N) {
+              log_lik[n] = bernoulli_logit_lpmf(y[n] | mu[n]);
+            }
+          } else {
+            for (n in 1 : N) {
+              log_lik[n] = bernoulli_lpmf(y[n] | mu_unlinked[n]);
+            }
           }
         }
       }
