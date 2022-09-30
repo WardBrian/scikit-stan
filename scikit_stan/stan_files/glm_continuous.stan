@@ -110,8 +110,8 @@ generated quantities {
         }
         if (save_log_lik) {
           for (n in 1 : N) {
-            log_lik[n] = gamma_llh(y[n : n + 1], s_log_y, mu[n : n + 1],
-                                   sigma, link);
+            log_lik[n] = gamma_lpdf(y[n] | sigma ./ mu_unlinked, sigma);
+            // log_lik[n] = gamma_llh(y[n : n], s_log_y, mu[n : n], sigma, link);
           }
         }
       } else {
@@ -123,9 +123,8 @@ generated quantities {
         }
         if (save_log_lik) {
           for (n in 1 : N) {
-            log_lik[n] = inv_gaussian_llh(y[n : n + 1], s_log_y,
-                                          mu_unlinked[n : n + 1], sigma,
-                                          sqrt_y);
+            log_lik[n] = inv_gaussian_llh(y[n : n], s_log_y,
+                                          mu_unlinked[n : n], sigma, sqrt_y);
           }
         }
       }

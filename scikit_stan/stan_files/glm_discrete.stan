@@ -62,7 +62,7 @@ model {
 }
 generated quantities {
   array[predictor * N] real y_sim;
-  vector[(predictor > 0) ? 0 : N] log_lik;
+  vector[save_log_lik * N] log_lik;
   {
     if (predictor || save_log_lik) {
       // expected values / linear predictor

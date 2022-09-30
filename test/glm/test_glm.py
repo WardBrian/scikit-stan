@@ -6,6 +6,7 @@ import scipy.sparse as sp
 import scipy.stats as stats
 from data import _gen_fam_dat_continuous, _gen_fam_dat_discrete, bcdata_dict
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
+from test_log_lik import assert_log_lik
 
 from scikit_stan.generalized_linear_regression import GLM
 
@@ -395,13 +396,15 @@ def test_gaussian_link_scipy_gen(link: str):
             reason="Gaussian + inverse is known not to work with default priors"
         )
 
-    glm = GLM(family="gaussian", link=link, seed=1234)
+    glm = GLM(family="gaussian", link=link, seed=1234, save_log_lik=True)
 
     gaussian_dat_X, gaussian_dat_Y = _gen_fam_dat_continuous(
         family="gaussian", link=link, Nsize=1000
     )
 
     glm.fit(X=gaussian_dat_X, y=gaussian_dat_Y)
+
+    assert_log_lik(glm, gaussian_dat_X, gaussian_dat_Y, link, "gaussian")
 
     reg_coeffs = np.array([])
     for val in [glm.alpha_, glm.beta_]:
@@ -418,7 +421,9 @@ def test_gaussian_link_scipy_gen(link: str):
 
 @pytest.mark.parametrize("link", ["identity", "log", "inverse"])
 def test_gamma_link_scipy_gen(link: str) -> None:
-    glm = GLM(family="gamma", link=link, seed=1234, algorithm_params={})
+    glm = GLM(
+        family="gamma", link=link, seed=1234, algorithm_params={}, save_log_lik=True
+    )
 
     gamma_dat_X, gamma_dat_Y = _gen_fam_dat_continuous(
         family="gamma", link=link, Nsize=1000
@@ -444,7 +449,7 @@ def test_gamma_link_scipy_gen(link: str) -> None:
 
 @pytest.mark.parametrize("lotnumber", ["lot1", "lot2"])
 def test_gamma_bloodclotting(lotnumber: str) -> None:
-    glm_gamma = GLM(family="gamma", link="inverse", seed=1234)
+    glm_gamma = GLM(family="gamma", link="inverse", seed=1234, save_log_lik=True)
 
     bc_data_X, bc_data_y = np.log(bcdata_dict["u"]), bcdata_dict[lotnumber]
 
@@ -548,7 +553,7 @@ def test_poisson_link_scipy_gen(link: str):
             reason="""Poisson + identity is known not to work with default priors;
              also, identity link leads to potentially negative lambda..."""
         )
-    glm = GLM(family="poisson", link=link, seed=1234)
+    glm = GLM(family="poisson", link=link, seed=1234, save_log_lik=True)
 
     if link == "identity":
         rng = np.random.default_rng(seed=9999)
@@ -561,6 +566,8 @@ def test_poisson_link_scipy_gen(link: str):
         )
 
     fitted = glm.fit(X=poisson_dat_X, y=poisson_dat_Y)
+
+    assert_log_lik(glm, poisson_dat_X, poisson_dat_Y, link, "poisson")
 
     assert (
         fitted.fitted_samples_.summary()["5%"]["alpha[1]"]

@@ -42,7 +42,7 @@ def _gen_fam_dat_continuous(
     """
     rng = np.random.default_rng(seed=seed)
 
-    X = stats.norm.rvs(0, 1, size=Nsize, random_state=rng)
+    X = rng.random(size=Nsize)
 
     mu = alpha + beta * X
     mu_linked = _link_mu(link, mu)
