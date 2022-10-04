@@ -7,4 +7,4 @@ pytest-order
 mypy
 black==22.3.0
 scikit-learn
-pybind11
+git+https://github.com/WardBrian/pybind_expose_stan_fns#egg=pybind_stan_fns

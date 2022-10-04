@@ -3,14 +3,13 @@ import sys
 from glob import glob
 
 import pytest
-from functions.expose import expose
 
 from scikit_stan.utils.stan import STAN_FILES_FOLDER
 
 try:
-    import pybind11  # noqa
+    from pybind_stan_fns import expose
 except ImportError:
-    pytest.skip("PyBind11 not installed!", allow_module_level=True)
+    pytest.skip("pybind_stan_fns not installed!", allow_module_level=True)
 
 if sys.platform.startswith("win"):
     pytest.skip("Exposed function tests cannot run on Windows", allow_module_level=True)
