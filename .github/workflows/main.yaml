@@ -67,6 +67,4 @@ jobs:
 
       - name: Run tests
         run: |
-          mkdir run_tests
-          cd run_tests
-          pytest --runslow -v ../test --cov=../scikit_stan
+          pytest --runslow -v --cov=scikit_stan --cov-report term
