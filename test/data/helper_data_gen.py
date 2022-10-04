@@ -11,13 +11,13 @@ def _link_mu(link: str, mu: np.ndarray):
     elif link == "inverse":
         return 1 / (mu)
     elif link == "inverse-square":
-        return 1 / (mu**2)
+        return 1 / np.sqrt(mu)
     elif link == "logit":
         return expit(mu)
     elif link == "probit":
         return stats.norm.cdf(mu)
     elif link == "cloglog":
-        pass
+        return 1 - np.exp(-np.exp(mu))
     elif link == "cauchit":
         return np.arctan(mu) / np.pi + 0.5
     elif link == "sqrt":
