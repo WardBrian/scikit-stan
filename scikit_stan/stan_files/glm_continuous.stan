@@ -1,7 +1,7 @@
 // GLM for Gaussian, Gamma, inverse Gaussian, and Beta models
 functions {
-  #include /likelihoods/continuous.stan
   #include /common/functions.stan
+  #include /likelihoods/continuous.stan
 }
 data {
   // control flags and X_data
