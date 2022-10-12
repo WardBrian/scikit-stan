@@ -22,5 +22,6 @@ module = [
     'scipy',
     'scipy.stats',
     'scipy.sparse',
+    'sklearn.exceptions',
     ]
 ignore_missing_imports = true
