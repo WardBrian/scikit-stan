@@ -15,6 +15,7 @@ from scikit_stan.utils.validation import (
     GLM_FAMILIES,
     check_array,
     check_is_fitted,
+    check_trials,
     method_dict,
     validate_aux_prior,
     validate_family,
@@ -298,6 +299,8 @@ class GLM(CoreEstimator):
         self,
         X: ArrayLike,
         y: ArrayLike,
+        *,
+        trials: Optional[ArrayLike] = None,
         show_console: bool = False,
     ) -> "CoreEstimator":
         """
@@ -314,6 +317,8 @@ class GLM(CoreEstimator):
         y : ArrayLike
             Nx1 outcome vector where each row is a response corresponding to
             the same row of predictors in X.
+        trials : ArrayLike, optional, default=None
+            For the 'binomial' family, an array of the number of trials for each outcome.
         show_console : bool, optional
             Printing output of default CmdStanPy console during Stan operations.
 
@@ -426,7 +431,7 @@ class GLM(CoreEstimator):
             sdx = np.sqrt((X_clean.power(2)).mean() - np.square(X_clean.mean()))
         else:
             sdx = X_clean.std()
-        if self.familyid_ == 0:  # gaussian
+        if self.family == "gaussian":  # gaussian
             my = np.mean(y_clean) if self.linkid_ == 0 else 0.0
             sdy = np.std(y_clean)
         else:
@@ -561,13 +566,15 @@ class GLM(CoreEstimator):
         dat["num_prior_aux_params"] = self.prior_aux_["num_prior_aux_params"]
         dat["prior_aux_params"] = self.prior_aux_["prior_aux_params"]
 
-        if self.is_cont_dat_:
-            self.model_ = GLM_CONTINUOUS_STAN
+        if self.family == "binomial":
+            self.model_ = GLM_BINOMIAL_STAN
+            trials_clean = check_trials(len(y_clean), trials)
+            dat["trials"] = trials_clean
         else:
-            if self.family == "binomial":
-                self.model_ = GLM_BINOMIAL_STAN
-                dat["trials"] = dat["y"].sum(axis=0)
-                dat["y"] = dat["y"][0]
+            if trials is not None:
+                raise ValueError("'trials' must be None for non-binomial family")
+            if self.is_cont_dat_:
+                self.model_ = GLM_CONTINUOUS_STAN
             else:
                 self.model_ = GLM_DISCRETE_STAN
 
@@ -614,7 +621,9 @@ class GLM(CoreEstimator):
 
     def predict_distribution(
         self,
-        X: NDArray[Union[np.float64, np.int64]],
+        X: ArrayLike,
+        *,
+        trials: Optional[ArrayLike] = None,
         show_console: bool = False,
     ) -> NDArray[Union[np.float64, np.int64]]:
         """Predicts the distribution of the response variable after model has been fit.
@@ -626,6 +635,8 @@ class GLM(CoreEstimator):
         X : NDArray[Union[np.float64, np.int64]]
             Predictor matrix or array of data to use for prediction.
             X can be sparse. It will be converted to CSR format if it is not already.
+        trials : ArrayLike, optional, default=None
+            For the 'binomial' family, an array of the number of trials for each outcome.
         show_console : bool, optional
             Printing output of default CmdStanPy console during Stan operations.
 
@@ -682,14 +693,15 @@ class GLM(CoreEstimator):
             "predictor": 1,
             "save_log_lik": 0,
             "fit_intercept": self.fit_intercept,
+            # these don't affect anything when generating predictions
             "prior_intercept_dist": 0,
             "prior_intercept_mu": 1.0,
             "prior_intercept_sigma": 2.5,
             "prior_slope_dist": 0,
             "prior_slope_mu": [0.0] * X_clean.shape[1],
             "prior_slope_sigma": [0.0] * X_clean.shape[1],
-            "prior_aux_dist": 0,  # these don't affect anything when generating predictions
-            "prior_aux_param": 1.0,  # these don't affect anything when generating predictions
+            "prior_aux_dist": 0,
+            "prior_aux_param": 1.0,
         }
 
         prepare_X_data(dat, X_clean)
@@ -697,8 +709,14 @@ class GLM(CoreEstimator):
         dat["num_prior_aux_params"] = self.prior_aux_["num_prior_aux_params"]
         dat["prior_aux_params"] = self.prior_aux_["prior_aux_params"]
 
+        if self.family == "binomial":
+            trials_clean = check_trials(X_clean.shape[0], trials)
+            dat["trials"] = trials_clean
+        elif trials is not None:
+            raise ValueError("'trials' must be None for non-binomial family")
+
         # known that fitted with sampling, so fitted_samples is not None
-        predicGQ = self.model_.generate_quantities(
+        predictGQ = self.model_.generate_quantities(
             dat,
             mcmc_sample=self.fitted_samples_,
             seed=self.seed_,
@@ -706,12 +724,13 @@ class GLM(CoreEstimator):
             show_console=show_console,
         )
 
-        return predicGQ.y_sim
+        return predictGQ.y_sim
 
     def predict(
         self,
         X: ArrayLike,
-        return_std: bool = False,
+        *,
+        trials: Optional[ArrayLike] = None,
         show_console: bool = False,
     ) -> Union[
         NDArray[Union[np.float64, np.int64]],
@@ -733,8 +752,8 @@ class GLM(CoreEstimator):
         X : ArrayLike
             Predictor matrix or array of data to use for prediction.
             X can be sparse. It will be converted to CSR format if it is not already.
-        return_std : bool, optional, default=False
-            If True, return standard deviation of predictions.
+        trials : ArrayLike, optional, default=None
+            For the 'binomial' family, an array of the number of trials for each outcome.
         show_console : bool, optional, default=False
             Printing output of default CmdStanPy console during Stan operations.
 
@@ -742,35 +761,14 @@ class GLM(CoreEstimator):
         -------
         NDArray[np.float64]
             Array of predictions of shape (n_samples, 1) made by fitted model.
-
-        NDArray[np.float64]
-            Standard deviation of predictive distribution points.
-
         """
-        check_is_fitted(self)
-
-        if X is None:
-            raise ValueError(
-                f"""This {self.__class__.__name__!r}
-             estimator requires X to be passed, but it is None"""
-            )
-
-        X_clean, _ = self._validate_data(X=X, ensure_X_2d=True)
-
         y_predict_mean = self.predict_distribution(
-            X_clean,
+            X,
+            trials=trials,
             show_console=show_console,
         ).mean(axis=0, dtype=np.float64)
 
-        if return_std:
-            sigmas_squared_data = (np.dot(X_clean, self.sigma_) * X_clean).sum(  # type: ignore
-                axis=1
-            )
-            y_std = np.sqrt(sigmas_squared_data + (1.0 / self.alpha_))
-
-            return y_predict_mean, y_std
-        else:
-            return y_predict_mean  # type: ignore
+        return y_predict_mean  # type: ignore
 
     def score(
         self,

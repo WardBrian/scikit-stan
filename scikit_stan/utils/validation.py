@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tupl
 import numpy as np
 import scipy.sparse as sp
 from cmdstanpy import CmdStanModel
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike, DTypeLike, NDArray
 
 from ..exceptions import NotFittedError
 
@@ -180,7 +180,7 @@ def check_array(
     ensure_2d: bool = True,
     allow_nd: bool = False,
     allow_sparse: bool = False,
-    dtype: type = np.float64,
+    dtype: DTypeLike = np.float64,
 ) -> Union[NDArray[Union[np.float64, np.int64]], sp.csr_matrix]:
     """Input validation on an array, list, sparse matrix or similar.
     By default, the input is checked to be a non-empty 2D array containing
@@ -227,7 +227,12 @@ def check_array(
              entry; consider extracting with .todense()"""
             )
     else:
-        check_data = np.asarray(X, dtype=dtype)
+        check_data = np.asarray(X)
+        if dtype == np.int32 and not np.can_cast(  # type: ignore
+            check_data.dtype, dtype, casting="safe"
+        ):
+            raise ValueError(f"Cannot safely cast {check_data.dtype} to int32!")
+        check_data = check_data.astype(dtype=dtype)
         res = check_data
 
     if np.isnan(check_data).any():
@@ -277,9 +282,17 @@ def check_array(
 
 
 def _check_y(
-    y: ArrayLike, dtype: type = np.float64
+    y: ArrayLike, dtype: DTypeLike = np.float64
 ) -> NDArray[Union[np.float64, np.int64]]:
     return check_array(y, ensure_2d=False, dtype=dtype)
+
+
+def check_trials(y_size: int, trials: Optional[ArrayLike]) -> NDArray[np.int64]:
+    if trials is None:
+        raise ValueError("'trials' must be set for this model")
+    if hasattr(trials, "__len__") and len(trials) != y_size:  # type: ignore
+        raise ValueError("Data for 'y' and 'trials' must have the same length")
+    return check_array(trials, ensure_2d=False, dtype=np.int32)  # type: ignore
 
 
 # adapted from sklearn's check_X_y validation scheme which
@@ -289,7 +302,7 @@ def check_X_y(
     y: ArrayLike,
     ensure_X_2d: bool = True,
     allow_nd: bool = False,
-    dtype: type = np.float64,
+    dtype: DTypeLike = np.float64,
 ) -> Tuple[NDArray[Union[np.float64, np.int64]], NDArray[Union[np.float64, np.int64]]]:
     X_checked = check_array(
         X, ensure_2d=ensure_X_2d, allow_nd=allow_nd, dtype=dtype, allow_sparse=True
