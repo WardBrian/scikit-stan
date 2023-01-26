@@ -1,4 +1,4 @@
-cmdstanpy>=1.0.4
+cmdstanpy>=1.1.0
 numpy>=1.21.0
 flake8
 pytest
