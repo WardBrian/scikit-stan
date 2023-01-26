@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
-import scipy.stats as stats
 from numpy.typing import ArrayLike, NDArray
 
 from scikit_stan.modelcore import CoreEstimator
@@ -593,6 +592,7 @@ class GLM(CoreEstimator):
             self.seed_ = self.fitted_samples_.metadata.cmdstan_config["seed"]
 
         stan_vars = self.fitted_samples_.stan_variables()
+        # TODO: handle better the output of advi, which also has "samples"
         if self.algorithm == "sample":
             if self.fit_intercept:
                 self.alpha_ = stan_vars["alpha"].mean(axis=0)
@@ -662,28 +662,6 @@ class GLM(CoreEstimator):
             X=X, ensure_2d=True, dtype=np.float64 if self.is_cont_dat_ else np.int64
         )
 
-        # NOTE: in a future Stan release, generate quantities() will not be restricted
-        # to requiring an MCMC sample, so the following will be obsolete
-        if self.algorithm != "sample":
-            if self.family == "gaussian":
-                return stats.norm.rvs(  # type: ignore
-                    self.alpha_ + np.dot(self.beta_, X_clean),  # type: ignore
-                    self.sigma_,
-                    random_state=self.seed_,
-                )
-            elif self.family == "gamma":
-                return stats.gamma.rvs(  # type: ignore
-                    self.alpha_ + np.dot(self.beta_, X_clean),  # type: ignore
-                    self.sigma_,
-                    random_state=self.seed_,
-                )
-            elif self.family == "inverse-gaussian":
-                return stats.invgauss.rvs(  # type: ignore
-                    self.alpha_ + np.dot(self.beta_, X_clean),  # type: ignore
-                    self.sigma_,
-                    random_state=self.seed_,
-                )
-
         dat: Dict[str, Any] = {
             "N": X_clean.shape[0],
             "K": X_clean.shape[1],
@@ -718,7 +696,7 @@ class GLM(CoreEstimator):
         # known that fitted with sampling, so fitted_samples is not None
         predictGQ = self.model_.generate_quantities(
             dat,
-            mcmc_sample=self.fitted_samples_,
+            previous_fit=self.fitted_samples_,
             seed=self.seed_,
             sig_figs=9,
             show_console=show_console,
