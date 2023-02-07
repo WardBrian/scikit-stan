@@ -214,7 +214,7 @@ def check_array(
     """
     # NOTE: cmdstanpy automatically deals with Pandas dataframes
 
-    if np.any(np.iscomplex(X)):  # type: ignore
+    if np.any(np.iscomplex(X)):
         raise ValueError("Complex data not supported.")
 
     if sp.issparse(X):
@@ -228,7 +228,7 @@ def check_array(
             )
     else:
         check_data = np.asarray(X)
-        if dtype == np.int32 and not np.can_cast(  # type: ignore
+        if dtype == np.int32 and not np.can_cast(
             check_data.dtype, dtype, casting="safe"
         ):
             raise ValueError(f"Cannot safely cast {check_data.dtype} to int32!")

@@ -41,7 +41,7 @@ jobs:
           flake8 scikit_stan test
 
       - name: Run mypy
-        if: matrix.python-version == '3.7' # only run on oldest version for now
+        if: matrix.python-version == '3.10'
         run: |
           mypy scikit_stan
 
