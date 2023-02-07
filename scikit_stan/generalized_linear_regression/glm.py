@@ -1,7 +1,7 @@
 """Generalized Linear Model with prior control for regression in scikit-learn type API."""
 
 import warnings
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import scipy.sparse as sp
@@ -427,12 +427,13 @@ class GLM(CoreEstimator):
 
         if sp.issparse(X_clean):
             # .std does not work on sparse matrices, so do this instead
-            sdx = np.sqrt((X_clean.power(2)).mean() - np.square(X_clean.mean()))
+            sdx = np.sqrt((X_clean.power(2)).mean() - np.square(X_clean.mean()))  # type: ignore
         else:
             sdx = X_clean.std()
+
         if self.family == "gaussian":  # gaussian
             my = np.mean(y_clean) if self.linkid_ == 0 else 0.0
-            sdy = np.std(y_clean)
+            sdy: float = np.std(y_clean)  # type: ignore
         else:
             my = 0.0
             sdy = 1.0
@@ -477,10 +478,10 @@ class GLM(CoreEstimator):
                     or len(self.priors["prior_slope_sigma"]) != K  # type: ignore
                 ):
                     raise ValueError(
-                        "Length of prior_slope_mu and prior_slope_sigma must be "  # type: ignore
+                        "Length of prior_slope_mu and prior_slope_sigma must be "
                         "equal to the number of features in X.\n"
-                        f"Got {len(self.priors['prior_slope_mu'])} "
-                        f"and {len(self.priors['prior_slope_sigma'])} respectively."
+                        f"Got {len(self.priors['prior_slope_mu'])} "  # type: ignore
+                        f"and {len(self.priors['prior_slope_sigma'])} respectively."  # type: ignore
                     )
 
         self.priors_ = priors_
@@ -710,12 +711,7 @@ class GLM(CoreEstimator):
         *,
         trials: Optional[ArrayLike] = None,
         show_console: bool = False,
-    ) -> Union[
-        NDArray[Union[np.float64, np.int64]],
-        Tuple[
-            NDArray[Union[np.float64, np.int64]], NDArray[Union[np.float64, np.int64]]
-        ],
-    ]:
+    ) -> NDArray[Union[np.float64, np.int64]]:
         """Compute predictions from supplied data using a fitted model.
             This computes the mean of the predicted distribution,
             given by y_sim in predict_distribution().
