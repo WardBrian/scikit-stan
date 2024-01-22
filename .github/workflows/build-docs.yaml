@@ -6,7 +6,7 @@ on:
   workflow_dispatch: {}
 
 env:
-  CMDSTAN_VERSION: "2.31.0"
+  CMDSTAN_VERSION: "2.34.0"
 
 jobs:
   build-docs:
@@ -47,7 +47,7 @@ jobs:
 
       - name: Install CmdStan
         run: |
-          python -m cmdstanpy.install_cmdstan --version "${{ env.CMDSTAN_VERSION }}" --cores 2
+          python -m cmdstanpy.install_cmdstan --version "${{ env.CMDSTAN_VERSION }}" --cores 4
 
       - name: Install package
         run: |
