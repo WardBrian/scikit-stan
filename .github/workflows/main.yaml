@@ -51,15 +51,9 @@ jobs:
           path: ~/.cmdstan
           key: ${{ runner.os }}-cmdstan-${{ env.CMDSTAN_VERSION }}
 
-      - name: Install CmdStan (Linux, macOS)
-        if: matrix.os != 'windows-latest'
+      - name: Install CmdStan
         run: |
-          python -m cmdstanpy.install_cmdstan --version "${{ env.CMDSTAN_VERSION }}" --cores 2
-
-      - name: Install CmdStan (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          python -m cmdstanpy.install_cmdstan --compiler --version "${{ env.CMDSTAN_VERSION }}" --cores 2
+          python -m cmdstanpy.install_cmdstan --version "${{ env.CMDSTAN_VERSION }}" --cores 4
 
       - name: Install package
         run: |
