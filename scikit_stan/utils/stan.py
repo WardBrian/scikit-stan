@@ -8,7 +8,7 @@ from pathlib import Path
 from cmdstanpy import CmdStanModel, set_cmdstan_path
 
 STAN_FILES_FOLDER = Path(__file__).parent.parent / "stan_files"
-CMDSTAN_VERSION = "2.30.1"
+CMDSTAN_VERSION = "2.34.0"
 
 
 def init_local_cmdstan() -> None:

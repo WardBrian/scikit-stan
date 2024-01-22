@@ -12,7 +12,7 @@ on:
 
 
 env:
-  CMDSTAN_VERSION: "2.32.1"
+  CMDSTAN_VERSION: "2.34.0"
 
 jobs:
   scikit-stan:
