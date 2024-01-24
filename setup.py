@@ -19,7 +19,7 @@ MODEL_DIR = "scikit_stan/stan_files"
 MODELS = ["glm_continuous", "glm_discrete", "glm_binomial"]
 
 
-CMDSTAN_VERSION = "2.34.0"
+CMDSTAN_VERSION = "2.34.1"
 BINARIES_DIR = "bin"
 BINARIES = ["diagnose", "print", "stanc", "stansummary"]
 MATH_LIB = "stan/lib/stan_math/lib"
