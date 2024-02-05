@@ -53,7 +53,7 @@ jobs:
 
       - name: Install CmdStan
         run: |
-          python -m cmdstanpy.install_cmdstan --version "${{ env.CMDSTAN_VERSION }}" --cores 4
+          python -m cmdstanpy.install_cmdstan --version "${{ env.CMDSTAN_VERSION }}" --cores 4 --verbose
 
       - name: Install package
         run: |
