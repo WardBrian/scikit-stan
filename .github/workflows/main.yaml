@@ -46,14 +46,19 @@ jobs:
           mypy scikit_stan
 
       - name: CmdStan installation cacheing
+        id: cache-cmdstan
         uses: actions/cache@v4
         with:
           path: ~/.cmdstan
           key: ${{ runner.os }}-cmdstan-${{ env.CMDSTAN_VERSION }}
+          
+      - name: Delete precompiled header (MacOS)
+        if: matrix.os == 'macos-latest' && steps.cache-cmdstan.outputs.cache-hit == 'true'
+        run: rm -f ~/.cmdstan/cmdstan-${{ env.CMDSTAN_VERSION }}/stan/src/stan/model/*.hpp.gch
 
       - name: Install CmdStan
         run: |
-          python -m cmdstanpy.install_cmdstan --version "${{ env.CMDSTAN_VERSION }}" --cores 4
+          python -m cmdstanpy.install_cmdstan --version "${{ env.CMDSTAN_VERSION }}" --cores 4 --verbose
 
       - name: Install package
         run: |
