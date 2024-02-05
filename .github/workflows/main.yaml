@@ -46,6 +46,7 @@ jobs:
           mypy scikit_stan
 
       - name: CmdStan installation cacheing
+        id: cache-cmdstan
         uses: actions/cache@v4
         with:
           path: ~/.cmdstan
